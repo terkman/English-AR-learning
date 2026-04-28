@@ -1,0 +1,132 @@
+[
+  {
+    "targetIndex": 0,
+    "target": "McDonald's",
+    "questions": [
+      "What do you usually order here?",
+      "Why do people like this brand?",
+      "How often do you eat fast food?",
+      "What is your favorite menu item?",
+      "How is this brand different from others?",
+      "Would you recommend this place to a friend? Why?",
+      "What do you think about the price of the food here?"
+    ]
+  },
+  {
+    "targetIndex": 1,
+    "target": "Nike",
+    "questions": [
+      "Why do you think Nike is a popular brand?",
+      "What kind of sports do you think Nike is best for?",
+      "Would you buy Nike products? Why or why not?",
+      "What does the Nike slogan 'Just Do It' mean to you?",
+      "How do brands like Nike influence people?",
+      "Do you think sports brands are worth the money?",
+      "What would you design if you could make your own shoes?"
+    ]
+  },
+  {
+    "targetIndex": 2,
+    "target": "Coca-Cola",
+    "questions": [
+      "Why do you think Coca-Cola is so popular worldwide?",
+      "What does Coca-Cola taste like to you?",
+      "When do you usually drink Coca-Cola?",
+      "Do you think soft drinks are good for your health? Why?",
+      "How do you feel when you see the Coca-Cola logo?",
+      "What other drinks would you choose instead of Coca-Cola?",
+      "How does advertising make people want to buy drinks?"
+    ]
+  },
+  {
+    "targetIndex": 3,
+    "target": "7-Eleven",
+    "questions": [
+      "What do you usually buy at a convenience store?",
+      "Why are convenience stores open 24 hours?",
+      "How is a convenience store different from a supermarket?",
+      "What is the most useful thing you can buy at 7-Eleven?",
+      "Have you ever been to a convenience store at night? Why?",
+      "What would you change about convenience stores?",
+      "Do you think convenience stores are important in daily life?"
+    ]
+  },
+  {
+    "targetIndex": 4,
+    "target": "Starbucks",
+    "questions": [
+      "What kind of people do you usually see at Starbucks?",
+      "Why do some people spend a lot of money on coffee?",
+      "What is your favorite type of coffee or drink?",
+      "How does a coffee shop make you feel?",
+      "Would you go to Starbucks to study? Why?",
+      "What makes Starbucks different from other coffee shops?",
+      "How has coffee become popular around the world?"
+    ]
+  },
+  {
+    "targetIndex": 5,
+    "target": "Restroom",
+    "questions": [
+      "Why is it important to have clean restrooms in public?",
+      "What should you do to keep a restroom clean?",
+      "How do you ask for directions to a restroom politely?",
+      "Have you ever had trouble finding a restroom? What happened?",
+      "What makes a public restroom comfortable or uncomfortable?",
+      "Why are restrooms important for people with disabilities?",
+      "How are restrooms in Thailand different from other countries?"
+    ]
+  },
+  {
+    "targetIndex": 6,
+    "target": "Exit",
+    "questions": [
+      "When do you need to find an exit?",
+      "Why are exit signs important in buildings?",
+      "Where do you usually see this sign?",
+      "What should people do when they see an exit sign during an emergency?",
+      "How can exit signs save lives?",
+      "Have you ever practiced a fire drill? What did you do?",
+      "Why should you never block an exit?"
+    ]
+  },
+  {
+    "targetIndex": 7,
+    "target": "Warning",
+    "questions": [
+      "Why do we put warning signs in public places?",
+      "What might happen if people ignore a warning sign?",
+      "Can you think of three places where you see warning signs?",
+      "How do warning signs protect people?",
+      "Have you ever seen a warning sign and felt scared? Why?",
+      "What makes a warning sign easy to understand?",
+      "Who is responsible for putting up warning signs?"
+    ]
+  },
+  {
+    "targetIndex": 8,
+    "target": "No Smoking",
+    "questions": [
+      "Why do people put this sign in public places?",
+      "What might happen if people ignore this sign?",
+      "Where do you usually see this sign?",
+      "How does this sign help people?",
+      "What should people do when they see this sign?",
+      "Why is smoking harmful to other people nearby?",
+      "How can young people avoid starting to smoke?"
+    ]
+  },
+  {
+    "targetIndex": 9,
+    "target": "Information",
+    "questions": [
+      "Where do you usually find an information desk?",
+      "When do you need to ask for information?",
+      "What kind of questions do people ask at an information desk?",
+      "Why is it important to have correct information?",
+      "How do you ask for information politely in English?",
+      "What is the difference between information and advice?",
+      "Where else can you find information besides an information desk?"
+    ]
+  }
+]

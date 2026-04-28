@@ -1,0 +1,126 @@
+{
+  "wheelSegments": [
+    { "text": "Ask your\nfriend.", "emoji": "🙋", "color": "#00d4ff" },
+    { "text": "Talk with\nyour partner.", "emoji": "🤝", "color": "#ffd60a" },
+    { "text": "Search\naround you.", "emoji": "🔍", "color": "#ff3b8f" },
+    { "text": "Guess the\nanswer.", "emoji": "💭", "color": "#9b5de5" },
+    { "text": "Say your idea\nout loud.", "emoji": "🗣️", "color": "#06d6a0" },
+    { "text": "Draw your\nanswer.", "emoji": "✏️", "color": "#ff9f1c" },
+    { "text": "Act\nit out.", "emoji": "🎭", "color": "#00d4ff" },
+    { "text": "Use your phone\nto search.", "emoji": "📱", "color": "#ffd60a" },
+    { "text": "Discuss in\nyour group.", "emoji": "👥", "color": "#ff3b8f" },
+    { "text": "Look for a\nclue nearby.", "emoji": "👀", "color": "#06d6a0" }
+  ],
+  "questions": [
+    {
+      "targetIndex": 0,
+      "target": "McDonald's",
+      "questions": [
+        "What do you usually order here?",
+        "Why do people like this brand?",
+        "How often do you eat fast food?",
+        "What is your favorite menu item?",
+        "How is this brand different from others?"
+      ]
+    },
+    {
+      "targetIndex": 1,
+      "target": "Nike",
+      "questions": [
+        "Why do you think Nike is a popular brand?",
+        "What kind of sports do you think Nike is best for?",
+        "Would you buy Nike products? Why or why not?",
+        "What does the Nike slogan mean to you?",
+        "How do brands influence people?"
+      ]
+    },
+    {
+      "targetIndex": 2,
+      "target": "Coca-Cola",
+      "questions": [
+        "Why do you think Coca-Cola is so popular?",
+        "When do you usually drink Coca-Cola?",
+        "Do you think soft drinks are good for your health?",
+        "How do you feel when you see the Coca-Cola logo?",
+        "What other drinks would you choose instead?"
+      ]
+    },
+    {
+      "targetIndex": 3,
+      "target": "7-Eleven",
+      "questions": [
+        "What do you usually buy at a convenience store?",
+        "Why are convenience stores open 24 hours?",
+        "How is a convenience store different from a supermarket?",
+        "What is the most useful thing you can buy here?",
+        "Do you think convenience stores are important in daily life?"
+      ]
+    },
+    {
+      "targetIndex": 4,
+      "target": "Starbucks",
+      "questions": [
+        "What kind of people do you usually see at Starbucks?",
+        "Why do some people spend a lot of money on coffee?",
+        "Would you go to Starbucks to study? Why?",
+        "What makes Starbucks different from other coffee shops?",
+        "How has coffee become popular around the world?"
+      ]
+    },
+    {
+      "targetIndex": 5,
+      "target": "Restroom",
+      "questions": [
+        "Why is it important to have clean restrooms in public?",
+        "What should you do to keep a restroom clean?",
+        "How do you ask for directions to a restroom politely?",
+        "What makes a public restroom comfortable or uncomfortable?",
+        "Why are restrooms important for people with disabilities?"
+      ]
+    },
+    {
+      "targetIndex": 6,
+      "target": "Exit",
+      "questions": [
+        "When do you need to find an exit?",
+        "Why are exit signs important in buildings?",
+        "What should people do when they see an exit sign in an emergency?",
+        "How can exit signs save lives?",
+        "Why should you never block an exit?"
+      ]
+    },
+    {
+      "targetIndex": 7,
+      "target": "Warning",
+      "questions": [
+        "Why do we put warning signs in public places?",
+        "What might happen if people ignore a warning sign?",
+        "Can you think of three places where you see warning signs?",
+        "How do warning signs protect people?",
+        "What makes a warning sign easy to understand?"
+      ]
+    },
+    {
+      "targetIndex": 8,
+      "target": "No Smoking",
+      "questions": [
+        "Why do people put this sign in public places?",
+        "What might happen if people ignore this sign?",
+        "Where do you usually see this sign?",
+        "How does this sign help people?",
+        "Why is smoking harmful to other people nearby?"
+      ]
+    },
+    {
+      "targetIndex": 9,
+      "target": "Information",
+      "questions": [
+        "Where do you usually find an information desk?",
+        "When do you need to ask for information?",
+        "What kind of questions do people ask at an information desk?",
+        "How do you ask for information politely in English?",
+        "Where else can you find information besides an information desk?"
+      ]
+    }
+  ]
+}

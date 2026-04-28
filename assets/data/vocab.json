@@ -1,0 +1,72 @@
+[
+  {
+    "index": 0,
+    "word": "McDonald's",
+    "phonetic": "/ˌmækˈdɒnəldz/",
+    "type": "Brand",
+    "example": "Let's have lunch at McDonald's!"
+  },
+  {
+    "index": 1,
+    "word": "Nike",
+    "phonetic": "/ˈnaɪki/",
+    "type": "Brand",
+    "example": "She bought a new pair of Nike shoes."
+  },
+  {
+    "index": 2,
+    "word": "Coca-Cola",
+    "phonetic": "/ˌkoʊkəˈkoʊlə/",
+    "type": "Brand",
+    "example": "I'd like a cold Coca-Cola, please."
+  },
+  {
+    "index": 3,
+    "word": "7-Eleven",
+    "phonetic": "/ˌsɛvənɪˈlɛvən/",
+    "type": "Brand",
+    "example": "The 7-Eleven is open 24 hours a day."
+  },
+  {
+    "index": 4,
+    "word": "Starbucks",
+    "phonetic": "/ˈstɑːrbʌks/",
+    "type": "Brand",
+    "example": "Let's meet at Starbucks after school."
+  },
+  {
+    "index": 5,
+    "word": "Restroom",
+    "phonetic": "/ˈrɛstruːm/",
+    "type": "Sign",
+    "example": "Excuse me, where is the restroom?"
+  },
+  {
+    "index": 6,
+    "word": "Exit",
+    "phonetic": "/ˈɛɡzɪt/",
+    "type": "Sign",
+    "example": "Please use the exit on the right."
+  },
+  {
+    "index": 7,
+    "word": "Warning",
+    "phonetic": "/ˈwɔːrnɪŋ/",
+    "type": "Sign",
+    "example": "The warning sign says do not enter."
+  },
+  {
+    "index": 8,
+    "word": "No Smoking",
+    "phonetic": "/noʊ ˈsmoʊkɪŋ/",
+    "type": "Sign",
+    "example": "This is a no smoking area."
+  },
+  {
+    "index": 9,
+    "word": "Information",
+    "phonetic": "/ˌɪnfərˈmeɪʃən/",
+    "type": "Sign",
+    "example": "Go to the information desk for help."
+  }
+]

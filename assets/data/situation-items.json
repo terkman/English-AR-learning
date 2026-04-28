@@ -1,0 +1,98 @@
+[
+  {
+    "id": "sign-7eleven",
+    "label": "Store Sign",
+    "word": "7-Eleven",
+    "type": "vocab",
+    "phonetic": "/ˌsɛvənɪˈlɛvən/",
+    "example": "The 7-Eleven is open 24 hours a day.",
+    "posX": 20, "posY": 18,
+    "color": "#ffd60a",
+    "emoji": "🏪"
+  },
+  {
+    "id": "sign-exit",
+    "label": "Exit Sign",
+    "word": "Exit",
+    "type": "vocab",
+    "phonetic": "/ˈɛɡzɪt/",
+    "example": "Please use the exit on the right.",
+    "posX": 80, "posY": 20,
+    "color": "#06d6a0",
+    "emoji": "🚪"
+  },
+  {
+    "id": "product-cola",
+    "label": "Product",
+    "word": "Coca-Cola",
+    "type": "vocab",
+    "phonetic": "/ˌkoʊkəˈkoʊlə/",
+    "example": "I'd like a cold Coca-Cola, please.",
+    "posX": 35, "posY": 52,
+    "color": "#ff3b8f",
+    "emoji": "🥤"
+  },
+  {
+    "id": "sign-warning",
+    "label": "Warning Sign",
+    "word": "Warning",
+    "type": "vocab",
+    "phonetic": "/ˈwɔːrnɪŋ/",
+    "example": "The warning sign says do not enter.",
+    "posX": 65, "posY": 55,
+    "color": "#ff9f1c",
+    "emoji": "⚠️"
+  },
+  {
+    "id": "sign-nosmoking",
+    "label": "No Smoking Sign",
+    "word": "No Smoking",
+    "type": "vocab",
+    "phonetic": "/noʊ ˈsmoʊkɪŋ/",
+    "example": "This is a no smoking area.",
+    "posX": 50, "posY": 25,
+    "color": "#9b5de5",
+    "emoji": "🚭"
+  },
+  {
+    "id": "conversation-cashier",
+    "label": "Conversation",
+    "word": "At the Counter",
+    "type": "dialogue",
+    "dialogue": [
+      { "speaker": "A", "line": "What would you like to buy?" },
+      { "speaker": "B", "line": "I would like a bottle of water." },
+      { "speaker": "A", "line": "That will be twenty baht, please." },
+      { "speaker": "B", "line": "Here you go. Thank you!" }
+    ],
+    "posX": 50, "posY": 68,
+    "color": "#00d4ff",
+    "emoji": "💬"
+  },
+  {
+    "id": "sign-restroom",
+    "label": "Restroom Sign",
+    "word": "Restroom",
+    "type": "vocab",
+    "phonetic": "/ˈrɛstruːm/",
+    "example": "Excuse me, where is the restroom?",
+    "posX": 15, "posY": 45,
+    "color": "#00d4ff",
+    "emoji": "🚻"
+  },
+  {
+    "id": "conversation-help",
+    "label": "Asking for Help",
+    "word": "Need Help?",
+    "type": "dialogue",
+    "dialogue": [
+      { "speaker": "A", "line": "Excuse me, can you help me?" },
+      { "speaker": "B", "line": "Of course! What do you need?" },
+      { "speaker": "A", "line": "Where is the information desk?" },
+      { "speaker": "B", "line": "It's over there, near the entrance." }
+    ],
+    "posX": 82, "posY": 55,
+    "color": "#ffd60a",
+    "emoji": "🙋"
+  }
+]

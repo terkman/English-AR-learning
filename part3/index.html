@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<!-- v1.0 - Part 3: AR Answer Mission Wheel -->
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Part 3 – AR Answer Mission Wheel</title>
+
+  <script src="https://cdn.jsdelivr.net/npm/aframe@1.4.2/dist/aframe.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
+
+  <link rel="stylesheet" href="../style.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;900&family=Space+Mono:wght@700&display=swap" rel="stylesheet" />
+
+  <style>
+    body { margin: 0; overflow: hidden; background: #000; }
+    a-scene { position: fixed; inset: 0; }
+
+    /* ── Step 1: Question popup ───────────── */
+    #popup-question-area .popup-label { color: var(--pink); }
+    #popup-q-target {
+      font-size: 1rem;
+      font-weight: 900;
+      color: var(--pink);
+      margin-bottom: 0.25rem;
+    }
+    #popup-q-text {
+      font-size: 1.1rem;
+      font-weight: 800;
+      color: var(--text-white);
+      line-height: 1.45;
+      margin: 0.5rem 0 0.8rem;
+    }
+
+    /* ── Wheel modal overlay ──────────────── */
+    #wheel-modal {
+      position: fixed;
+      inset: 0;
+      background: rgba(10,14,26,0.95);
+      z-index: 1500;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      padding: 1.5rem 1rem 1rem;
+      transform: translateY(100%);
+      transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    #wheel-modal.show { transform: translateY(0); }
+
+    .wheel-modal-header {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 0.5rem;
+    }
+    .wheel-modal-title {
+      font-size: 1rem;
+      font-weight: 900;
+      color: var(--pink);
+    }
+    .wheel-modal-close {
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.15);
+      color: #fff;
+      font-size: 0.8rem;
+      font-weight: 700;
+      padding: 0.35rem 0.8rem;
+      border-radius: 20px;
+      font-family: var(--font-main);
+    }
+
+    /* Current question in wheel modal */
+    #wheel-modal-question {
+      font-size: 0.9rem;
+      font-weight: 700;
+      color: var(--text-muted);
+      text-align: center;
+      margin-bottom: 1rem;
+      padding: 0.6rem 1rem;
+      background: rgba(255,59,143,0.1);
+      border: 1px solid rgba(255,59,143,0.25);
+      border-radius: var(--r-sm);
+      line-height: 1.5;
+    }
+
+    /* Canvas wheel container */
+    .wheel-wrap {
+      position: relative;
+      width: min(300px, 80vw);
+      height: min(300px, 80vw);
+      margin: 0 auto 0.5rem;
+    }
+    #wheel-canvas {
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+    }
+    /* Pointer arrow above wheel */
+    .wheel-pointer {
+      position: absolute;
+      top: -18px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 1.6rem;
+      filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5));
+      z-index: 10;
+    }
+
+    /* Result display */
+    #wheel-result {
+      margin-top: 0.8rem;
+      text-align: center;
+      min-height: 4rem;
+      transition: opacity 0.3s;
+    }
+    #wheel-result.hidden { opacity: 0; }
+    #result-emoji { font-size: 2rem; margin-bottom: 0.2rem; }
+    #result-text  {
+      font-size: 1.05rem;
+      font-weight: 900;
+      color: var(--text-white);
+      line-height: 1.3;
+    }
+    #result-sub {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      font-weight: 600;
+      margin-top: 0.2rem;
+    }
+
+    /* Spin button */
+    #btn-spin {
+      margin-top: 0.8rem;
+      font-size: 1rem;
+      padding: 0.85rem 2rem;
+      border-radius: 50px;
+      background: linear-gradient(135deg, var(--pink), var(--purple));
+      color: #fff;
+      font-weight: 900;
+      font-family: var(--font-main);
+      border: none;
+      cursor: pointer;
+      transition: transform 0.12s, opacity 0.12s;
+      -webkit-tap-highlight-color: transparent;
+    }
+    #btn-spin:active  { transform: scale(0.94); opacity: 0.85; }
+    #btn-spin:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    /* Progress indicator */
+    #q-progress {
+      font-size: 0.65rem;
+      font-family: var(--font-mono);
+      color: var(--text-dim);
+      font-weight: 700;
+    }
+  </style>
+</head>
+<body class="ar-page">
+
+  <!-- ── Loading overlay ─────────────────── -->
+  <div class="loading-overlay" id="loading-overlay">
+    <div class="loading-spinner" style="border-top-color: var(--pink);"></div>
+    <p class="loading-text" id="loading-text">Starting camera…</p>
+  </div>
+
+  <!-- ── Back button ─────────────────────── -->
+  <button class="ar-back-btn" onclick="window.location='../'">← Back</button>
+
+  <!-- ── AR Status ───────────────────────── -->
+  <div class="ar-status scanning" id="ar-status">🔍 SCANNING</div>
+
+  <!-- ── Scan hint ───────────────────────── -->
+  <div class="scan-hint" id="scan-hint">
+    <div class="scan-frame" style="border-color: rgba(255,59,143,0.4);">
+      <div class="scan-line" style="background: linear-gradient(90deg, transparent, #ff3b8f, transparent);"></div>
+    </div>
+    <p class="scan-hint-text">Scan a target to get your mission</p>
+  </div>
+
+  <!-- ── Question popup (Step 1) ─────────── -->
+  <div class="ar-popup accent-pink" id="ar-popup">
+    <div id="popup-question-area">
+      <p class="popup-label">MISSION QUESTION</p>
+      <div id="popup-q-target">McDonald's</div>
+      <div id="q-progress">Q 1 / 5</div>
+      <div id="popup-q-text">What do you usually order here?</div>
+      <div class="popup-buttons">
+        <button class="btn btn-pink" onclick="speakMissionQuestion()">🔊 Read</button>
+        <button class="btn btn-ghost" onclick="openWheel()">🎯 Spin Wheel!</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Wheel Modal (Step 2) ────────────── -->
+  <div id="wheel-modal">
+    <div class="wheel-modal-header">
+      <span class="wheel-modal-title">🎯 MISSION WHEEL</span>
+      <button class="wheel-modal-close" onclick="closeWheel()">✕ Close</button>
+    </div>
+
+    <!-- Current question reminder -->
+    <div id="wheel-modal-question">…</div>
+
+    <!-- The spinning wheel (drawn on canvas) -->
+    <div class="wheel-wrap">
+      <div class="wheel-pointer">▼</div>
+      <canvas id="wheel-canvas" width="600" height="600"></canvas>
+    </div>
+
+    <!-- Result after spin -->
+    <div id="wheel-result" class="hidden">
+      <div id="result-emoji">🎯</div>
+      <div id="result-text">Spin the wheel!</div>
+      <div id="result-sub">Your mission will appear here.</div>
+    </div>
+
+    <!-- Spin button -->
+    <button id="btn-spin" onclick="spinWheel()">🎰 SPIN THE WHEEL!</button>
+  </div>
+
+  <!-- ═══════════════════════════════════════════
+       A-Frame AR Scene
+       ═══════════════════════════════════════════ -->
+  <a-scene
+    mindar-image="imageTargetSrc: ../assets/targets/targets.mind; autoStart: false; uiLoading: no; uiError: no; uiScanning: no;"
+    color-space="sRGB"
+    renderer="colorManagement: true"
+    vr-mode-ui="enabled: false"
+    device-orientation-permission-ui="enabled: false"
+    id="ar-scene"
+  >
+    <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
+
+    <!-- AR overlays for each target - show a spin icon -->
+    <a-entity mindar-image-target="targetIndex: 0" id="target-0">
+      <a-text value="🎯" align="center" width="1.5" position="0 0.35 0"></a-text>
+    </a-entity>
+    <a-entity mindar-image-target="targetIndex: 1" id="target-1">
+      <a-text value="🎯" align="center" width="1.5" position="0 0.35 0"></a-text>
+    </a-entity>
+    <a-entity mindar-image-target="targetIndex: 2" id="target-2">
+      <a-text value="🎯" align="center" width="1.5" position="0 0.35 0"></a-text>
+    </a-entity>
+    <a-entity mindar-image-target="targetIndex: 3" id="target-3">
+      <a-text value="🎯" align="center" width="1.5" position="0 0.35 0"></a-text>
+    </a-entity>
+    <a-entity mindar-image-target="targetIndex: 4" id="target-4">
+      <a-text value="🎯" align="center" width="1.5" position="0 0.35 0"></a-text>
+    </a-entity>
+    <a-entity mindar-image-target="targetIndex: 5" id="target-5">
+      <a-text value="🎯" align="center" width="1.5" position="0 0.35 0"></a-text>
+    </a-entity>
+    <a-entity mindar-image-target="targetIndex: 6" id="target-6">
+      <a-text value="🎯" align="center" width="1.5" position="0 0.35 0"></a-text>
+    </a-entity>
+    <a-entity mindar-image-target="targetIndex: 7" id="target-7">
+      <a-text value="🎯" align="center" width="1.5" position="0 0.35 0"></a-text>
+    </a-entity>
+    <a-entity mindar-image-target="targetIndex: 8" id="target-8">
+      <a-text value="🎯" align="center" width="1.5" position="0 0.35 0"></a-text>
+    </a-entity>
+    <a-entity mindar-image-target="targetIndex: 9" id="target-9">
+      <a-text value="🎯" align="center" width="1.5" position="0 0.35 0"></a-text>
+    </a-entity>
+  </a-scene>
+
+  <script>
+    'use strict';
+
+    // ══════════════════════════════════════════
+    // DATA & STATE
+    // ══════════════════════════════════════════
+    let missionsData   = null;       // Full data from missions.json
+    let segments       = [];         // Wheel segments
+    let currentTarget  = null;       // { targetIndex, target, queue[], currentIdx }
+
+    // Per-target question queues (non-repeating)
+    // Key: targetIndex, Value: shuffled question queue
+    const questionQueues = {};
+
+    // Shuffle helper
+    function shuffle(arr) {
+      const a = [...arr];
+      for (let i = a.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [a[i], a[j]] = [a[j], a[i]];
+      }
+      return a;
+    }
+
+    // Load data
+    fetch('../assets/data/missions.json')
+      .then(r => r.json())
+      .then(data => {
+        missionsData = data;
+        segments     = data.wheelSegments;
+        console.log('[Part3] Missions data loaded');
+        drawWheel();
+      })
+      .catch(err => console.error('[Part3] Failed to load missions.json', err));
+
+    // ══════════════════════════════════════════
+    // AR LOGIC
+    // ══════════════════════════════════════════
+    const scene          = document.getElementById('ar-scene');
+    const loadingOverlay = document.getElementById('loading-overlay');
+    const arStatus       = document.getElementById('ar-status');
+    const scanHint       = document.getElementById('scan-hint');
+    const arPopup        = document.getElementById('ar-popup');
+
+    scene.addEventListener('arReady', () => {
+      loadingOverlay.classList.add('hidden');
+    });
+
+    scene.addEventListener('loaded', () => {
+      document.getElementById('loading-text').textContent = 'Loading AR engine…';
+      const sys = scene.systems['mindar-image-system'];
+      if (sys) setTimeout(() => sys.start(), 300);
+
+      for (let i = 0; i < 10; i++) {
+        const el  = document.getElementById(`target-${i}`);
+        if (!el) continue;
+        const idx = i;
+        el.addEventListener('targetFound', () => showMissionQuestion(idx));
+        el.addEventListener('targetLost',  () => hideMissionQuestion());
+      }
+    });
+
+    // Show question for scanned target
+    function showMissionQuestion(targetIndex) {
+      if (!missionsData) return;
+      const data = missionsData.questions.find(d => d.targetIndex === targetIndex);
+      if (!data) return;
+
+      // Build/restore queue for this target
+      if (!questionQueues[targetIndex]) {
+        questionQueues[targetIndex] = { queue: shuffle(data.questions), idx: 0 };
+      }
+      const qState = questionQueues[targetIndex];
+      // Refill queue when exhausted
+      if (qState.idx >= qState.queue.length) {
+        qState.queue = shuffle(data.questions);
+        qState.idx   = 0;
+      }
+
+      const question = qState.queue[qState.idx];
+      qState.idx++;
+
+      currentTarget = {
+        targetIndex,
+        target: data.target,
+        currentQuestion: question,
+        qNum: qState.idx,
+        qTotal: data.questions.length
+      };
+
+      // Update UI
+      document.getElementById('popup-q-target').textContent = data.target;
+      document.getElementById('popup-q-text').textContent   = question;
+      document.getElementById('q-progress').textContent     =
+        `Q ${qState.idx} / ${data.questions.length}`;
+
+      arPopup.classList.add('show');
+      scanHint.classList.add('hidden');
+      arStatus.textContent = '✅ FOUND';
+      arStatus.className   = 'ar-status found';
+
+      speakMissionQuestion();
+      if ('vibrate' in navigator) navigator.vibrate(60);
+    }
+
+    function hideMissionQuestion() {
+      currentTarget = null;
+      arPopup.classList.remove('show');
+      scanHint.classList.remove('hidden');
+      arStatus.textContent = '🔍 SCANNING';
+      arStatus.className   = 'ar-status scanning';
+      if ('speechSynthesis' in window) window.speechSynthesis.cancel();
+    }
+
+    function speakMissionQuestion() {
+      if (!currentTarget) return;
+      speak(currentTarget.currentQuestion);
+    }
+
+    // ══════════════════════════════════════════
+    // WHEEL MODAL
+    // ══════════════════════════════════════════
+    function openWheel() {
+      const modal = document.getElementById('wheel-modal');
+      modal.classList.add('show');
+      if (currentTarget) {
+        document.getElementById('wheel-modal-question').textContent =
+          currentTarget.currentQuestion;
+      }
+      // Reset result
+      document.getElementById('wheel-result').classList.add('hidden');
+      document.getElementById('btn-spin').disabled = false;
+      document.getElementById('btn-spin').textContent = '🎰 SPIN THE WHEEL!';
+    }
+
+    function closeWheel() {
+      document.getElementById('wheel-modal').classList.remove('show');
+    }
+
+    // ══════════════════════════════════════════
+    // SPIN WHEEL — Canvas implementation
+    // ══════════════════════════════════════════
+    const canvas = document.getElementById('wheel-canvas');
+    const ctx    = canvas.getContext('2d');
+    const CX     = canvas.width / 2;
+    const CY     = canvas.height / 2;
+    const R      = CX - 10; // radius
+
+    let currentAngle  = 0;  // current rotation angle (radians)
+    let isSpinning    = false;
+    let animationId   = null;
+
+    function drawWheel(rotation = 0) {
+      if (!segments || segments.length === 0) return;
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      const numSeg  = segments.length;
+      const arcSize = (2 * Math.PI) / numSeg;
+
+      for (let i = 0; i < numSeg; i++) {
+        const startAngle = rotation + i * arcSize;
+        const endAngle   = startAngle + arcSize;
+        const seg        = segments[i];
+
+        // Draw segment
+        ctx.beginPath();
+        ctx.moveTo(CX, CY);
+        ctx.arc(CX, CY, R, startAngle, endAngle);
+        ctx.closePath();
+        ctx.fillStyle = seg.color;
+        ctx.fill();
+        ctx.strokeStyle = 'rgba(10,14,26,0.6)';
+        ctx.lineWidth = 3;
+        ctx.stroke();
+
+        // Draw text
+        ctx.save();
+        ctx.translate(CX, CY);
+        ctx.rotate(startAngle + arcSize / 2);
+        ctx.textAlign  = 'right';
+        ctx.textBaseline = 'middle';
+        ctx.fillStyle  = '#000';
+        ctx.font       = 'bold 18px Nunito, sans-serif';
+
+        // Multi-line text support
+        const lines = seg.text.split('\n');
+        const lineH = 22;
+        const totalH = lines.length * lineH;
+        lines.forEach((line, li) => {
+          ctx.fillText(line, R - 15, -totalH / 2 + li * lineH + lineH / 2);
+        });
+
+        // Emoji
+        ctx.font = '20px serif';
+        ctx.fillText(seg.emoji, R - 15 - (seg.text.length > 10 ? 85 : 75), 0);
+
+        ctx.restore();
+      }
+
+      // Center circle
+      ctx.beginPath();
+      ctx.arc(CX, CY, 30, 0, 2 * Math.PI);
+      ctx.fillStyle = '#0a0e1a';
+      ctx.fill();
+      ctx.strokeStyle = 'rgba(255,59,143,0.5)';
+      ctx.lineWidth = 4;
+      ctx.stroke();
+
+      // Center dot
+      ctx.beginPath();
+      ctx.arc(CX, CY, 8, 0, 2 * Math.PI);
+      ctx.fillStyle = '#ff3b8f';
+      ctx.fill();
+    }
+
+    function spinWheel() {
+      if (isSpinning) return;
+      isSpinning = true;
+
+      const spinBtn = document.getElementById('btn-spin');
+      spinBtn.disabled  = true;
+      spinBtn.textContent = '🌀 Spinning…';
+      document.getElementById('wheel-result').classList.add('hidden');
+
+      if ('vibrate' in navigator) navigator.vibrate([30, 50, 30]);
+
+      // Random spin: 5–10 full rotations + random stop
+      const spinAmount = (Math.random() * 5 + 5) * 2 * Math.PI;
+      const targetAngle = currentAngle + spinAmount;
+      const startAngle  = currentAngle;
+      const duration    = 3000 + Math.random() * 1000; // 3–4 seconds
+      const startTime   = performance.now();
+
+      function easeOut(t) {
+        return 1 - Math.pow(1 - t, 4); // ease-out quartic
+      }
+
+      function animate(now) {
+        const elapsed = now - startTime;
+        const progress = Math.min(elapsed / duration, 1);
+        currentAngle = startAngle + spinAmount * easeOut(progress);
+
+        drawWheel(currentAngle);
+
+        if (progress < 1) {
+          animationId = requestAnimationFrame(animate);
+        } else {
+          isSpinning = false;
+          currentAngle = targetAngle % (2 * Math.PI);
+          drawWheel(currentAngle);
+          showResult();
+          spinBtn.disabled  = false;
+          spinBtn.textContent = '🎰 SPIN AGAIN!';
+        }
+      }
+
+      animationId = requestAnimationFrame(animate);
+    }
+
+    function showResult() {
+      if (!segments || segments.length === 0) return;
+
+      const numSeg  = segments.length;
+      const arcSize = (2 * Math.PI) / numSeg;
+
+      // The pointer is at the TOP (270° = 3π/2 from 0 = right)
+      // Normalize: pointer at top = -π/2
+      // We need to figure out which segment is at the top
+      const pointerAngle = 3 * Math.PI / 2; // top of wheel in standard coords
+      const normalised   = ((pointerAngle - currentAngle) % (2 * Math.PI) + 2 * Math.PI) % (2 * Math.PI);
+      const segIndex     = Math.floor(normalised / arcSize) % numSeg;
+
+      const result = segments[segIndex];
+
+      document.getElementById('result-emoji').textContent = result.emoji;
+      document.getElementById('result-text').textContent  = result.text.replace('\n', ' ');
+      document.getElementById('result-sub').textContent   = 'That is your mission! Good luck!';
+
+      const resultEl = document.getElementById('wheel-result');
+      resultEl.classList.remove('hidden');
+      resultEl.style.color = result.color;
+
+      // Speak the mission
+      speak('Your mission: ' + result.text.replace('\n', ' '));
+
+      if ('vibrate' in navigator) navigator.vibrate([50, 30, 100]);
+    }
+
+    // ══════════════════════════════════════════
+    // SPEECH
+    // ══════════════════════════════════════════
+    function speak(text) {
+      if (!('speechSynthesis' in window)) return;
+      window.speechSynthesis.cancel();
+      const utt   = new SpeechSynthesisUtterance(text);
+      utt.lang    = 'en-US';
+      utt.rate    = 0.88;
+      utt.pitch   = 1;
+      const voices = window.speechSynthesis.getVoices();
+      const eng   = voices.find(v => v.lang.startsWith('en') && v.localService);
+      if (eng) utt.voice = eng;
+      window.speechSynthesis.speak(utt);
+    }
+
+    if ('speechSynthesis' in window) {
+      window.speechSynthesis.getVoices();
+      window.speechSynthesis.onvoiceschanged = () => window.speechSynthesis.getVoices();
+    }
+  </script>
+</body>
+</html>
