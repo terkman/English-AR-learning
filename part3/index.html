@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v1.0 - Part 3: AR Answer Mission Wheel -->
+<!-- Mobile-first Part 3: AR Answer Mission Wheel -->
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
@@ -13,274 +13,205 @@
   <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;900&family=Space+Mono:wght@700&display=swap" rel="stylesheet" />
 
   <style>
-    body { margin: 0; overflow: hidden; background: #000; }
+    body { margin: 0; overflow: hidden; background: #000; overscroll-behavior: none; }
     a-scene { position: fixed; inset: 0; }
 
-    /* ── Step 1: Question popup ───────────── */
-    #popup-question-area .popup-label { color: var(--pink); }
-    #popup-q-target {
-      font-size: 1rem;
-      font-weight: 900;
-      color: var(--pink);
-      margin-bottom: 0.25rem;
+    .mobile-start {
+      position: fixed; inset: 0; z-index: 2500;
+      display: flex; align-items: center; justify-content: center;
+      padding: 1.2rem; background: radial-gradient(circle at top, rgba(255,59,143,0.15), #0a0e1a 58%);
+      text-align: center;
     }
+    .start-card {
+      width: min(360px, 92vw); background: rgba(18,24,43,0.96);
+      border: 1.5px solid rgba(255,59,143,0.35); border-radius: 24px;
+      padding: 1.3rem; box-shadow: 0 24px 80px rgba(0,0,0,0.45);
+    }
+    .start-title { font-size: 1.42rem; font-weight: 900; color: var(--pink); margin-bottom: 0.35rem; }
+    .start-desc { color: var(--text-muted); font-weight: 700; line-height: 1.45; font-size: 0.92rem; margin-bottom: 1rem; }
+    .start-btn { width: 100%; padding: 0.95rem 1rem; border-radius: 999px; background: var(--pink); color: #fff; font-weight: 900; font-size: 1.05rem; }
+    .start-note { margin-top: 0.8rem; color: rgba(255,255,255,0.42); font-size: 0.72rem; font-weight: 700; }
+
+    #loading-overlay { display: none; }
+    #loading-overlay.show { display: flex; }
+    .loading-spinner { border-top-color: var(--pink); }
+
+    #popup-question-area .popup-label { color: var(--pink); }
+    #popup-q-target { font-size: 0.96rem; font-weight: 900; color: var(--pink); margin-bottom: 0.25rem; }
     #popup-q-text {
-      font-size: 1.1rem;
-      font-weight: 800;
-      color: var(--text-white);
-      line-height: 1.45;
+      font-size: clamp(0.98rem, 4.3vw, 1.13rem);
+      font-weight: 900; color: var(--text-white); line-height: 1.35;
       margin: 0.5rem 0 0.8rem;
     }
+    #q-progress { font-size: 0.65rem; font-family: var(--font-mono); color: var(--text-dim); font-weight: 800; }
 
-    /* ── Wheel modal overlay ──────────────── */
     #wheel-modal {
-      position: fixed;
-      inset: 0;
-      background: rgba(10,14,26,0.95);
-      z-index: 1500;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: flex-start;
-      padding: 1.5rem 1rem 1rem;
-      transform: translateY(100%);
-      transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+      position: fixed; inset: 0; background: rgba(10,14,26,0.97); z-index: 1500;
+      display: flex; flex-direction: column; align-items: center; justify-content: flex-start;
+      padding: calc(1.2rem + env(safe-area-inset-top)) 1rem calc(1rem + env(safe-area-inset-bottom));
+      transform: translateY(100%); transition: transform 0.32s cubic-bezier(0.34,1.56,0.64,1);
     }
     #wheel-modal.show { transform: translateY(0); }
-
-    .wheel-modal-header {
-      width: 100%;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-bottom: 0.5rem;
-    }
-    .wheel-modal-title {
-      font-size: 1rem;
-      font-weight: 900;
-      color: var(--pink);
-    }
+    .wheel-modal-header { width: 100%; display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.5rem; }
+    .wheel-modal-title { font-size: 1rem; font-weight: 900; color: var(--pink); }
     .wheel-modal-close {
-      background: rgba(255,255,255,0.08);
-      border: 1px solid rgba(255,255,255,0.15);
-      color: #fff;
-      font-size: 0.8rem;
-      font-weight: 700;
-      padding: 0.35rem 0.8rem;
-      border-radius: 20px;
-      font-family: var(--font-main);
+      background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15);
+      color: #fff; font-size: 0.8rem; font-weight: 800; padding: 0.38rem 0.8rem; border-radius: 20px; font-family: var(--font-main);
     }
-
-    /* Current question in wheel modal */
     #wheel-modal-question {
-      font-size: 0.9rem;
-      font-weight: 700;
-      color: var(--text-muted);
-      text-align: center;
-      margin-bottom: 1rem;
-      padding: 0.6rem 1rem;
-      background: rgba(255,59,143,0.1);
-      border: 1px solid rgba(255,59,143,0.25);
-      border-radius: var(--r-sm);
-      line-height: 1.5;
+      font-size: 0.86rem; font-weight: 800; color: var(--text-muted); text-align: center;
+      margin-bottom: 0.8rem; padding: 0.55rem 0.85rem;
+      background: rgba(255,59,143,0.1); border: 1px solid rgba(255,59,143,0.25);
+      border-radius: 12px; line-height: 1.38; width: 100%; max-width: 380px;
     }
-
-    /* Canvas wheel container */
-    .wheel-wrap {
-      position: relative;
-      width: min(300px, 80vw);
-      height: min(300px, 80vw);
-      margin: 0 auto 0.5rem;
-    }
-    #wheel-canvas {
-      width: 100%;
-      height: 100%;
-      border-radius: 50%;
-    }
-    /* Pointer arrow above wheel */
-    .wheel-pointer {
-      position: absolute;
-      top: -18px;
-      left: 50%;
-      transform: translateX(-50%);
-      font-size: 1.6rem;
-      filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5));
-      z-index: 10;
-    }
-
-    /* Result display */
-    #wheel-result {
-      margin-top: 0.8rem;
-      text-align: center;
-      min-height: 4rem;
-      transition: opacity 0.3s;
-    }
+    .wheel-wrap { position: relative; width: min(292px, 80vw); height: min(292px, 80vw); margin: 0 auto; }
+    #wheel-canvas { width: 100%; height: 100%; border-radius: 50%; }
+    .wheel-pointer { position: absolute; top: -18px; left: 50%; transform: translateX(-50%); font-size: 1.55rem; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5)); z-index: 10; }
+    #wheel-result { margin-top: 0.7rem; text-align: center; min-height: 3.8rem; transition: opacity 0.25s; }
     #wheel-result.hidden { opacity: 0; }
-    #result-emoji { font-size: 2rem; margin-bottom: 0.2rem; }
-    #result-text  {
-      font-size: 1.05rem;
-      font-weight: 900;
-      color: var(--text-white);
-      line-height: 1.3;
-    }
-    #result-sub {
-      font-size: 0.78rem;
-      color: var(--text-muted);
-      font-weight: 600;
-      margin-top: 0.2rem;
-    }
-
-    /* Spin button */
+    #result-emoji { font-size: 1.8rem; margin-bottom: 0.1rem; }
+    #result-text { font-size: 1.02rem; font-weight: 900; color: var(--text-white); line-height: 1.25; }
+    #result-sub { font-size: 0.76rem; color: var(--text-muted); font-weight: 700; margin-top: 0.15rem; }
     #btn-spin {
-      margin-top: 0.8rem;
-      font-size: 1rem;
-      padding: 0.85rem 2rem;
-      border-radius: 50px;
-      background: linear-gradient(135deg, var(--pink), var(--purple));
-      color: #fff;
-      font-weight: 900;
-      font-family: var(--font-main);
-      border: none;
-      cursor: pointer;
-      transition: transform 0.12s, opacity 0.12s;
-      -webkit-tap-highlight-color: transparent;
+      margin-top: 0.7rem; font-size: 1rem; padding: 0.85rem 1.8rem; border-radius: 999px;
+      background: linear-gradient(135deg, var(--pink), var(--purple)); color: #fff;
+      font-weight: 900; font-family: var(--font-main); border: none;
     }
-    #btn-spin:active  { transform: scale(0.94); opacity: 0.85; }
-    #btn-spin:disabled { opacity: 0.5; cursor: not-allowed; }
-
-    /* Progress indicator */
-    #q-progress {
-      font-size: 0.65rem;
-      font-family: var(--font-mono);
-      color: var(--text-dim);
-      font-weight: 700;
+    #btn-spin:disabled { opacity: 0.55; }
+    .notice-box {
+      position: fixed; bottom: 2rem; left: 1rem; right: 1rem; z-index: 2600;
+      display: none; background: rgba(255,59,143,0.16); border: 1.5px solid rgba(255,59,143,0.45);
+      color: var(--pink); border-radius: 16px; padding: 0.9rem 1rem;
+      font-size: 0.82rem; font-weight: 800; text-align: center;
     }
+    .ar-popup { padding-bottom: calc(1.8rem + env(safe-area-inset-bottom)); }
   </style>
 </head>
 <body class="ar-page">
 
-  <!-- ── Loading overlay ─────────────────── -->
-  <div class="loading-overlay" id="loading-overlay">
-    <div class="loading-spinner" style="border-top-color: var(--pink);"></div>
-    <p class="loading-text" id="loading-text">Starting camera…</p>
+  <div class="mobile-start" id="mobile-start">
+    <div class="start-card">
+      <div class="start-title">AR Mission Wheel</div>
+      <p class="start-desc">Scan a target, get one question, then spin the wheel for your mission.</p>
+      <button class="start-btn" id="btn-start">📷 Start Camera</button>
+      <div class="start-note">Optimized for mobile phones</div>
+    </div>
   </div>
 
-  <!-- ── Back button ─────────────────────── -->
-  <button class="ar-back-btn" onclick="window.location='../'">← Back</button>
+  <div class="loading-overlay" id="loading-overlay">
+    <div class="loading-spinner"></div>
+    <p class="loading-text" id="loading-text">Loading AR…</p>
+  </div>
 
-  <!-- ── AR Status ───────────────────────── -->
-  <div class="ar-status scanning" id="ar-status">🔍 SCANNING</div>
+  <button class="ar-back-btn" onclick="goBack()">← Back</button>
+  <div class="ar-status scanning" id="ar-status">TAP START</div>
 
-  <!-- ── Scan hint ───────────────────────── -->
   <div class="scan-hint" id="scan-hint">
     <div class="scan-frame" style="border-color: rgba(255,59,143,0.4);">
       <div class="scan-line" style="background: linear-gradient(90deg, transparent, #ff3b8f, transparent);"></div>
     </div>
-    <p class="scan-hint-text">Scan a target to get your mission</p>
+    <p class="scan-hint-text">Point your phone at a target image</p>
   </div>
 
-  <!-- ── Question popup (Step 1) ─────────── -->
   <div class="ar-popup accent-pink" id="ar-popup">
     <div id="popup-question-area">
       <p class="popup-label">MISSION QUESTION</p>
-      <div id="popup-q-target">McDonald's</div>
+      <div id="popup-q-target">Target</div>
       <div id="q-progress">Q 1 / 5</div>
-      <div id="popup-q-text">What do you usually order here?</div>
+      <div id="popup-q-text">Question will appear here.</div>
       <div class="popup-buttons">
         <button class="btn btn-pink" onclick="speakMissionQuestion()">🔊 Read</button>
-        <button class="btn btn-ghost" onclick="openWheel()">🎯 Spin Wheel!</button>
+        <button class="btn btn-ghost" onclick="openWheel()">🎯 Spin Wheel</button>
       </div>
     </div>
   </div>
 
-  <!-- ── Wheel Modal (Step 2) ────────────── -->
   <div id="wheel-modal">
     <div class="wheel-modal-header">
       <span class="wheel-modal-title">🎯 MISSION WHEEL</span>
       <button class="wheel-modal-close" onclick="closeWheel()">✕ Close</button>
     </div>
-
-    <!-- Current question reminder -->
     <div id="wheel-modal-question">…</div>
-
-    <!-- The spinning wheel (drawn on canvas) -->
     <div class="wheel-wrap">
       <div class="wheel-pointer">▼</div>
       <canvas id="wheel-canvas" width="600" height="600"></canvas>
     </div>
-
-    <!-- Result after spin -->
     <div id="wheel-result" class="hidden">
       <div id="result-emoji">🎯</div>
       <div id="result-text">Spin the wheel!</div>
       <div id="result-sub">Your mission will appear here.</div>
     </div>
-
-    <!-- Spin button -->
-    <button id="btn-spin" onclick="spinWheel()">🎰 SPIN THE WHEEL!</button>
+    <button id="btn-spin" onclick="spinWheel()">🎰 SPIN THE WHEEL</button>
   </div>
 
-  <!-- ═══════════════════════════════════════════
-       A-Frame AR Scene
-       ═══════════════════════════════════════════ -->
+  <div class="notice-box" id="notice-box">Camera access is required. Please allow camera permission and reload.</div>
+
   <a-scene
-    mindar-image="imageTargetSrc: ../assets/targets/targets.mind; autoStart: false; uiLoading: no; uiError: no; uiScanning: no;"
+    mindar-image="imageTargetSrc: ../assets/targets/targets.mind; autoStart: false; uiLoading: no; uiError: no; uiScanning: no; maxTrack: 1; filterMinCF: 0.0001; filterBeta: 0.01;"
     color-space="sRGB"
-    renderer="colorManagement: true"
+    renderer="colorManagement: true; antialias: false; precision: mediump; powerPreference: high-performance"
     vr-mode-ui="enabled: false"
     device-orientation-permission-ui="enabled: false"
+    embedded
     id="ar-scene"
   >
     <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
 
-    <!-- AR overlays for each target - show a spin icon -->
-    <a-entity mindar-image-target="targetIndex: 0" id="target-0">
-      <a-text value="🎯" align="center" width="1.5" position="0 0.35 0"></a-text>
-    </a-entity>
-    <a-entity mindar-image-target="targetIndex: 1" id="target-1">
-      <a-text value="🎯" align="center" width="1.5" position="0 0.35 0"></a-text>
-    </a-entity>
-    <a-entity mindar-image-target="targetIndex: 2" id="target-2">
-      <a-text value="🎯" align="center" width="1.5" position="0 0.35 0"></a-text>
-    </a-entity>
-    <a-entity mindar-image-target="targetIndex: 3" id="target-3">
-      <a-text value="🎯" align="center" width="1.5" position="0 0.35 0"></a-text>
-    </a-entity>
-    <a-entity mindar-image-target="targetIndex: 4" id="target-4">
-      <a-text value="🎯" align="center" width="1.5" position="0 0.35 0"></a-text>
-    </a-entity>
-    <a-entity mindar-image-target="targetIndex: 5" id="target-5">
-      <a-text value="🎯" align="center" width="1.5" position="0 0.35 0"></a-text>
-    </a-entity>
-    <a-entity mindar-image-target="targetIndex: 6" id="target-6">
-      <a-text value="🎯" align="center" width="1.5" position="0 0.35 0"></a-text>
-    </a-entity>
-    <a-entity mindar-image-target="targetIndex: 7" id="target-7">
-      <a-text value="🎯" align="center" width="1.5" position="0 0.35 0"></a-text>
-    </a-entity>
-    <a-entity mindar-image-target="targetIndex: 8" id="target-8">
-      <a-text value="🎯" align="center" width="1.5" position="0 0.35 0"></a-text>
-    </a-entity>
-    <a-entity mindar-image-target="targetIndex: 9" id="target-9">
-      <a-text value="🎯" align="center" width="1.5" position="0 0.35 0"></a-text>
-    </a-entity>
+    <a-entity mindar-image-target="targetIndex: 0" id="target-0"></a-entity>
+    <a-entity mindar-image-target="targetIndex: 1" id="target-1"></a-entity>
+    <a-entity mindar-image-target="targetIndex: 2" id="target-2"></a-entity>
+    <a-entity mindar-image-target="targetIndex: 3" id="target-3"></a-entity>
+    <a-entity mindar-image-target="targetIndex: 4" id="target-4"></a-entity>
+    <a-entity mindar-image-target="targetIndex: 5" id="target-5"></a-entity>
+    <a-entity mindar-image-target="targetIndex: 6" id="target-6"></a-entity>
+    <a-entity mindar-image-target="targetIndex: 7" id="target-7"></a-entity>
+    <a-entity mindar-image-target="targetIndex: 8" id="target-8"></a-entity>
+    <a-entity mindar-image-target="targetIndex: 9" id="target-9"></a-entity>
   </a-scene>
 
   <script>
     'use strict';
 
-    // ══════════════════════════════════════════
-    // DATA & STATE
-    // ══════════════════════════════════════════
-    let missionsData   = null;       // Full data from missions.json
-    let segments       = [];         // Wheel segments
-    let currentTarget  = null;       // { targetIndex, target, queue[], currentIdx }
-
-    // Per-target question queues (non-repeating)
-    // Key: targetIndex, Value: shuffled question queue
+    let missionsData = null;
+    let segments = [];
+    let currentTarget = null;
+    let arStarted = false;
     const questionQueues = {};
 
-    // Shuffle helper
+    const scene = document.getElementById('ar-scene');
+    const startScreen = document.getElementById('mobile-start');
+    const loadingOverlay = document.getElementById('loading-overlay');
+    const loadingText = document.getElementById('loading-text');
+    const arStatus = document.getElementById('ar-status');
+    const scanHint = document.getElementById('scan-hint');
+    const arPopup = document.getElementById('ar-popup');
+
+    for (let i = 0; i < 10; i++) renderThickLabel(`target-${i}`, 'SPIN', '#ff3b8f', 3.0);
+
+    function renderThickLabel(targetId, text, mainColor, width) {
+      const root = document.getElementById(targetId);
+      if (!root) return;
+      root.innerHTML = '';
+      const layers = [
+        { color: '#18000a', x: 0.060, y: 0.395, z: -0.070, w: width },
+        { color: '#7e1240', x: 0.040, y: 0.415, z: -0.050, w: width },
+        { color: '#ffffff', x: 0.014, y: 0.444, z: -0.018, w: width * 1.01, opacity: 0.42 },
+        { color: mainColor, x: 0, y: 0.465, z: 0, w: width }
+      ];
+      layers.forEach(layer => {
+        const t = document.createElement('a-text');
+        t.setAttribute('value', text);
+        t.setAttribute('align', 'center');
+        t.setAttribute('baseline', 'center');
+        t.setAttribute('color', layer.color);
+        t.setAttribute('width', layer.w);
+        t.setAttribute('position', `${layer.x} ${layer.y} ${layer.z}`);
+        t.setAttribute('font', 'https://cdn.aframe.io/fonts/Exo2Bold.fnt');
+        if (layer.opacity) t.setAttribute('opacity', layer.opacity);
+        root.appendChild(t);
+      });
+    }
+
     function shuffle(arr) {
       const a = [...arr];
       for (let i = a.length - 1; i > 0; i--) {
@@ -290,59 +221,70 @@
       return a;
     }
 
-    // Load data
     fetch('../assets/data/missions.json')
       .then(r => r.json())
       .then(data => {
         missionsData = data;
-        segments     = data.wheelSegments;
-        console.log('[Part3] Missions data loaded');
+        segments = data.wheelSegments || [];
         drawWheel();
       })
       .catch(err => console.error('[Part3] Failed to load missions.json', err));
 
-    // ══════════════════════════════════════════
-    // AR LOGIC
-    // ══════════════════════════════════════════
-    const scene          = document.getElementById('ar-scene');
-    const loadingOverlay = document.getElementById('loading-overlay');
-    const arStatus       = document.getElementById('ar-status');
-    const scanHint       = document.getElementById('scan-hint');
-    const arPopup        = document.getElementById('ar-popup');
+    document.getElementById('btn-start').addEventListener('click', startAR);
+
+    async function startAR() {
+      if (arStarted) return;
+      arStarted = true;
+      warmupSpeech();
+      startScreen.style.display = 'none';
+      loadingOverlay.classList.add('show');
+      loadingText.textContent = 'Starting camera…';
+      arStatus.textContent = 'STARTING';
+
+      try {
+        const arSystem = scene.systems['mindar-image-system'];
+        if (!arSystem) throw new Error('MindAR system is not ready yet.');
+        await arSystem.start();
+      } catch (err) {
+        console.error('[Part3] AR start error:', err);
+        loadingText.textContent = 'Camera error. Please allow camera access.';
+        document.getElementById('notice-box').style.display = 'block';
+        arStarted = false;
+      }
+    }
 
     scene.addEventListener('arReady', () => {
-      loadingOverlay.classList.add('hidden');
+      loadingOverlay.classList.remove('show');
+      arStatus.textContent = 'SCANNING';
+      arStatus.className = 'ar-status scanning';
+    });
+
+    scene.addEventListener('arError', err => {
+      console.error('[Part3] AR Error:', err);
+      loadingText.textContent = 'Camera error. Please allow camera access.';
+      loadingOverlay.classList.add('show');
+      document.getElementById('notice-box').style.display = 'block';
     });
 
     scene.addEventListener('loaded', () => {
-      document.getElementById('loading-text').textContent = 'Loading AR engine…';
-      const sys = scene.systems['mindar-image-system'];
-      if (sys) setTimeout(() => sys.start(), 300);
-
       for (let i = 0; i < 10; i++) {
-        const el  = document.getElementById(`target-${i}`);
+        const el = document.getElementById(`target-${i}`);
         if (!el) continue;
-        const idx = i;
-        el.addEventListener('targetFound', () => showMissionQuestion(idx));
-        el.addEventListener('targetLost',  () => hideMissionQuestion());
+        el.addEventListener('targetFound', () => showMissionQuestion(i));
+        el.addEventListener('targetLost', hideMissionQuestion);
       }
     });
 
-    // Show question for scanned target
     function showMissionQuestion(targetIndex) {
       if (!missionsData) return;
       const data = missionsData.questions.find(d => d.targetIndex === targetIndex);
       if (!data) return;
 
-      // Build/restore queue for this target
-      if (!questionQueues[targetIndex]) {
-        questionQueues[targetIndex] = { queue: shuffle(data.questions), idx: 0 };
-      }
+      if (!questionQueues[targetIndex]) questionQueues[targetIndex] = { queue: shuffle(data.questions), idx: 0 };
       const qState = questionQueues[targetIndex];
-      // Refill queue when exhausted
       if (qState.idx >= qState.queue.length) {
         qState.queue = shuffle(data.questions);
-        qState.idx   = 0;
+        qState.idx = 0;
       }
 
       const question = qState.queue[qState.idx];
@@ -356,28 +298,25 @@
         qTotal: data.questions.length
       };
 
-      // Update UI
       document.getElementById('popup-q-target').textContent = data.target;
-      document.getElementById('popup-q-text').textContent   = question;
-      document.getElementById('q-progress').textContent     =
-        `Q ${qState.idx} / ${data.questions.length}`;
+      document.getElementById('popup-q-text').textContent = question;
+      document.getElementById('q-progress').textContent = `Q ${qState.idx} / ${data.questions.length}`;
 
       arPopup.classList.add('show');
       scanHint.classList.add('hidden');
-      arStatus.textContent = '✅ FOUND';
-      arStatus.className   = 'ar-status found';
-
+      arStatus.textContent = 'FOUND';
+      arStatus.className = 'ar-status found';
       speakMissionQuestion();
-      if ('vibrate' in navigator) navigator.vibrate(60);
+      vibrate(50);
     }
 
     function hideMissionQuestion() {
       currentTarget = null;
       arPopup.classList.remove('show');
       scanHint.classList.remove('hidden');
-      arStatus.textContent = '🔍 SCANNING';
-      arStatus.className   = 'ar-status scanning';
-      if ('speechSynthesis' in window) window.speechSynthesis.cancel();
+      arStatus.textContent = 'SCANNING';
+      arStatus.className = 'ar-status scanning';
+      stopSpeech();
     }
 
     function speakMissionQuestion() {
@@ -385,52 +324,38 @@
       speak(currentTarget.currentQuestion);
     }
 
-    // ══════════════════════════════════════════
-    // WHEEL MODAL
-    // ══════════════════════════════════════════
     function openWheel() {
       const modal = document.getElementById('wheel-modal');
       modal.classList.add('show');
-      if (currentTarget) {
-        document.getElementById('wheel-modal-question').textContent =
-          currentTarget.currentQuestion;
-      }
-      // Reset result
+      document.getElementById('wheel-modal-question').textContent = currentTarget ? currentTarget.currentQuestion : 'Spin the wheel.';
       document.getElementById('wheel-result').classList.add('hidden');
       document.getElementById('btn-spin').disabled = false;
-      document.getElementById('btn-spin').textContent = '🎰 SPIN THE WHEEL!';
+      document.getElementById('btn-spin').textContent = '🎰 SPIN THE WHEEL';
     }
 
     function closeWheel() {
       document.getElementById('wheel-modal').classList.remove('show');
     }
 
-    // ══════════════════════════════════════════
-    // SPIN WHEEL — Canvas implementation
-    // ══════════════════════════════════════════
     const canvas = document.getElementById('wheel-canvas');
-    const ctx    = canvas.getContext('2d');
-    const CX     = canvas.width / 2;
-    const CY     = canvas.height / 2;
-    const R      = CX - 10; // radius
-
-    let currentAngle  = 0;  // current rotation angle (radians)
-    let isSpinning    = false;
-    let animationId   = null;
+    const ctx = canvas.getContext('2d');
+    const CX = canvas.width / 2;
+    const CY = canvas.height / 2;
+    const R = CX - 10;
+    let currentAngle = 0;
+    let isSpinning = false;
 
     function drawWheel(rotation = 0) {
       if (!segments || segments.length === 0) return;
       ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-      const numSeg  = segments.length;
+      const numSeg = segments.length;
       const arcSize = (2 * Math.PI) / numSeg;
 
       for (let i = 0; i < numSeg; i++) {
         const startAngle = rotation + i * arcSize;
-        const endAngle   = startAngle + arcSize;
-        const seg        = segments[i];
+        const endAngle = startAngle + arcSize;
+        const seg = segments[i];
 
-        // Draw segment
         ctx.beginPath();
         ctx.moveTo(CX, CY);
         ctx.arc(CX, CY, R, startAngle, endAngle);
@@ -438,141 +363,118 @@
         ctx.fillStyle = seg.color;
         ctx.fill();
         ctx.strokeStyle = 'rgba(10,14,26,0.6)';
-        ctx.lineWidth = 3;
+        ctx.lineWidth = 4;
         ctx.stroke();
 
-        // Draw text
         ctx.save();
         ctx.translate(CX, CY);
         ctx.rotate(startAngle + arcSize / 2);
-        ctx.textAlign  = 'right';
+        ctx.textAlign = 'right';
         ctx.textBaseline = 'middle';
-        ctx.fillStyle  = '#000';
-        ctx.font       = 'bold 18px Nunito, sans-serif';
+        ctx.fillStyle = '#000';
+        ctx.font = 'bold 20px Nunito, sans-serif';
 
-        // Multi-line text support
-        const lines = seg.text.split('\n');
-        const lineH = 22;
+        const lines = String(seg.text).split('\n');
+        const lineH = 24;
         const totalH = lines.length * lineH;
         lines.forEach((line, li) => {
-          ctx.fillText(line, R - 15, -totalH / 2 + li * lineH + lineH / 2);
+          ctx.fillText(line, R - 18, -totalH / 2 + li * lineH + lineH / 2);
         });
 
-        // Emoji
-        ctx.font = '20px serif';
-        ctx.fillText(seg.emoji, R - 15 - (seg.text.length > 10 ? 85 : 75), 0);
-
+        ctx.font = '22px serif';
+        ctx.fillText(seg.emoji || '🎯', R - 115, 0);
         ctx.restore();
       }
 
-      // Center circle
       ctx.beginPath();
-      ctx.arc(CX, CY, 30, 0, 2 * Math.PI);
+      ctx.arc(CX, CY, 32, 0, 2 * Math.PI);
       ctx.fillStyle = '#0a0e1a';
       ctx.fill();
-      ctx.strokeStyle = 'rgba(255,59,143,0.5)';
-      ctx.lineWidth = 4;
+      ctx.strokeStyle = 'rgba(255,59,143,0.55)';
+      ctx.lineWidth = 5;
       ctx.stroke();
 
-      // Center dot
       ctx.beginPath();
-      ctx.arc(CX, CY, 8, 0, 2 * Math.PI);
+      ctx.arc(CX, CY, 9, 0, 2 * Math.PI);
       ctx.fillStyle = '#ff3b8f';
       ctx.fill();
     }
 
     function spinWheel() {
-      if (isSpinning) return;
+      if (isSpinning || !segments.length) return;
       isSpinning = true;
-
       const spinBtn = document.getElementById('btn-spin');
-      spinBtn.disabled  = true;
+      spinBtn.disabled = true;
       spinBtn.textContent = '🌀 Spinning…';
       document.getElementById('wheel-result').classList.add('hidden');
+      vibrate([30, 50, 30]);
 
-      if ('vibrate' in navigator) navigator.vibrate([30, 50, 30]);
-
-      // Random spin: 5–10 full rotations + random stop
-      const spinAmount = (Math.random() * 5 + 5) * 2 * Math.PI;
+      const spinAmount = (Math.random() * 4 + 5) * 2 * Math.PI;
       const targetAngle = currentAngle + spinAmount;
-      const startAngle  = currentAngle;
-      const duration    = 3000 + Math.random() * 1000; // 3–4 seconds
-      const startTime   = performance.now();
+      const startAngle = currentAngle;
+      const duration = 2800 + Math.random() * 600;
+      const startTime = performance.now();
 
-      function easeOut(t) {
-        return 1 - Math.pow(1 - t, 4); // ease-out quartic
-      }
+      function easeOut(t) { return 1 - Math.pow(1 - t, 4); }
 
       function animate(now) {
-        const elapsed = now - startTime;
-        const progress = Math.min(elapsed / duration, 1);
+        const progress = Math.min((now - startTime) / duration, 1);
         currentAngle = startAngle + spinAmount * easeOut(progress);
-
         drawWheel(currentAngle);
 
         if (progress < 1) {
-          animationId = requestAnimationFrame(animate);
+          requestAnimationFrame(animate);
         } else {
           isSpinning = false;
           currentAngle = targetAngle % (2 * Math.PI);
           drawWheel(currentAngle);
           showResult();
-          spinBtn.disabled  = false;
-          spinBtn.textContent = '🎰 SPIN AGAIN!';
+          spinBtn.disabled = false;
+          spinBtn.textContent = '🎰 SPIN AGAIN';
         }
       }
 
-      animationId = requestAnimationFrame(animate);
+      requestAnimationFrame(animate);
     }
 
     function showResult() {
-      if (!segments || segments.length === 0) return;
-
-      const numSeg  = segments.length;
+      if (!segments.length) return;
+      const numSeg = segments.length;
       const arcSize = (2 * Math.PI) / numSeg;
-
-      // The pointer is at the TOP (270° = 3π/2 from 0 = right)
-      // Normalize: pointer at top = -π/2
-      // We need to figure out which segment is at the top
-      const pointerAngle = 3 * Math.PI / 2; // top of wheel in standard coords
-      const normalised   = ((pointerAngle - currentAngle) % (2 * Math.PI) + 2 * Math.PI) % (2 * Math.PI);
-      const segIndex     = Math.floor(normalised / arcSize) % numSeg;
-
+      const pointerAngle = 3 * Math.PI / 2;
+      const normalised = ((pointerAngle - currentAngle) % (2 * Math.PI) + 2 * Math.PI) % (2 * Math.PI);
+      const segIndex = Math.floor(normalised / arcSize) % numSeg;
       const result = segments[segIndex];
 
-      document.getElementById('result-emoji').textContent = result.emoji;
-      document.getElementById('result-text').textContent  = result.text.replace('\n', ' ');
-      document.getElementById('result-sub').textContent   = 'That is your mission! Good luck!';
-
-      const resultEl = document.getElementById('wheel-result');
-      resultEl.classList.remove('hidden');
-      resultEl.style.color = result.color;
-
-      // Speak the mission
-      speak('Your mission: ' + result.text.replace('\n', ' '));
-
-      if ('vibrate' in navigator) navigator.vibrate([50, 30, 100]);
+      document.getElementById('result-emoji').textContent = result.emoji || '🎯';
+      document.getElementById('result-text').textContent = String(result.text).replace('\n', ' ');
+      document.getElementById('result-sub').textContent = 'That is your mission!';
+      document.getElementById('wheel-result').classList.remove('hidden');
+      speak('Your mission: ' + String(result.text).replace('\n', ' '));
+      vibrate([50, 30, 90]);
     }
 
-    // ══════════════════════════════════════════
-    // SPEECH
-    // ══════════════════════════════════════════
     function speak(text) {
-      if (!('speechSynthesis' in window)) return;
+      if (!('speechSynthesis' in window) || !text) return;
       window.speechSynthesis.cancel();
-      const utt   = new SpeechSynthesisUtterance(text);
-      utt.lang    = 'en-US';
-      utt.rate    = 0.88;
-      utt.pitch   = 1;
+      const utt = new SpeechSynthesisUtterance(text);
+      utt.lang = 'en-US';
+      utt.rate = 0.88;
+      utt.pitch = 1;
       const voices = window.speechSynthesis.getVoices();
-      const eng   = voices.find(v => v.lang.startsWith('en') && v.localService);
-      if (eng) utt.voice = eng;
+      const voice = voices.find(v => v.lang === 'en-US' && v.localService) || voices.find(v => v.lang && v.lang.startsWith('en'));
+      if (voice) utt.voice = voice;
       window.speechSynthesis.speak(utt);
     }
 
-    if ('speechSynthesis' in window) {
-      window.speechSynthesis.getVoices();
-      window.speechSynthesis.onvoiceschanged = () => window.speechSynthesis.getVoices();
+    function warmupSpeech() { if ('speechSynthesis' in window) window.speechSynthesis.getVoices(); }
+    function stopSpeech() { if ('speechSynthesis' in window) window.speechSynthesis.cancel(); }
+
+    function goBack() {
+      stopSpeech();
+      const sys = scene.systems && scene.systems['mindar-image-system'];
+      if (sys && arStarted) sys.stop();
+      window.location = '../';
     }
   </script>
 </body>
