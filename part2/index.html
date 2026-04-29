@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- Part 2: AR Question - Image-tracking Text3D + locked question per target -->
+<!-- Part 2: AR Question - Pre-rendered Text3D like Part 1 -->
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
@@ -10,7 +10,7 @@
   <script src="https://cdn.jsdelivr.net/npm/aframe@1.4.2/dist/aframe.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
 
-  <!-- True 3D extruded text for A-Frame -->
+  <!-- 3D extruded text for A-Frame -->
   <script src="https://unpkg.com/aframe-text-geometry-component@0.5.2/dist/aframe-text-geometry-component.min.js"></script>
 
   <link rel="stylesheet" href="../style.css" />
@@ -141,7 +141,6 @@
 
 <body class="ar-page">
 
-  <!-- Start screen -->
   <div class="start-screen" id="start-screen">
     <div class="start-card">
       <div class="start-title">AR Question</div>
@@ -154,19 +153,15 @@
     </div>
   </div>
 
-  <!-- Loading overlay -->
   <div class="loading-overlay hidden" id="loading-overlay">
     <div class="loading-spinner" style="border-top-color: var(--yellow);"></div>
     <p class="loading-text" id="loading-text">Starting camera…</p>
   </div>
 
-  <!-- Back button -->
   <button class="ar-back-btn" type="button" onclick="window.location='../'">← Back</button>
 
-  <!-- Status -->
   <div class="ar-status scanning" id="ar-status">READY</div>
 
-  <!-- Scan hint -->
   <div class="scan-hint hidden" id="scan-hint">
     <div class="scan-frame" style="border-color: rgba(255,214,10,0.4);">
       <div class="scan-line" style="background: linear-gradient(90deg, transparent, #ffd60a, transparent);"></div>
@@ -174,7 +169,7 @@
     <p class="scan-hint-text">Point camera at a target image</p>
   </div>
 
-  <!-- Bottom popup: question is shown on image tracking, not here -->
+  <!-- Popup bottom: no question text here -->
   <div class="ar-popup accent-yellow" id="ar-popup">
     <p class="popup-label">QUESTION</p>
     <div id="popup-target-name">Coca-Cola</div>
@@ -190,7 +185,6 @@
     📷 Camera access required. Please allow camera permission and reload.
   </div>
 
-  <!-- AR Scene -->
   <a-scene
     mindar-image="imageTargetSrc: ../assets/targets/targets.mind; autoStart: false; uiLoading: no; uiError: no; uiScanning: no; maxTrack: 1; filterMinCF: 0.0001; filterBeta: 0.001;"
     color-space="sRGB"
@@ -211,7 +205,7 @@
     <a-light type="ambient" color="#ffffff" intensity="0.9"></a-light>
     <a-light type="directional" color="#ffffff" intensity="1.2" position="0.5 1 1"></a-light>
 
-    <!-- Targets. 3D questions are attached here so they follow image tracking. -->
+    <!-- Targets. Text3D is pre-rendered into each target like Part 1. -->
     <a-entity mindar-image-target="targetIndex: 0" id="target-0"></a-entity>
     <a-entity mindar-image-target="targetIndex: 1" id="target-1"></a-entity>
     <a-entity mindar-image-target="targetIndex: 2" id="target-2"></a-entity>
@@ -227,13 +221,13 @@
   <script>
     'use strict';
 
-    // Center TextGeometry so each line is aligned from the middle.
     AFRAME.registerComponent('center-3d-text', {
       init: function () {
         this.center = this.center.bind(this);
         this.el.addEventListener('object3dset', this.center);
-        setTimeout(this.center, 200);
-        setTimeout(this.center, 650);
+        setTimeout(this.center, 250);
+        setTimeout(this.center, 700);
+        setTimeout(this.center, 1200);
       },
       center: function () {
         const mesh = this.el.getObject3D('mesh');
@@ -251,7 +245,6 @@
       }
     });
 
-    // Fit 3D question inside a safe target area.
     AFRAME.registerComponent('fit-3d-question', {
       schema: {
         maxWidth: { type: 'number', default: 1.05 },
@@ -261,7 +254,7 @@
         this.fit = this.fit.bind(this);
         setTimeout(this.fit, 350);
         setTimeout(this.fit, 850);
-        setTimeout(this.fit, 1300);
+        setTimeout(this.fit, 1400);
       },
       fit: function () {
         const obj = this.el.object3D;
@@ -274,7 +267,6 @@
 
         const size = new THREE.Vector3();
         box.getSize(size);
-
         if (!size.x || !size.y) return;
 
         const sx = this.data.maxWidth / size.x;
@@ -300,9 +292,9 @@
     const arPopup = document.getElementById('ar-popup');
     const noticeBox = document.getElementById('notice-box');
 
-    // Question is locked per target during this page session.
-    // It will not keep changing while tracking flickers.
+    // Locked question per target. New questions only after page reload / re-enter Part 2.
     const lockedQuestions = {};
+    const spokenTargets = {};
     const hideTimers = {};
 
     fetch('../assets/data/questions.json')
@@ -312,6 +304,8 @@
       })
       .then(data => {
         questionsData = data;
+        prepareLockedQuestions();
+        renderAllQuestionText3D();
       })
       .catch(err => {
         console.error('[Part2] Failed to load questions.json:', err);
@@ -375,19 +369,20 @@
       }
     }
 
-    function randomQuestion(data) {
-      const index = Math.floor(Math.random() * data.questions.length);
-      return data.questions[index];
+    function prepareLockedQuestions() {
+      questionsData.forEach(item => {
+        if (!item.questions || !item.questions.length) return;
+        const randomIndex = Math.floor(Math.random() * item.questions.length);
+        lockedQuestions[item.targetIndex] = item.questions[randomIndex];
+      });
     }
 
-    function getLockedQuestion(data) {
-      const key = data.targetIndex;
-
-      if (!lockedQuestions[key]) {
-        lockedQuestions[key] = randomQuestion(data);
-      }
-
-      return lockedQuestions[key];
+    function renderAllQuestionText3D() {
+      questionsData.forEach(item => {
+        const question = lockedQuestions[item.targetIndex];
+        if (!question) return;
+        renderQuestionText3D(item.targetIndex, question);
+      });
     }
 
     function showTrackedQuestion(targetIndex) {
@@ -399,7 +394,8 @@
       const data = questionsData.find(d => d.targetIndex === targetIndex);
       if (!data) return;
 
-      const question = getLockedQuestion(data);
+      const question = lockedQuestions[targetIndex];
+      if (!question) return;
 
       currentTarget = {
         targetIndex,
@@ -409,20 +405,15 @@
 
       document.getElementById('popup-target-name').textContent = data.target;
 
-      const target = document.getElementById(`target-${targetIndex}`);
-      if (target && target.children.length === 0) {
-        renderQuestionText3D(targetIndex, question);
-      }
-
       arPopup.classList.add('show');
       scanHint.classList.add('hidden');
 
       arStatus.textContent = 'FOUND';
       arStatus.className = 'ar-status found';
 
-      // Speak only the first time each target gets locked.
-      if (!lockedQuestions[targetIndex + '_spoken']) {
-        lockedQuestions[targetIndex + '_spoken'] = true;
+      // Auto-read only once per target to avoid repeated speech from tracking flicker.
+      if (!spokenTargets[targetIndex]) {
+        spokenTargets[targetIndex] = true;
         speakQuestion();
       }
 
@@ -430,8 +421,6 @@
     }
 
     function hideTrackedQuestionWithDelay(targetIndex) {
-      // Do not remove the 3D text.
-      // The target entity will hide/show naturally with image tracking.
       hideTimers[targetIndex] = setTimeout(() => {
         if (currentTarget && currentTarget.targetIndex === targetIndex) {
           currentTarget = null;
@@ -448,7 +437,7 @@
       }, 700);
     }
 
-    // Split to 1 or 2 lines only.
+    // Split to exactly 1 or 2 lines.
     function makeTwoLines(text) {
       const clean = text.replace(/\s+/g, ' ').trim();
       const words = clean.split(' ');
