@@ -1,530 +1,1237 @@
 <!DOCTYPE html>
-<!-- v1.0 - Part 4: English Situation 3D -->
+<!-- Part 4: English Situation 3D - Three.js Object Click + Teach Mode -->
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="theme-color" content="#0a0e1a" />
   <title>Part 4 – English Situation 3D</title>
-
-  <!--
-    model-viewer by Google: renders .glb 3D models with touch/rotate support.
-    CDN: https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js
-    Replace shop.glb with your actual 3D model file.
-  -->
-  <script type="module" src="https://unpkg.com/@google/model-viewer@3.3.0/dist/model-viewer.min.js"></script>
 
   <link rel="stylesheet" href="../style.css" />
   <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;900&family=Space+Mono:wght@700&display=swap" rel="stylesheet" />
 
   <style>
-    body { margin: 0; overflow: hidden; background: var(--bg-dark); }
+    body {
+      margin: 0;
+      overflow: hidden;
+      background: var(--bg-dark);
+      color: var(--text-white);
+      touch-action: none;
+    }
 
-    /* ── Header ────────────────────────────── */
-    .p4-top-bar {
+    .p4-shell {
       position: fixed;
-      top: 0; left: 0; right: 0;
-      z-index: 200;
+      inset: 0;
+      overflow: hidden;
+      background:
+        radial-gradient(circle at 25% 8%, rgba(6,214,160,0.18), transparent 34%),
+        radial-gradient(circle at 88% 88%, rgba(0,212,255,0.10), transparent 32%),
+        #0a0e1a;
+    }
+
+    #viewer {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      display: block;
+      touch-action: none;
+    }
+
+    .top-bar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 50;
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 0.8rem 1rem;
-      background: linear-gradient(180deg, rgba(10,14,26,0.98) 60%, transparent);
-    }
-    .p4-back  { font-size: 0.82rem; font-weight: 800; font-family: var(--font-main);
-                background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15);
-                color: #fff; padding: 0.45rem 0.9rem; border-radius: 20px; cursor: pointer; }
-    .p4-head-title { font-size: 0.95rem; font-weight: 900; color: var(--green); }
-    .p4-head-sub   { font-size: 0.6rem; color: var(--text-muted); font-weight: 700;
-                     letter-spacing: 2px; text-transform: uppercase; }
-
-    /* ── model-viewer fills screen ──────────── */
-    model-viewer {
-      width: 100%;
-      height: 100vh;
-      background-color: #0d1422;
-      --poster-color: #0d1422;
+      padding: calc(0.75rem + env(safe-area-inset-top)) 0.85rem 0.75rem;
+      background: linear-gradient(180deg, rgba(10,14,26,0.96) 55%, rgba(10,14,26,0));
+      pointer-events: none;
     }
 
-    /* ── Fallback demo scene (when no .glb) ── */
-    #demo-scene {
-      position: fixed;
-      inset: 0;
-      background: linear-gradient(160deg, #0d1a2e 0%, #0a1220 100%);
-      overflow: hidden;
-    }
-    /* Floor grid */
-    .floor-grid {
-      position: absolute;
-      bottom: 0; left: 0; right: 0;
-      height: 55%;
-      background-image:
-        linear-gradient(rgba(6,214,160,0.08) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(6,214,160,0.08) 1px, transparent 1px);
-      background-size: 40px 40px;
-      transform: perspective(600px) rotateX(60deg);
-      transform-origin: bottom center;
+    .top-bar > * {
+      pointer-events: auto;
     }
 
-    /* Store shelf illustration */
-    .store-bg {
-      position: absolute;
-      top: 8%; left: 0; right: 0;
-      height: 55%;
-      display: flex;
-      align-items: flex-end;
-      justify-content: center;
-      gap: 0;
-    }
-    .shelf-wall {
-      position: absolute;
-      top: 0; left: 0; right: 0; bottom: 0;
-      background: linear-gradient(180deg, #1a2640, #0d1826);
-      border-top: 3px solid rgba(6,214,160,0.2);
-    }
-    .shelf {
-      position: absolute;
-      height: 12px;
-      background: #243050;
-      border-radius: 2px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.4);
-    }
-    .shelf-1 { top: 28%; left: 5%; right: 5%; }
-    .shelf-2 { top: 55%; left: 5%; right: 5%; }
-    .shelf-3 { top: 82%; left: 5%; right: 5%; }
-
-    /* Store sign at top */
-    .store-sign {
-      position: absolute;
-      top: 0; left: 50%; transform: translateX(-50%);
-      background: linear-gradient(135deg, #ff6b35, #f7c59f);
-      color: #000;
+    .back-btn {
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.15);
+      color: #fff;
+      border-radius: 999px;
+      padding: 0.48rem 0.82rem;
+      font-family: var(--font-main);
       font-weight: 900;
-      font-size: 0.9rem;
-      padding: 0.3rem 1.2rem;
-      border-radius: 0 0 8px 8px;
+      font-size: 0.78rem;
+    }
+
+    .title-wrap {
+      text-align: center;
+      min-width: 0;
+    }
+
+    .title-main {
+      color: var(--green);
+      font-weight: 900;
+      font-size: 0.95rem;
+      line-height: 1.1;
+    }
+
+    .title-sub {
+      color: var(--text-muted);
+      font-weight: 800;
+      letter-spacing: 1.6px;
+      font-size: 0.58rem;
+      text-transform: uppercase;
+    }
+
+    .teach-pill {
+      background: rgba(6,214,160,0.14);
+      border: 1px solid rgba(6,214,160,0.38);
+      color: var(--green);
+      border-radius: 999px;
+      padding: 0.48rem 0.7rem;
+      font-family: var(--font-main);
+      font-size: 0.7rem;
+      font-weight: 900;
       white-space: nowrap;
     }
 
-    /* ── Hotspot buttons ─────────────────────
-       Positioned absolutely on the demo scene.
-       Use posX, posY from situation-items.json  */
-    .hotspot {
-      position: absolute;
-      transform: translate(-50%, -50%);
-      z-index: 100;
+    .teach-pill.on {
+      color: #06120e;
+      background: var(--green);
+      border-color: var(--green);
     }
-    .hotspot-btn {
+
+    .tool-row {
+      position: fixed;
+      top: calc(4.05rem + env(safe-area-inset-top));
+      left: 0.75rem;
+      right: 0.75rem;
+      z-index: 45;
+      display: flex;
+      gap: 0.45rem;
+      overflow-x: auto;
+      padding-bottom: 0.2rem;
+      scrollbar-width: none;
+      pointer-events: none;
+    }
+
+    .tool-row::-webkit-scrollbar {
+      display: none;
+    }
+
+    .tool-row button,
+    .tool-row label {
+      pointer-events: auto;
+      flex: 0 0 auto;
+      background: rgba(18,24,43,0.82);
+      color: #fff;
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 999px;
+      padding: 0.48rem 0.72rem;
+      font-family: var(--font-main);
+      font-weight: 900;
+      font-size: 0.7rem;
+      backdrop-filter: blur(10px);
+    }
+
+    .tool-row button.active {
+      color: #06120e;
+      background: var(--green);
+      border-color: var(--green);
+    }
+
+    #file-input {
+      display: none;
+    }
+
+    .status-chip {
+      position: fixed;
+      top: calc(7rem + env(safe-area-inset-top));
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 40;
+      max-width: min(88vw, 420px);
+      background: rgba(18,24,43,0.82);
+      border: 1px solid rgba(255,255,255,0.1);
+      color: var(--text-muted);
+      padding: 0.42rem 0.8rem;
+      border-radius: 999px;
+      font-size: 0.68rem;
+      font-weight: 900;
+      text-align: center;
+      backdrop-filter: blur(10px);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .tap-hint {
+      position: fixed;
+      left: 50%;
+      bottom: calc(6.6rem + env(safe-area-inset-bottom));
+      transform: translateX(-50%);
+      z-index: 25;
+      width: min(92vw, 420px);
+      text-align: center;
+      color: rgba(255,255,255,0.56);
+      font-size: 0.76rem;
+      font-weight: 800;
+      letter-spacing: 0.8px;
+      pointer-events: none;
+      transition: opacity 0.3s;
+    }
+
+    .tap-hint.hidden {
+      opacity: 0;
+    }
+
+    .info-panel {
+      position: fixed;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      z-index: 70;
+      background: rgba(18,24,43,0.97);
+      border-top: 2px solid var(--green);
+      border-radius: 24px 24px 0 0;
+      padding: 1.15rem 1.15rem calc(1.45rem + env(safe-area-inset-bottom));
+      transform: translateY(100%);
+      transition: transform 0.32s cubic-bezier(0.34, 1.56, 0.64, 1);
+      box-shadow: 0 -16px 48px rgba(0,0,0,0.36);
+      backdrop-filter: blur(18px);
+    }
+
+    .info-panel.show {
+      transform: translateY(0);
+    }
+
+    .panel-close {
+      position: absolute;
+      top: 0.75rem;
+      right: 0.85rem;
+      background: rgba(255,255,255,0.08);
+      color: #fff;
+      border: 1px solid rgba(255,255,255,0.14);
+      border-radius: 999px;
+      padding: 0.32rem 0.7rem;
+      font-family: var(--font-main);
+      font-size: 0.75rem;
+      font-weight: 900;
+    }
+
+    .panel-label {
+      font-size: 0.62rem;
+      font-weight: 900;
+      color: var(--text-muted);
+      letter-spacing: 2.4px;
+      text-transform: uppercase;
+      margin-bottom: 0.35rem;
+      padding-right: 3.5rem;
+    }
+
+    .panel-word {
+      color: var(--green);
+      font-size: 2rem;
+      font-weight: 900;
+      line-height: 1.02;
+      margin-bottom: 0.25rem;
+      padding-right: 3.5rem;
+      word-break: break-word;
+    }
+
+    .panel-phonetic {
+      font-family: var(--font-mono);
+      color: var(--text-muted);
+      font-size: 0.82rem;
+      font-weight: 800;
+      margin-bottom: 0.55rem;
+    }
+
+    .panel-example {
+      color: var(--text-muted);
+      font-size: 0.86rem;
+      line-height: 1.45;
+      font-weight: 700;
+      border-left: 2px solid var(--green);
+      padding-left: 0.7rem;
+      margin: 0.6rem 0 0.85rem;
+    }
+
+    .object-name {
+      color: rgba(255,255,255,0.34);
+      font-size: 0.66rem;
+      font-family: var(--font-mono);
+      font-weight: 800;
+      margin: 0.45rem 0 0.85rem;
+      overflow-wrap: anywhere;
+    }
+
+    .panel-buttons {
+      display: flex;
+      gap: 0.55rem;
+      flex-wrap: wrap;
+      margin-top: 0.85rem;
+    }
+
+    .btn {
+      touch-action: manipulation;
+    }
+
+    .dialogue-box {
+      display: grid;
+      gap: 0.45rem;
+      margin: 0.6rem 0 0.85rem;
+    }
+
+    .dialogue-line {
+      display: grid;
+      grid-template-columns: 1.3rem 1fr;
+      gap: 0.45rem;
+      align-items: start;
+    }
+
+    .dialogue-speaker {
+      color: var(--green);
+      font-family: var(--font-mono);
+      font-weight: 900;
+      font-size: 0.76rem;
+    }
+
+    .dialogue-text {
+      color: var(--text-white);
+      font-weight: 700;
+      line-height: 1.38;
+      font-size: 0.86rem;
+    }
+
+    .object-list {
+      position: fixed;
+      left: 0.75rem;
+      right: 0.75rem;
+      bottom: calc(0.85rem + env(safe-area-inset-bottom));
+      z-index: 60;
+      max-height: 42vh;
+      overflow: auto;
+      background: rgba(18,24,43,0.96);
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 18px;
+      padding: 0.85rem;
+      box-shadow: 0 16px 44px rgba(0,0,0,0.38);
+      display: none;
+    }
+
+    .object-list.show {
+      display: block;
+    }
+
+    .object-list-title {
+      color: var(--green);
+      font-weight: 900;
+      margin-bottom: 0.55rem;
+      font-size: 0.88rem;
+    }
+
+    .object-list-item {
+      color: var(--text-muted);
+      font-size: 0.72rem;
+      font-family: var(--font-mono);
+      font-weight: 700;
+      padding: 0.35rem 0;
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+      overflow-wrap: anywhere;
+    }
+
+    .loading-cover {
+      position: fixed;
+      inset: 0;
+      z-index: 100;
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: 2px;
-      cursor: pointer;
-      -webkit-tap-highlight-color: transparent;
-      animation: hs-pulse 2.5s ease-in-out infinite;
-    }
-    .hotspot-dot {
-      width: 36px; height: 36px;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
       justify-content: center;
-      font-size: 1.1rem;
-      border: 2px solid rgba(255,255,255,0.3);
-      box-shadow: 0 0 0 0 rgba(255,255,255,0.3);
-      transition: transform 0.15s;
-    }
-    .hotspot-btn:active .hotspot-dot { transform: scale(0.88); }
-    .hotspot-label {
-      font-size: 0.58rem;
-      font-weight: 800;
-      color: rgba(255,255,255,0.7);
-      letter-spacing: 0.5px;
-      background: rgba(10,14,26,0.7);
-      padding: 0.1rem 0.4rem;
-      border-radius: 6px;
-      white-space: nowrap;
-    }
-    @keyframes hs-pulse {
-      0%, 100% { transform: translate(-50%,-50%) scale(1); }
-      50%       { transform: translate(-50%,-50%) scale(1.08); }
-    }
-
-    /* ── Info panel ──────────────────────────
-       Slides up from bottom when hotspot tapped */
-    #info-panel {
-      position: fixed;
-      bottom: 0; left: 0; right: 0;
-      z-index: 300;
-      background: var(--bg-card);
-      border-top: 2px solid var(--green);
-      border-radius: 20px 20px 0 0;
-      padding: 1.3rem 1.2rem 2.5rem;
-      transform: translateY(100%);
-      transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
-    }
-    #info-panel.show { transform: translateY(0); }
-    #info-panel-close {
-      position: absolute;
-      top: 0.7rem; right: 0.9rem;
-      background: rgba(255,255,255,0.08);
-      border: 1px solid rgba(255,255,255,0.12);
-      color: #fff; font-family: var(--font-main);
-      font-size: 0.75rem; font-weight: 700;
-      padding: 0.3rem 0.7rem; border-radius: 15px; cursor: pointer;
-    }
-    #info-label {
-      font-size: 0.62rem; font-weight: 800;
-      letter-spacing: 3px; text-transform: uppercase;
-      color: var(--text-muted); margin-bottom: 0.3rem;
-    }
-    #info-word {
-      font-size: 2rem; font-weight: 900;
-      color: var(--green); margin-bottom: 0.15rem; line-height: 1;
-    }
-    #info-phonetic {
-      font-size: 0.82rem; color: var(--text-muted);
-      font-family: var(--font-mono); font-weight: 700; margin-bottom: 0.5rem;
-    }
-    #info-example {
-      font-size: 0.82rem; color: var(--text-muted); font-weight: 600;
-      font-style: italic; line-height: 1.5;
-      border-left: 2px solid var(--green); padding-left: 0.7rem;
-      margin-bottom: 0.8rem;
-    }
-    /* Dialogue display */
-    #info-dialogue { display: none; margin-bottom: 0.8rem; }
-    .dialogue-line {
-      display: flex; gap: 0.5rem; align-items: flex-start;
-      margin-bottom: 0.5rem;
-    }
-    .dialogue-speaker {
-      font-size: 0.72rem; font-weight: 900;
-      color: var(--cyan); min-width: 1.2rem;
-      font-family: var(--font-mono);
-    }
-    .dialogue-text {
-      font-size: 0.85rem; color: var(--text-white);
-      font-weight: 600; line-height: 1.45;
-    }
-    #info-buttons { display: flex; gap: 0.6rem; flex-wrap: wrap; }
-
-    /* ── Hint overlay ────────────────────────── */
-    #tap-hint {
-      position: fixed;
-      bottom: 6rem; left: 0; right: 0;
-      text-align: center;
-      z-index: 150;
+      background: #0a0e1a;
+      gap: 1rem;
+      transition: opacity 0.35s;
       pointer-events: none;
-      font-size: 0.78rem;
-      font-weight: 700;
-      color: rgba(255,255,255,0.45);
-      letter-spacing: 1px;
-      transition: opacity 0.5s;
     }
-    #tap-hint.hidden { opacity: 0; }
 
-    /* ── 3D Mode badge ────────────────────────── */
-    .mode-badge {
-      position: fixed;
-      top: 5rem; right: 1rem;
-      background: rgba(6,214,160,0.15);
-      border: 1px solid rgba(6,214,160,0.3);
-      color: var(--green);
-      font-size: 0.62rem;
-      font-weight: 800;
-      letter-spacing: 2px;
-      text-transform: uppercase;
-      padding: 0.3rem 0.7rem;
-      border-radius: 15px;
-      z-index: 150;
+    .loading-cover.hidden {
+      opacity: 0;
+    }
+
+    .spinner {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      border: 3px solid rgba(255,255,255,0.12);
+      border-top-color: var(--green);
+      animation: spin 0.8s linear infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .loading-text {
+      color: var(--text-muted);
+      font-weight: 900;
+      font-size: 0.85rem;
+    }
+
+    @media (max-width: 420px) {
+      .panel-word {
+        font-size: 1.72rem;
+      }
+
+      .tool-row {
+        top: calc(3.85rem + env(safe-area-inset-top));
+      }
+
+      .status-chip {
+        top: calc(6.65rem + env(safe-area-inset-top));
+      }
     }
   </style>
+
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+        "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+      }
+    }
+  </script>
 </head>
+
 <body>
-
-  <!-- ── Top bar ───────────────────────────── -->
-  <div class="p4-top-bar">
-    <button class="p4-back" onclick="window.location='../'">← Back</button>
-    <div style="text-align:center">
-      <div class="p4-head-title">English Situation 3D</div>
-      <div class="p4-head-sub">Tap objects to learn</div>
-    </div>
-    <div style="width:60px"></div><!-- spacer -->
+  <div class="p4-shell">
+    <canvas id="viewer"></canvas>
   </div>
 
-  <!-- ── Mode badge ────────────────────────── -->
-  <div class="mode-badge" id="mode-badge">Demo</div>
-
-  <!--
-    ═══════════════════════════════════════════════
-    3D MODEL VIEWER
-    Replace ../assets/models/shop.glb with your actual model.
-    If the file doesn't exist, the demo-scene below is shown instead.
-    ═══════════════════════════════════════════════
-  -->
-  <model-viewer
-    id="model-viewer"
-    src="../assets/models/shop.glb"
-    alt="English Learning 3D Scene"
-    camera-controls
-    touch-action="pan-y"
-    auto-rotate
-    auto-rotate-delay="3000"
-    shadow-intensity="1"
-    exposure="1"
-    style="display:none;"
-  >
-    <!--
-      Hotspot annotations for model-viewer.
-      data-position and data-normal values must be calibrated to your specific .glb model.
-      Use model-viewer's built-in inspector at https://modelviewer.dev/editor/ to find positions.
-    -->
-    <button slot="hotspot-0" class="hotspot" data-position="0 1.2 0" data-normal="0 1 0"
-      onclick="showInfoFromHotspot('sign-7eleven')">
-      <div class="hotspot-dot" style="background: rgba(255,214,10,0.2);">🏪</div>
-      <span class="hotspot-label">7-Eleven</span>
-    </button>
-    <button slot="hotspot-1" class="hotspot" data-position="1 1 0" data-normal="0 1 0"
-      onclick="showInfoFromHotspot('sign-exit')">
-      <div class="hotspot-dot" style="background: rgba(6,214,160,0.2);">🚪</div>
-      <span class="hotspot-label">Exit</span>
-    </button>
-  </model-viewer>
-
-  <!--
-    ═══════════════════════════════════════════════
-    DEMO SCENE (shown when no .glb is available)
-    This is a stylized 2D illustration with interactive hotspots.
-    Replace with your actual model-viewer setup once you have a .glb.
-    ═══════════════════════════════════════════════
-  -->
-  <div id="demo-scene">
-    <!-- Floor perspective grid -->
-    <div class="floor-grid"></div>
-
-    <!-- Store background -->
-    <div class="store-bg">
-      <div class="shelf-wall">
-        <div class="store-sign">🏪 Convenience Store</div>
-        <div class="shelf shelf-1"></div>
-        <div class="shelf shelf-2"></div>
-        <div class="shelf shelf-3"></div>
-      </div>
-    </div>
-
-    <!-- Hotspots are injected here by JavaScript -->
-    <div id="hotspots-container"></div>
+  <div class="loading-cover" id="loading-cover">
+    <div class="spinner"></div>
+    <div class="loading-text" id="loading-text">Loading 3D scene…</div>
   </div>
 
-  <!-- ── Tap hint ───────────────────────────── -->
-  <div id="tap-hint">👆 TAP THE GLOWING DOTS TO LEARN</div>
+  <div class="top-bar">
+    <button class="back-btn" type="button" onclick="window.location='../'">← Back</button>
 
-  <!-- ═══════════════════════════════════════════
-       INFO PANEL (slides up from bottom)
-       ═══════════════════════════════════════════ -->
-  <div id="info-panel">
-    <button id="info-panel-close" onclick="closeInfoPanel()">✕</button>
-    <div id="info-label">VOCABULARY</div>
-    <div id="info-word">Word</div>
-    <div id="info-phonetic"></div>
-    <div id="info-example"></div>
-    <div id="info-dialogue"></div>
-    <div id="info-buttons">
-      <button class="btn btn-green" id="btn-speak-info" onclick="speakInfoContent()">
-        🔊 Speak
-      </button>
-      <button class="btn btn-ghost btn-sm" id="btn-speak-again" onclick="speakInfoAgain()">
-        🔄 Again
-      </button>
+    <div class="title-wrap">
+      <div class="title-main">English Situation 3D</div>
+      <div class="title-sub">Tap objects to learn</div>
+    </div>
+
+    <button class="teach-pill" id="teach-btn" type="button">Teach: OFF</button>
+  </div>
+
+  <div class="tool-row">
+    <label for="file-input">📦 Load .glb</label>
+    <input id="file-input" type="file" accept=".glb,.gltf" />
+    <button id="reset-btn" type="button">↺ Reset</button>
+    <button id="auto-btn" type="button">🔄 Auto: OFF</button>
+    <button id="names-btn" type="button">👁 Names</button>
+    <button id="clear-btn" type="button">🧹 Clear Teach</button>
+  </div>
+
+  <div class="status-chip" id="status-chip">Preparing scene…</div>
+
+  <div class="tap-hint" id="tap-hint">
+    👆 Tap an object • Drag to rotate • Pinch to zoom
+  </div>
+
+  <div class="object-list" id="object-list">
+    <div class="object-list-title">Object names in this scene</div>
+    <div id="object-list-content"></div>
+  </div>
+
+  <div class="info-panel" id="info-panel">
+    <button class="panel-close" type="button" id="panel-close">✕</button>
+
+    <div class="panel-label" id="panel-label">VOCABULARY</div>
+    <div class="panel-word" id="panel-word">Word</div>
+    <div class="panel-phonetic" id="panel-phonetic"></div>
+    <div class="panel-example" id="panel-example"></div>
+    <div class="dialogue-box" id="dialogue-box"></div>
+    <div class="object-name" id="object-name"></div>
+
+    <div class="panel-buttons">
+      <button class="btn btn-green" type="button" id="speak-btn">🔊 Speak</button>
+      <button class="btn btn-ghost" type="button" id="teach-selected-btn">✏️ Teach this</button>
     </div>
   </div>
 
-  <script>
-    'use strict';
+  <script type="module">
+    import * as THREE from 'three';
+    import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+    import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
-    // ══════════════════════════════════════════
-    // DATA & STATE
-    // ══════════════════════════════════════════
+    const MODEL_URL = '../assets/models/shop.glb';
+    const DATA_URL = '../assets/data/situation-items.json';
+    const STORAGE_KEY = 'english-ar-part4-taught-words-v2';
+
+    const canvas = document.getElementById('viewer');
+    const loadingCover = document.getElementById('loading-cover');
+    const loadingText = document.getElementById('loading-text');
+    const statusChip = document.getElementById('status-chip');
+    const tapHint = document.getElementById('tap-hint');
+
+    const teachBtn = document.getElementById('teach-btn');
+    const resetBtn = document.getElementById('reset-btn');
+    const autoBtn = document.getElementById('auto-btn');
+    const namesBtn = document.getElementById('names-btn');
+    const clearBtn = document.getElementById('clear-btn');
+    const fileInput = document.getElementById('file-input');
+
+    const panel = document.getElementById('info-panel');
+    const panelClose = document.getElementById('panel-close');
+    const panelLabel = document.getElementById('panel-label');
+    const panelWord = document.getElementById('panel-word');
+    const panelPhonetic = document.getElementById('panel-phonetic');
+    const panelExample = document.getElementById('panel-example');
+    const dialogueBox = document.getElementById('dialogue-box');
+    const objectNameEl = document.getElementById('object-name');
+    const speakBtn = document.getElementById('speak-btn');
+    const teachSelectedBtn = document.getElementById('teach-selected-btn');
+
+    const objectList = document.getElementById('object-list');
+    const objectListContent = document.getElementById('object-list-content');
+
     let situationItems = [];
-    let currentItem    = null;
+    let taught = loadTaughtWords();
+    let teachMode = false;
+    let autoRotate = false;
+    let currentObject = null;
+    let currentInfo = null;
+    let modelRoot = null;
+    let clickableObjects = [];
+    let originalMaterials = new Map();
+    let selectedHighlight = null;
 
-    // Load situation items
-    fetch('../assets/data/situation-items.json')
-      .then(r => r.json())
-      .then(data => {
-        situationItems = data;
-        console.log('[Part4] Situation items loaded:', data.length);
-        renderHotspots();
-        tryLoadModel();
-      })
-      .catch(err => console.error('[Part4] Failed to load situation-items.json', err));
+    let pointerDown = null;
 
-    // ══════════════════════════════════════════
-    // MODEL VIEWER — try to load .glb
-    // ══════════════════════════════════════════
-    function tryLoadModel() {
-      const mv = document.getElementById('model-viewer');
-      mv.addEventListener('load', () => {
-        // Model loaded successfully — show model-viewer, hide demo
-        console.log('[Part4] .glb model loaded!');
-        document.getElementById('demo-scene').style.display = 'none';
-        mv.style.display = 'block';
-        document.getElementById('mode-badge').textContent = '3D MODEL';
-      });
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color(0x0a0e1a);
 
-      mv.addEventListener('error', () => {
-        // No .glb available — keep demo scene
-        console.log('[Part4] No .glb found — showing demo scene');
-        mv.style.display = 'none';
-        document.getElementById('demo-scene').style.display = 'block';
-        document.getElementById('mode-badge').textContent = 'DEMO';
-      });
+    const camera = new THREE.PerspectiveCamera(55, window.innerWidth / window.innerHeight, 0.01, 200);
+    camera.position.set(3.2, 2.2, 4.2);
 
-      // Trigger model load attempt
-      // Already set src above; if file missing, error fires
+    const renderer = new THREE.WebGLRenderer({
+      canvas,
+      antialias: true,
+      alpha: false,
+      powerPreference: 'high-performance'
+    });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.75));
+    renderer.outputColorSpace = THREE.SRGBColorSpace;
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+
+    const controls = new OrbitControls(camera, renderer.domElement);
+    controls.enableDamping = true;
+    controls.dampingFactor = 0.08;
+    controls.rotateSpeed = 0.72;
+    controls.zoomSpeed = 0.85;
+    controls.panSpeed = 0.55;
+    controls.minDistance = 1.2;
+    controls.maxDistance = 12;
+    controls.target.set(0, 0.8, 0);
+
+    const raycaster = new THREE.Raycaster();
+    const pointer = new THREE.Vector2();
+
+    setupLights();
+    await loadData();
+    await loadModelOrDemo(MODEL_URL);
+    animate();
+
+    // ───────────────────────────────────────
+    // Setup
+    // ───────────────────────────────────────
+    function setupLights() {
+      const hemi = new THREE.HemisphereLight(0xffffff, 0x102018, 1.7);
+      scene.add(hemi);
+
+      const dir = new THREE.DirectionalLight(0xffffff, 2.0);
+      dir.position.set(4, 6, 5);
+      dir.castShadow = true;
+      dir.shadow.mapSize.set(1024, 1024);
+      scene.add(dir);
+
+      const fill = new THREE.PointLight(0x06d6a0, 1.1, 9);
+      fill.position.set(-3, 2.5, 2);
+      scene.add(fill);
     }
 
-    // ══════════════════════════════════════════
-    // HOTSPOTS (demo scene)
-    // ══════════════════════════════════════════
-    function renderHotspots() {
-      const container = document.getElementById('hotspots-container');
-      if (!container) return;
+    async function loadData() {
+      try {
+        const res = await fetch(DATA_URL);
+        if (!res.ok) throw new Error('situation-items.json not found');
+        situationItems = await res.json();
+      } catch (err) {
+        console.warn('[Part4] Could not load situation-items.json:', err);
+        situationItems = [];
+      }
+    }
 
-      situationItems.forEach(item => {
-        const el = document.createElement('div');
-        el.className = 'hotspot';
-        el.style.left = `${item.posX}%`;
-        el.style.top  = `${item.posY + 10}%`; // offset for top bar
+    async function loadModelOrDemo(url) {
+      setStatus('Loading model…');
+      loadingText.textContent = 'Loading 3D model…';
 
-        // Random pulse delay for visual variety
-        const delay = (Math.random() * 2).toFixed(1);
+      try {
+        await loadGLB(url);
+        setStatus('Model loaded. Tap an object.');
+      } catch (err) {
+        console.warn('[Part4] shop.glb not found or failed. Using demo scene.', err);
+        createDemoScene();
+        setStatus('Demo scene loaded. Add shop.glb for your real model.');
+      }
 
-        el.innerHTML = `
-          <button class="hotspot-btn" onclick="showInfoFromHotspot('${item.id}')"
-            style="animation-delay:${delay}s">
-            <div class="hotspot-dot" style="background: ${hexToRgba(item.color, 0.25)}; border-color: ${item.color}50;">
-              ${item.emoji}
-            </div>
-            <span class="hotspot-label" style="color:${item.color}">${item.label}</span>
-          </button>`;
-        container.appendChild(el);
+      collectClickableObjects();
+      fitCameraToModel();
+      refreshObjectList();
+      loadingCover.classList.add('hidden');
+      setTimeout(() => {
+        loadingCover.style.display = 'none';
+      }, 450);
+    }
+
+    function loadGLB(url) {
+      return new Promise((resolve, reject) => {
+        const loader = new GLTFLoader();
+        loader.load(
+          url,
+          gltf => {
+            clearModel();
+
+            modelRoot = gltf.scene;
+            modelRoot.name = modelRoot.name || 'EnglishSituationModel';
+
+            modelRoot.traverse(obj => {
+              if (obj.isMesh) {
+                obj.castShadow = true;
+                obj.receiveShadow = true;
+                obj.userData.originalName = getObjectKey(obj);
+
+                if (obj.material) {
+                  obj.material = obj.material.clone();
+                  if ('roughness' in obj.material) obj.material.roughness = 0.55;
+                  if ('metalness' in obj.material) obj.material.metalness = Math.min(obj.material.metalness || 0, 0.35);
+                }
+              }
+            });
+
+            scene.add(modelRoot);
+            resolve();
+          },
+          undefined,
+          reject
+        );
       });
     }
 
-    function hexToRgba(hex, alpha) {
-      const r = parseInt(hex.slice(1,3), 16);
-      const g = parseInt(hex.slice(3,5), 16);
-      const b = parseInt(hex.slice(5,7), 16);
-      return `rgba(${r},${g},${b},${alpha})`;
+    function clearModel() {
+      if (modelRoot) {
+        scene.remove(modelRoot);
+        modelRoot.traverse(obj => {
+          if (obj.geometry) obj.geometry.dispose();
+          if (obj.material) {
+            if (Array.isArray(obj.material)) obj.material.forEach(m => m.dispose && m.dispose());
+            else obj.material.dispose && obj.material.dispose();
+          }
+        });
+      }
+
+      modelRoot = null;
+      clickableObjects = [];
+      originalMaterials.clear();
+      selectedHighlight = null;
     }
 
-    // ══════════════════════════════════════════
-    // INFO PANEL
-    // ══════════════════════════════════════════
-    function showInfoFromHotspot(itemId) {
-      const item = situationItems.find(i => i.id === itemId);
-      if (!item) return;
-      currentItem = item;
+    function createDemoScene() {
+      clearModel();
 
-      const panel = document.getElementById('info-panel');
+      modelRoot = new THREE.Group();
+      modelRoot.name = 'DemoConvenienceStore';
 
-      // Update panel colors
-      panel.style.borderTopColor = item.color;
+      const floor = makeBox('Floor', [5.8, 0.08, 4.4], [0, -0.04, 0], 0x142033);
+      floor.receiveShadow = true;
+      modelRoot.add(floor);
 
-      if (item.type === 'vocab') {
-        // Vocabulary mode
-        document.getElementById('info-label').textContent    = 'VOCABULARY';
-        document.getElementById('info-word').textContent     = item.word;
-        document.getElementById('info-word').style.color     = item.color;
-        document.getElementById('info-phonetic').textContent = item.phonetic || '';
-        document.getElementById('info-example').textContent  = item.example || '';
-        document.getElementById('info-example').style.borderLeftColor = item.color;
-        document.getElementById('info-dialogue').style.display = 'none';
-        document.getElementById('info-example').style.display  = 'block';
+      const backWall = makeBox('Wall', [5.8, 2.5, 0.08], [0, 1.2, -2.2], 0x1a2740);
+      modelRoot.add(backWall);
 
-        // Auto-speak
-        speak(item.word);
+      const shelf1 = makeBox('Shelf', [4.8, 0.15, 0.55], [0, 0.65, -1.7], 0x32415f);
+      const shelf2 = makeBox('Snack Shelf', [4.8, 0.15, 0.55], [0, 1.25, -1.7], 0x32415f);
+      const counter = makeBox('Counter', [2.2, 0.85, 0.8], [-1.4, 0.42, 0.8], 0x23364f);
+      const cashier = makeBox('Cashier Counter', [0.72, 0.32, 0.38], [-1.4, 1.0, 0.78], 0x06d6a0);
+      const cola = makeCylinder('Coca-Cola', 0.18, 0.72, [1.35, 0.44, -1.55], 0xff3b8f);
+      const water = makeCylinder('Water Bottle', 0.16, 0.74, [1.85, 0.45, -1.55], 0x00d4ff);
+      const exit = makeBox('Exit Sign', [0.9, 0.32, 0.05], [2.0, 2.05, -2.13], 0x06d6a0);
+      const restroom = makeBox('Restroom Sign', [0.9, 0.32, 0.05], [-2.0, 2.05, -2.13], 0x00d4ff);
+      const warning = makeBox('Warning Sign', [0.65, 0.46, 0.05], [0, 2.02, -2.13], 0xff9f1c);
 
-      } else if (item.type === 'dialogue') {
-        // Dialogue mode
-        document.getElementById('info-label').textContent    = 'CONVERSATION';
-        document.getElementById('info-word').textContent     = item.word;
-        document.getElementById('info-word').style.color     = item.color;
-        document.getElementById('info-phonetic').textContent = '';
-        document.getElementById('info-example').style.display  = 'none';
+      modelRoot.add(shelf1, shelf2, counter, cashier, cola, water, exit, restroom, warning);
 
-        // Build dialogue HTML
-        const dialogueEl = document.getElementById('info-dialogue');
-        dialogueEl.innerHTML = item.dialogue
-          .map(d => `
-            <div class="dialogue-line">
-              <span class="dialogue-speaker" style="color:${d.speaker==='A'?item.color:'#ff3b8f'}">${d.speaker}:</span>
-              <span class="dialogue-text">${d.line}</span>
-            </div>`)
-          .join('');
-        dialogueEl.style.display = 'block';
+      scene.add(modelRoot);
+    }
 
-        // Auto-speak first line
-        speak(item.dialogue[0].line);
+    function makeBox(name, size, position, color) {
+      const geometry = new THREE.BoxGeometry(...size);
+      const material = new THREE.MeshStandardMaterial({
+        color,
+        roughness: 0.55,
+        metalness: 0.08
+      });
+      const mesh = new THREE.Mesh(geometry, material);
+      mesh.name = name;
+      mesh.position.set(...position);
+      mesh.castShadow = true;
+      mesh.receiveShadow = true;
+      return mesh;
+    }
+
+    function makeCylinder(name, radius, height, position, color) {
+      const geometry = new THREE.CylinderGeometry(radius, radius, height, 32);
+      const material = new THREE.MeshStandardMaterial({
+        color,
+        roughness: 0.42,
+        metalness: 0.1
+      });
+      const mesh = new THREE.Mesh(geometry, material);
+      mesh.name = name;
+      mesh.position.set(...position);
+      mesh.castShadow = true;
+      mesh.receiveShadow = true;
+      return mesh;
+    }
+
+    function collectClickableObjects() {
+      clickableObjects = [];
+
+      if (!modelRoot) return;
+
+      modelRoot.traverse(obj => {
+        if (obj.isMesh) {
+          clickableObjects.push(obj);
+          if (obj.material && !originalMaterials.has(obj.uuid)) {
+            originalMaterials.set(obj.uuid, obj.material.clone());
+          }
+        }
+      });
+    }
+
+    function fitCameraToModel() {
+      if (!modelRoot) return;
+
+      const box = new THREE.Box3().setFromObject(modelRoot);
+      if (box.isEmpty()) return;
+
+      const size = new THREE.Vector3();
+      const center = new THREE.Vector3();
+      box.getSize(size);
+      box.getCenter(center);
+
+      const maxDim = Math.max(size.x, size.y, size.z);
+      const dist = Math.max(3.0, maxDim * 1.55);
+
+      camera.position.set(center.x + dist * 0.78, center.y + dist * 0.55, center.z + dist * 0.95);
+      controls.target.copy(center);
+      controls.target.y += size.y * 0.06;
+      controls.update();
+    }
+
+    // ───────────────────────────────────────
+    // Interaction
+    // ───────────────────────────────────────
+    canvas.addEventListener('pointerdown', event => {
+      pointerDown = {
+        x: event.clientX,
+        y: event.clientY,
+        time: performance.now()
+      };
+    });
+
+    canvas.addEventListener('pointerup', event => {
+      if (!pointerDown) return;
+
+      const dx = Math.abs(event.clientX - pointerDown.x);
+      const dy = Math.abs(event.clientY - pointerDown.y);
+      const dt = performance.now() - pointerDown.time;
+
+      pointerDown = null;
+
+      // Ignore drags used for orbit control.
+      if (dx > 10 || dy > 10 || dt > 650) return;
+
+      handlePick(event.clientX, event.clientY);
+    });
+
+    function handlePick(clientX, clientY) {
+      if (!clickableObjects.length) return;
+
+      pointer.x = (clientX / window.innerWidth) * 2 - 1;
+      pointer.y = -(clientY / window.innerHeight) * 2 + 1;
+
+      raycaster.setFromCamera(pointer, camera);
+      const hits = raycaster.intersectObjects(clickableObjects, true);
+
+      if (!hits.length) return;
+
+      const mesh = hits[0].object;
+      currentObject = mesh;
+
+      tapHint.classList.add('hidden');
+      highlightObject(mesh);
+
+      if (teachMode) {
+        teachObject(mesh);
+        return;
+      }
+
+      const info = getInfoForObject(mesh);
+      showInfo(info, mesh);
+    }
+
+    function highlightObject(mesh) {
+      if (selectedHighlight && selectedHighlight !== mesh) {
+        restoreMaterial(selectedHighlight);
+      }
+
+      selectedHighlight = mesh;
+
+      if (!mesh.material) return;
+
+      const mat = mesh.material.clone();
+      mat.emissive = mat.emissive || new THREE.Color(0x000000);
+      mat.emissive.set(0x064b3d);
+      mat.emissiveIntensity = 0.45;
+      mesh.material = mat;
+    }
+
+    function restoreMaterial(mesh) {
+      const original = originalMaterials.get(mesh.uuid);
+      if (original) mesh.material = original.clone();
+    }
+
+    // ───────────────────────────────────────
+    // Teach Mode / Vocabulary
+    // ───────────────────────────────────────
+    function getObjectKey(obj) {
+      const names = [];
+      let cur = obj;
+
+      while (cur && cur !== modelRoot && names.length < 4) {
+        if (cur.name) names.push(cur.name);
+        cur = cur.parent;
+      }
+
+      return names[0] || obj.uuid || 'UnknownObject';
+    }
+
+    function normalize(text) {
+      return String(text || '')
+        .toLowerCase()
+        .replace(/[_\-]+/g, ' ')
+        .replace(/[^a-z0-9\s]/g, '')
+        .replace(/\s+/g, ' ')
+        .trim();
+    }
+
+    function titleCase(text) {
+      return String(text || '')
+        .replace(/[_\-]+/g, ' ')
+        .replace(/\s+/g, ' ')
+        .trim()
+        .replace(/\w\S*/g, s => s.charAt(0).toUpperCase() + s.slice(1).toLowerCase());
+    }
+
+    function getInfoForObject(obj) {
+      const key = getObjectKey(obj);
+      const normalizedKey = normalize(key);
+
+      const taughtInfo = taught[key] || taught[normalizedKey];
+      if (taughtInfo) {
+        return {
+          ...taughtInfo,
+          label: 'TAUGHT WORD',
+          objectKey: key,
+          source: 'localStorage'
+        };
+      }
+
+      const matchedItem = matchSituationItem(normalizedKey);
+      if (matchedItem) {
+        return {
+          ...matchedItem,
+          label: matchedItem.type === 'dialogue' ? 'CONVERSATION' : 'VOCABULARY',
+          objectKey: key,
+          source: 'situation-items.json'
+        };
+      }
+
+      const builtin = matchBuiltin(normalizedKey);
+      if (builtin) {
+        return {
+          ...builtin,
+          label: 'VOCABULARY',
+          objectKey: key,
+          source: 'built-in'
+        };
+      }
+
+      const guessed = guessWordFromObjectName(key);
+      return {
+        type: 'unknown',
+        word: guessed,
+        phonetic: '',
+        example: 'Turn on Teach Mode to save the correct English word.',
+        label: 'UNKNOWN OBJECT',
+        objectKey: key,
+        source: 'object-name'
+      };
+    }
+
+    function matchSituationItem(normalizedKey) {
+      for (const item of situationItems) {
+        const keys = [
+          item.id,
+          item.label,
+          item.word,
+          item.type
+        ].map(normalize).filter(Boolean);
+
+        for (const k of keys) {
+          if (!k) continue;
+
+          if (
+            normalizedKey === k ||
+            normalizedKey.includes(k) ||
+            k.includes(normalizedKey)
+          ) {
+            return item;
+          }
+        }
+      }
+
+      return null;
+    }
+
+    function matchBuiltin(normalizedKey) {
+      const builtins = [
+        { keys: ['table', 'desk'], word: 'Table', phonetic: '/ˈteɪbəl/', example: 'This is a table.' },
+        { keys: ['chair', 'seat'], word: 'Chair', phonetic: '/tʃer/', example: 'Please sit on the chair.' },
+        { keys: ['counter', 'cashier counter'], word: 'Counter', phonetic: '/ˈkaʊntər/', example: 'Please pay at the counter.' },
+        { keys: ['cashier'], word: 'Cashier', phonetic: '/kæˈʃɪr/', example: 'The cashier is helping a customer.' },
+        { keys: ['shelf', 'rack'], word: 'Shelf', phonetic: '/ʃelf/', example: 'The drinks are on the shelf.' },
+        { keys: ['door'], word: 'Door', phonetic: '/dɔːr/', example: 'Please open the door.' },
+        { keys: ['exit'], word: 'Exit', phonetic: '/ˈɛɡzɪt/', example: 'Please use the exit on the right.' },
+        { keys: ['restroom', 'toilet', 'bathroom'], word: 'Restroom', phonetic: '/ˈrɛstruːm/', example: 'Excuse me, where is the restroom?' },
+        { keys: ['warning'], word: 'Warning', phonetic: '/ˈwɔːrnɪŋ/', example: 'The warning sign says do not enter.' },
+        { keys: ['cola', 'coke', 'coca cola'], word: 'Coca-Cola', phonetic: '/ˌkoʊkəˈkoʊlə/', example: "I'd like a cold Coca-Cola, please." },
+        { keys: ['water', 'bottle'], word: 'Water Bottle', phonetic: '/ˈwɔːtər ˈbɑːtəl/', example: 'I would like a bottle of water.' },
+        { keys: ['product', 'goods', 'item'], word: 'Product', phonetic: '/ˈprɑːdʌkt/', example: 'This product is on sale.' },
+        { keys: ['shop', 'store'], word: 'Store', phonetic: '/stɔːr/', example: 'The store is open today.' },
+        { keys: ['sign'], word: 'Sign', phonetic: '/saɪn/', example: 'Read the sign carefully.' }
+      ];
+
+      for (const item of builtins) {
+        if (item.keys.some(k => normalizedKey.includes(k) || k.includes(normalizedKey))) {
+          return {
+            type: 'vocab',
+            word: item.word,
+            phonetic: item.phonetic,
+            example: item.example
+          };
+        }
+      }
+
+      return null;
+    }
+
+    function guessWordFromObjectName(key) {
+      const cleaned = String(key || 'Object')
+        .replace(/[_\-]+/g, ' ')
+        .replace(/([a-z])([A-Z])/g, '$1 $2')
+        .replace(/\d+/g, '')
+        .replace(/\s+/g, ' ')
+        .trim();
+
+      if (!cleaned || /^material|object|mesh|cube|node$/i.test(cleaned)) {
+        return 'Unknown Object';
+      }
+
+      return titleCase(cleaned);
+    }
+
+    function teachObject(obj) {
+      const key = getObjectKey(obj);
+      const current = getInfoForObject(obj);
+      const word = prompt('English word for this object:', current.word && current.word !== 'Unknown Object' ? current.word : '');
+
+      if (!word) {
+        setStatus('Teach cancelled.');
+        return;
+      }
+
+      const phonetic = prompt('Phonetic / pronunciation (optional):', current.phonetic || '');
+      const example = prompt('Example sentence:', current.example && current.source !== 'object-name'
+        ? current.example
+        : `This is a ${word}.`);
+
+      const info = {
+        type: 'vocab',
+        word: word.trim(),
+        phonetic: (phonetic || '').trim(),
+        example: (example || `This is a ${word.trim()}.`).trim()
+      };
+
+      taught[key] = info;
+      taught[normalize(key)] = info;
+      saveTaughtWords();
+
+      setStatus(`Saved word: ${info.word}`);
+      showInfo({
+        ...info,
+        label: 'TAUGHT WORD',
+        objectKey: key,
+        source: 'localStorage'
+      }, obj);
+
+      refreshObjectList();
+    }
+
+    function loadTaughtWords() {
+      try {
+        return JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+      } catch {
+        return {};
+      }
+    }
+
+    function saveTaughtWords() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(taught));
+    }
+
+    // ───────────────────────────────────────
+    // UI Panel
+    // ───────────────────────────────────────
+    function showInfo(info, obj) {
+      currentInfo = info;
+
+      panelLabel.textContent = info.label || 'VOCABULARY';
+      panelWord.textContent = info.word || 'Unknown Object';
+      panelPhonetic.textContent = info.phonetic || '';
+      objectNameEl.textContent = `Object name: ${info.objectKey || getObjectKey(obj)}`;
+
+      dialogueBox.innerHTML = '';
+
+      if (info.type === 'dialogue' && Array.isArray(info.dialogue)) {
+        panelExample.style.display = 'none';
+        dialogueBox.style.display = 'grid';
+
+        info.dialogue.forEach(line => {
+          const row = document.createElement('div');
+          row.className = 'dialogue-line';
+
+          const speaker = document.createElement('div');
+          speaker.className = 'dialogue-speaker';
+          speaker.textContent = `${line.speaker}:`;
+
+          const text = document.createElement('div');
+          text.className = 'dialogue-text';
+          text.textContent = line.line;
+
+          row.appendChild(speaker);
+          row.appendChild(text);
+          dialogueBox.appendChild(row);
+        });
+      } else {
+        dialogueBox.style.display = 'none';
+        panelExample.style.display = 'block';
+        panelExample.textContent = info.example || 'No example yet.';
       }
 
       panel.classList.add('show');
-      document.getElementById('tap-hint').classList.add('hidden');
 
-      if ('vibrate' in navigator) navigator.vibrate(40);
+      speakWordOnly(info);
+      setStatus(`${info.word || 'Object'} selected`);
     }
 
-    function closeInfoPanel() {
-      document.getElementById('info-panel').classList.remove('show');
-      document.getElementById('tap-hint').classList.remove('hidden');
-      if ('speechSynthesis' in window) window.speechSynthesis.cancel();
+    function closePanel() {
+      panel.classList.remove('show');
     }
 
-    // ══════════════════════════════════════════
-    // SPEECH
-    // ══════════════════════════════════════════
-    function speakInfoContent() {
-      if (!currentItem) return;
-      if (currentItem.type === 'vocab') {
-        speak(currentItem.word + '. ' + (currentItem.example || ''));
-      } else if (currentItem.type === 'dialogue') {
-        const fullDialogue = currentItem.dialogue.map(d => d.line).join('. ');
-        speak(fullDialogue);
+    function speakWordOnly(info) {
+      if (!info) return;
+
+      if (info.type === 'dialogue' && Array.isArray(info.dialogue)) {
+        speak(info.dialogue[0]?.line || info.word);
+      } else {
+        speak(info.word);
       }
     }
 
-    function speakInfoAgain() {
-      speakInfoContent();
-      const btn = document.getElementById('btn-speak-again');
-      btn.textContent = '✓ Speaking…';
-      setTimeout(() => { btn.textContent = '🔄 Again'; }, 2000);
+    function speakFullInfo() {
+      if (!currentInfo) return;
+
+      if (currentInfo.type === 'dialogue' && Array.isArray(currentInfo.dialogue)) {
+        speak(currentInfo.dialogue.map(d => d.line).join('. '));
+      } else {
+        speak(`${currentInfo.word}. ${currentInfo.example || ''}`);
+      }
     }
 
     function speak(text) {
-      if (!('speechSynthesis' in window)) return;
+      if (!('speechSynthesis' in window) || !text) return;
+
       window.speechSynthesis.cancel();
-      const utt   = new SpeechSynthesisUtterance(text);
-      utt.lang    = 'en-US';
-      utt.rate    = 0.88;
-      utt.pitch   = 1;
+
+      const utt = new SpeechSynthesisUtterance(text);
+      utt.lang = 'en-US';
+      utt.rate = 0.88;
+      utt.pitch = 1;
+
       const voices = window.speechSynthesis.getVoices();
-      const eng   = voices.find(v => v.lang.startsWith('en') && v.localService);
-      if (eng) utt.voice = eng;
+      const voice =
+        voices.find(v => v.lang === 'en-US' && v.localService) ||
+        voices.find(v => v.lang && v.lang.startsWith('en'));
+
+      if (voice) utt.voice = voice;
+
       window.speechSynthesis.speak(utt);
+    }
+
+    // ───────────────────────────────────────
+    // Buttons
+    // ───────────────────────────────────────
+    teachBtn.addEventListener('click', () => {
+      teachMode = !teachMode;
+      teachBtn.classList.toggle('on', teachMode);
+      teachBtn.textContent = teachMode ? 'Teach: ON' : 'Teach: OFF';
+      setStatus(teachMode ? 'Teach Mode ON. Tap an object to save a word.' : 'Teach Mode OFF. Tap objects to learn.');
+    });
+
+    resetBtn.addEventListener('click', () => {
+      fitCameraToModel();
+      closePanel();
+      setStatus('Camera reset.');
+    });
+
+    autoBtn.addEventListener('click', () => {
+      autoRotate = !autoRotate;
+      autoBtn.classList.toggle('active', autoRotate);
+      autoBtn.textContent = autoRotate ? '🔄 Auto: ON' : '🔄 Auto: OFF';
+      controls.autoRotate = autoRotate;
+      controls.autoRotateSpeed = 1.1;
+    });
+
+    namesBtn.addEventListener('click', () => {
+      objectList.classList.toggle('show');
+      namesBtn.classList.toggle('active', objectList.classList.contains('show'));
+    });
+
+    clearBtn.addEventListener('click', () => {
+      const ok = confirm('Clear all taught words saved on this browser?');
+      if (!ok) return;
+
+      taught = {};
+      saveTaughtWords();
+      setStatus('Taught words cleared.');
+      refreshObjectList();
+    });
+
+    fileInput.addEventListener('change', async event => {
+      const file = event.target.files?.[0];
+      if (!file) return;
+
+      const url = URL.createObjectURL(file);
+
+      loadingCover.style.display = 'flex';
+      loadingCover.classList.remove('hidden');
+      loadingText.textContent = `Loading ${file.name}…`;
+
+      try {
+        await loadGLB(url);
+        collectClickableObjects();
+        fitCameraToModel();
+        refreshObjectList();
+        setStatus(`${file.name} loaded. Tap an object.`);
+      } catch (err) {
+        console.error('[Part4] File load error:', err);
+        setStatus('Cannot load this GLB/GLTF file.');
+      } finally {
+        URL.revokeObjectURL(url);
+        loadingCover.classList.add('hidden');
+        setTimeout(() => { loadingCover.style.display = 'none'; }, 450);
+      }
+    });
+
+    panelClose.addEventListener('click', closePanel);
+    speakBtn.addEventListener('click', speakFullInfo);
+    teachSelectedBtn.addEventListener('click', () => {
+      if (!currentObject) return;
+      teachObject(currentObject);
+    });
+
+    // ───────────────────────────────────────
+    // Object list
+    // ───────────────────────────────────────
+    function refreshObjectList() {
+      objectListContent.innerHTML = '';
+
+      const names = clickableObjects
+        .map(obj => getObjectKey(obj))
+        .filter(Boolean);
+
+      const unique = [...new Set(names)].sort((a, b) => a.localeCompare(b));
+
+      if (!unique.length) {
+        const div = document.createElement('div');
+        div.className = 'object-list-item';
+        div.textContent = 'No mesh objects found.';
+        objectListContent.appendChild(div);
+        return;
+      }
+
+      unique.forEach(name => {
+        const info = taught[name] || taught[normalize(name)];
+        const div = document.createElement('div');
+        div.className = 'object-list-item';
+        div.textContent = info ? `${name} → ${info.word}` : name;
+        objectListContent.appendChild(div);
+      });
+    }
+
+    function setStatus(text) {
+      statusChip.textContent = text;
+    }
+
+    // ───────────────────────────────────────
+    // Resize / Animation
+    // ───────────────────────────────────────
+    window.addEventListener('resize', () => {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+
+      renderer.setSize(window.innerWidth, window.innerHeight);
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.75));
+    });
+
+    function animate() {
+      requestAnimationFrame(animate);
+      controls.update();
+      renderer.render(scene, camera);
     }
 
     if ('speechSynthesis' in window) {
       window.speechSynthesis.getVoices();
       window.speechSynthesis.onvoiceschanged = () => window.speechSynthesis.getVoices();
     }
-
-    // Hide tap hint after first interaction
-    document.addEventListener('touchstart', () => {
-      setTimeout(() => {
-        document.getElementById('tap-hint').classList.add('hidden');
-      }, 4000);
-    }, { once: true });
   </script>
 </body>
 </html>
