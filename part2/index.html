@@ -1,17 +1,13 @@
 <!DOCTYPE html>
-<!-- Part 2: AR Question - Locked camera-fixed Text3D version -->
+<!-- Part 2: AR Question - Reliable mobile overlay locked version -->
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>Part 2 – AR Question</title>
 
-  <!-- A-Frame + MindAR -->
   <script src="https://cdn.jsdelivr.net/npm/aframe@1.4.2/dist/aframe.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
-
-  <!-- True 3D extruded text -->
-  <script src="https://unpkg.com/aframe-text-geometry-component@0.5.2/dist/aframe-text-geometry-component.min.js"></script>
 
   <link rel="stylesheet" href="../style.css" />
   <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;900&family=Space+Mono:wght@700&display=swap" rel="stylesheet" />
@@ -89,9 +85,49 @@
       font-weight: 700;
     }
 
-    .hidden {
-      display: none !important;
+    .hidden { display: none !important; }
+
+    /* Visible question. This is HTML overlay, so it will not disappear when MindAR tracking flickers. */
+    .question-ar-overlay {
+      position: fixed;
+      left: 50%;
+      top: 24%;
+      transform: translate(-50%, -50%);
+      width: min(92vw, 680px);
+      z-index: 980;
+      pointer-events: none;
+      text-align: center;
+      opacity: 0;
+      transition: opacity 0.2s ease, transform 0.2s ease;
     }
+
+    .question-ar-overlay.show {
+      opacity: 1;
+      transform: translate(-50%, -50%) scale(1);
+    }
+
+    .question-3d-text {
+      display: inline-block;
+      max-width: 100%;
+      color: #ffd60a;
+      font-family: var(--font-main);
+      font-weight: 900;
+      line-height: 0.98;
+      letter-spacing: -0.04em;
+      white-space: normal;
+      overflow: hidden;
+      text-shadow:
+        1px 1px 0 #d2a900,
+        2px 2px 0 #b58d00,
+        3px 3px 0 #806200,
+        4px 4px 0 #4b3a00,
+        5px 5px 8px rgba(0,0,0,0.45),
+        0 0 10px rgba(255,214,10,0.35);
+      -webkit-text-stroke: 1px rgba(255, 245, 150, 0.35);
+      filter: drop-shadow(0 8px 12px rgba(0,0,0,0.35));
+    }
+
+    .question-3d-text.two-lines { line-height: 1.02; }
 
     #popup-target-name {
       font-size: 2rem;
@@ -106,9 +142,7 @@
       border-top-color: var(--yellow);
     }
 
-    .popup-buttons {
-      margin-top: 0.3rem;
-    }
+    .popup-buttons { margin-top: 0.3rem; }
 
     .notice-box {
       position: fixed;
@@ -128,13 +162,14 @@
     }
 
     @media (max-width: 420px) {
-      #popup-target-name {
-        font-size: 1.65rem;
+      .question-ar-overlay {
+        top: 25%;
+        width: 94vw;
       }
 
-      .ar-popup {
-        padding: 1rem 1rem 1.35rem;
-      }
+      #popup-target-name { font-size: 1.65rem; }
+
+      .ar-popup { padding: 1rem 1rem 1.35rem; }
     }
   </style>
 </head>
@@ -146,7 +181,7 @@
       <div class="start-title">AR Question</div>
       <div class="start-desc">
         Point your phone camera at a logo or sign.<br>
-        A 3D English question will appear and stay.
+        A question will appear and stay.
       </div>
       <button class="start-btn" id="start-btn" type="button">📷 Start Camera</button>
       <div class="start-note">Best on mobile Chrome · Please allow camera permission</div>
@@ -159,7 +194,6 @@
   </div>
 
   <button class="ar-back-btn" type="button" onclick="window.location='../'">← Back</button>
-
   <div class="ar-status scanning" id="ar-status">READY</div>
 
   <div class="scan-hint hidden" id="scan-hint">
@@ -169,14 +203,15 @@
     <p class="scan-hint-text">Point camera at a target image</p>
   </div>
 
+  <div class="question-ar-overlay" id="question-ar-overlay">
+    <div class="question-3d-text" id="question-3d-text"></div>
+  </div>
+
   <div class="ar-popup accent-yellow" id="ar-popup">
     <p class="popup-label">QUESTION</p>
     <div id="popup-target-name">Coca-Cola</div>
-
     <div class="popup-buttons">
-      <button class="btn btn-yellow" id="btn-speak" type="button" onclick="speakQuestion()">
-        🔊 Read
-      </button>
+      <button class="btn btn-yellow" id="btn-speak" type="button" onclick="speakQuestion()">🔊 Read</button>
     </div>
   </div>
 
@@ -192,23 +227,8 @@
     device-orientation-permission-ui="enabled: false"
     id="ar-scene"
   >
-    <a-assets>
-      <a-asset-item
-        id="font-bold"
-        src="https://cdn.jsdelivr.net/gh/mrdoob/three.js@r147/examples/fonts/helvetiker_bold.typeface.json">
-      </a-asset-item>
-    </a-assets>
+    <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
 
-    <!-- Camera-fixed 3D question anchor.
-         The question is rendered here so it will NOT disappear when target tracking flickers. -->
-    <a-camera id="camera" position="0 0 0" look-controls="enabled: false">
-      <a-entity id="locked-question-anchor" position="0 0.68 -1.55" rotation="-5 0 0"></a-entity>
-    </a-camera>
-
-    <a-light type="ambient" color="#ffffff" intensity="0.85"></a-light>
-    <a-light type="directional" color="#ffffff" intensity="1.15" position="0.5 1 1"></a-light>
-
-    <!-- Tracking-only targets. They do not hold the question text anymore. -->
     <a-entity mindar-image-target="targetIndex: 0" id="target-0"></a-entity>
     <a-entity mindar-image-target="targetIndex: 1" id="target-1"></a-entity>
     <a-entity mindar-image-target="targetIndex: 2" id="target-2"></a-entity>
@@ -223,62 +243,6 @@
 
   <script>
     'use strict';
-
-    AFRAME.registerComponent('center-3d-text', {
-      init: function () {
-        this.center = this.center.bind(this);
-        this.el.addEventListener('object3dset', this.center);
-        setTimeout(this.center, 200);
-        setTimeout(this.center, 650);
-      },
-      center: function () {
-        const mesh = this.el.getObject3D('mesh');
-        if (!mesh || !mesh.geometry) return;
-
-        mesh.geometry.computeBoundingBox();
-        const box = mesh.geometry.boundingBox;
-        if (!box) return;
-
-        const xOffset = -0.5 * (box.max.x - box.min.x) - box.min.x;
-        const yOffset = -0.5 * (box.max.y - box.min.y) - box.min.y;
-
-        mesh.geometry.translate(xOffset, yOffset, 0);
-        mesh.geometry.computeBoundingBox();
-      }
-    });
-
-    AFRAME.registerComponent('fit-3d-question', {
-      schema: {
-        maxWidth: { type: 'number', default: 1.35 },
-        maxHeight: { type: 'number', default: 0.38 }
-      },
-      init: function () {
-        this.fit = this.fit.bind(this);
-        setTimeout(this.fit, 350);
-        setTimeout(this.fit, 850);
-        setTimeout(this.fit, 1300);
-      },
-      fit: function () {
-        const obj = this.el.object3D;
-        if (!obj || !window.THREE) return;
-
-        obj.scale.set(1, 1, 1);
-
-        const box = new THREE.Box3().setFromObject(obj);
-        if (!box || box.isEmpty()) return;
-
-        const size = new THREE.Vector3();
-        box.getSize(size);
-
-        if (!size.x || !size.y) return;
-
-        const sx = this.data.maxWidth / size.x;
-        const sy = this.data.maxHeight / size.y;
-        const s = Math.min(sx, sy, 1);
-
-        obj.scale.setScalar(s);
-      }
-    });
 
     let questionsData = [];
     let currentTarget = null;
@@ -295,7 +259,8 @@
     const scanHint = document.getElementById('scan-hint');
     const arPopup = document.getElementById('ar-popup');
     const noticeBox = document.getElementById('notice-box');
-    const lockedQuestionAnchor = document.getElementById('locked-question-anchor');
+    const questionOverlay = document.getElementById('question-ar-overlay');
+    const questionTextEl = document.getElementById('question-3d-text');
 
     fetch('../assets/data/questions.json')
       .then(r => {
@@ -363,9 +328,6 @@
         if (!entity) continue;
 
         entity.addEventListener('targetFound', () => lockQuestionFromTarget(i));
-
-        // Important: do nothing on targetLost.
-        // This keeps the question visible even if tracking flickers.
         entity.addEventListener('targetLost', () => {});
       }
     }
@@ -376,7 +338,6 @@
     }
 
     function lockQuestionFromTarget(targetIndex) {
-      // Once a question is locked, do not change it until user reloads/re-enters Part 2.
       if (locked) return;
 
       const data = questionsData.find(d => d.targetIndex === targetIndex);
@@ -385,18 +346,14 @@
       const question = randomQuestion(data);
 
       locked = true;
-      currentTarget = {
-        targetIndex,
-        target: data.target,
-        question
-      };
+      currentTarget = { targetIndex, target: data.target, question };
 
       document.getElementById('popup-target-name').textContent = data.target;
-
-      renderLockedQuestion(question);
+      renderQuestionOverlay(question);
 
       arPopup.classList.add('show');
       scanHint.classList.add('hidden');
+      questionOverlay.classList.add('show');
 
       arStatus.textContent = 'LOCKED';
       arStatus.className = 'ar-status found';
@@ -410,94 +367,48 @@
       const clean = text.replace(/\s+/g, ' ').trim();
       const words = clean.split(' ');
 
-      if (clean.length <= 20) return [clean];
+      if (clean.length <= 22) return [clean];
 
       let best = null;
-
       for (let i = 1; i < words.length; i++) {
         const a = words.slice(0, i).join(' ');
         const b = words.slice(i).join(' ');
         const longest = Math.max(a.length, b.length);
         const balance = Math.abs(a.length - b.length);
-
         const score = longest * 3 + balance;
-        if (!best || score < best.score) {
-          best = { lines: [a, b], score };
-        }
-      }
 
+        if (!best || score < best.score) best = { lines: [a, b], score };
+      }
       return best ? best.lines : [clean];
     }
 
-    function getQuestionTextSize(lines) {
+    function fontSizeForLines(lines) {
       const longest = Math.max(...lines.map(line => line.length));
-
-      if (longest > 38) return 0.052;
-      if (longest > 32) return 0.058;
-      if (longest > 26) return 0.066;
-      if (longest > 20) return 0.074;
-      return 0.086;
+      if (longest > 42) return 'clamp(20px, 5.0vw, 34px)';
+      if (longest > 36) return 'clamp(22px, 5.4vw, 38px)';
+      if (longest > 30) return 'clamp(24px, 5.8vw, 42px)';
+      if (longest > 24) return 'clamp(26px, 6.4vw, 48px)';
+      if (longest > 18) return 'clamp(30px, 7.2vw, 56px)';
+      return 'clamp(34px, 8.2vw, 64px)';
     }
 
-    function renderLockedQuestion(question) {
-      lockedQuestionAnchor.innerHTML = '';
-
+    function renderQuestionOverlay(question) {
       const lines = makeTwoLines(question);
-      const size = getQuestionTextSize(lines);
-      const lineGap = size * 1.52;
+      questionTextEl.innerHTML = lines.map(line => escapeHtml(line)).join('<br>');
+      questionTextEl.classList.toggle('two-lines', lines.length === 2);
+      questionTextEl.style.fontSize = fontSizeForLines(lines);
 
-      const group = document.createElement('a-entity');
-      group.setAttribute('position', '0 0 0');
-      group.setAttribute('fit-3d-question', 'maxWidth: 1.35; maxHeight: 0.38;');
+      if (window.innerHeight < 720) questionOverlay.style.top = '22%';
+      else questionOverlay.style.top = '24%';
+    }
 
-      lines.forEach((line, i) => {
-        const y = lines.length === 1
-          ? 0
-          : (i === 0 ? lineGap / 2 : -lineGap / 2);
-
-        const shadow = document.createElement('a-entity');
-        shadow.setAttribute('center-3d-text', '');
-        shadow.setAttribute('position', `0.012 ${y - 0.012} -0.026`);
-        shadow.setAttribute('text-geometry', {
-          value: line,
-          font: '#font-bold',
-          size,
-          height: 0.016,
-          curveSegments: 5,
-          bevelEnabled: true,
-          bevelSize: 0.0025,
-          bevelThickness: 0.0025,
-          bevelSegments: 1
-        });
-        shadow.setAttribute(
-          'material',
-          'shader: standard; color: #3a2a00; emissive: #171100; metalness: 0.04; roughness: 0.72; side: double; transparent: true; opacity: 0.88;'
-        );
-
-        const main = document.createElement('a-entity');
-        main.setAttribute('center-3d-text', '');
-        main.setAttribute('position', `0 ${y} 0`);
-        main.setAttribute('text-geometry', {
-          value: line,
-          font: '#font-bold',
-          size,
-          height: 0.022,
-          curveSegments: 6,
-          bevelEnabled: true,
-          bevelSize: 0.003,
-          bevelThickness: 0.003,
-          bevelSegments: 2
-        });
-        main.setAttribute(
-          'material',
-          'shader: standard; color: #ffd60a; emissive: #4b3a00; metalness: 0.08; roughness: 0.36; side: double;'
-        );
-
-        group.appendChild(shadow);
-        group.appendChild(main);
-      });
-
-      lockedQuestionAnchor.appendChild(group);
+    function escapeHtml(str) {
+      return str
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
     }
 
     function speakQuestion() {
@@ -507,7 +418,6 @@
 
     function speak(text) {
       if (!('speechSynthesis' in window)) return;
-
       window.speechSynthesis.cancel();
 
       const utt = new SpeechSynthesisUtterance(text);
