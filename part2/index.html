@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- Part 2: AR Question - Mobile Text3D version -->
+<!-- Part 2: AR Question - Mobile Text3D fixed-size + locked question version -->
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
@@ -212,7 +212,7 @@
     <a-light type="ambient" color="#ffffff" intensity="0.85"></a-light>
     <a-light type="directional" color="#ffffff" intensity="1.15" position="0.5 1 1"></a-light>
 
-    <!-- Empty targets. 3D questions are injected only when a target is found. -->
+    <!-- Empty targets. 3D questions are injected only once per target. -->
     <a-entity mindar-image-target="targetIndex: 0" id="target-0"></a-entity>
     <a-entity mindar-image-target="targetIndex: 1" id="target-1"></a-entity>
     <a-entity mindar-image-target="targetIndex: 2" id="target-2"></a-entity>
@@ -252,6 +252,40 @@
       }
     });
 
+    // Fit the 3D question into a safe AR area so it does not overflow.
+    AFRAME.registerComponent('fit-3d-question', {
+      schema: {
+        maxWidth: { type: 'number', default: 1.08 },
+        maxHeight: { type: 'number', default: 0.34 }
+      },
+      init: function () {
+        this.fit = this.fit.bind(this);
+        setTimeout(this.fit, 350);
+        setTimeout(this.fit, 850);
+        setTimeout(this.fit, 1300);
+      },
+      fit: function () {
+        const obj = this.el.object3D;
+        if (!obj || !window.THREE) return;
+
+        obj.scale.set(1, 1, 1);
+
+        const box = new THREE.Box3().setFromObject(obj);
+        if (!box || box.isEmpty()) return;
+
+        const size = new THREE.Vector3();
+        box.getSize(size);
+
+        if (!size.x || !size.y) return;
+
+        const sx = this.data.maxWidth / size.x;
+        const sy = this.data.maxHeight / size.y;
+        const s = Math.min(sx, sy, 1);
+
+        obj.scale.setScalar(s);
+      }
+    });
+
     let questionsData = [];
     let currentTarget = null;
     let sceneLoaded = false;
@@ -267,8 +301,9 @@
     const arPopup = document.getElementById('ar-popup');
     const noticeBox = document.getElementById('notice-box');
 
-    // Per-target non-repeating question queues
-    const questionQueues = {};
+    // Locks the selected question for each target while staying on this page.
+    // It will only randomize again after leaving/reloading Part 2.
+    const lockedQuestions = {};
 
     fetch('../assets/data/questions.json')
       .then(r => {
@@ -340,43 +375,26 @@
       }
     }
 
-    function shuffle(arr) {
-      const a = [...arr];
-      for (let i = a.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [a[i], a[j]] = [a[j], a[i]];
-      }
-      return a;
+    function randomQuestion(data) {
+      const index = Math.floor(Math.random() * data.questions.length);
+      return data.questions[index];
     }
 
-    function getNextQuestion(data) {
+    function getLockedQuestion(data) {
       const key = data.targetIndex;
 
-      if (!questionQueues[key]) {
-        questionQueues[key] = {
-          queue: shuffle(data.questions),
-          index: 0
-        };
+      if (!lockedQuestions[key]) {
+        lockedQuestions[key] = randomQuestion(data);
       }
 
-      const state = questionQueues[key];
-
-      if (state.index >= state.queue.length) {
-        state.queue = shuffle(data.questions);
-        state.index = 0;
-      }
-
-      const question = state.queue[state.index];
-      state.index += 1;
-
-      return question;
+      return lockedQuestions[key];
     }
 
     function showQuestion(targetIndex) {
       const data = questionsData.find(d => d.targetIndex === targetIndex);
       if (!data) return;
 
-      const question = getNextQuestion(data);
+      const question = getLockedQuestion(data);
 
       currentTarget = {
         targetIndex,
@@ -386,7 +404,10 @@
 
       document.getElementById('popup-target-name').textContent = data.target;
 
-      renderQuestionText3D(targetIndex, question);
+      const target = document.getElementById(`target-${targetIndex}`);
+      if (target && target.children.length === 0) {
+        renderQuestionText3D(targetIndex, question);
+      }
 
       arPopup.classList.add('show');
       scanHint.classList.add('hidden');
@@ -400,9 +421,13 @@
     }
 
     function hideQuestion(targetIndex) {
-      clearTargetText(targetIndex);
+      // Do not clear AR text here.
+      // Keeping the children makes the same question stay locked when tracking flickers.
 
-      currentTarget = null;
+      if (currentTarget && currentTarget.targetIndex === targetIndex) {
+        currentTarget = null;
+      }
+
       arPopup.classList.remove('show');
       scanHint.classList.remove('hidden');
 
@@ -414,19 +439,12 @@
       if ('speechSynthesis' in window) window.speechSynthesis.cancel();
     }
 
-    function clearTargetText(targetIndex) {
-      const target = document.getElementById(`target-${targetIndex}`);
-      if (!target) return;
-      target.innerHTML = '';
-    }
-
-    // Wrap question into exactly 1 or 2 lines.
-    // Never more than 2 lines. Size is reduced for long questions.
+    // Split into exactly 1 or 2 lines, never more.
     function makeTwoLines(text) {
       const clean = text.replace(/\s+/g, ' ').trim();
       const words = clean.split(' ');
 
-      if (clean.length <= 24) return [clean];
+      if (clean.length <= 20) return [clean];
 
       let best = null;
 
@@ -438,7 +456,7 @@
 
         const score = longest * 3 + balance;
         if (!best || score < best.score) {
-          best = { lines: [a, b], score, longest };
+          best = { lines: [a, b], score };
         }
       }
 
@@ -448,14 +466,11 @@
     function getQuestionTextSize(lines) {
       const longest = Math.max(...lines.map(line => line.length));
 
-      // Target width is about 1.65 units.
-      // Long questions shrink automatically to stay inside the AR target area.
-      let size = 1.58 / (longest * 0.62);
-
-      if (size > 0.095) size = 0.095;
-      if (size < 0.040) size = 0.040;
-
-      return size;
+      if (longest > 36) return 0.038;
+      if (longest > 30) return 0.043;
+      if (longest > 24) return 0.049;
+      if (longest > 18) return 0.056;
+      return 0.066;
     }
 
     function renderQuestionText3D(targetIndex, question) {
@@ -466,38 +481,37 @@
 
       const lines = makeTwoLines(question);
       const size = getQuestionTextSize(lines);
-      const lineGap = size * 1.42;
+      const lineGap = size * 1.55;
 
       const group = document.createElement('a-entity');
-      group.setAttribute('position', '0 0.48 0.04');
-      group.setAttribute('rotation', '-9 0 0');
+      group.setAttribute('position', '0 0.42 0.04');
+      group.setAttribute('rotation', '-7 0 0');
+      group.setAttribute('fit-3d-question', 'maxWidth: 1.08; maxHeight: 0.34;');
 
       lines.forEach((line, i) => {
         const y = lines.length === 1
           ? 0
           : (i === 0 ? lineGap / 2 : -lineGap / 2);
 
-        // Shadow / side layer
         const shadow = document.createElement('a-entity');
         shadow.setAttribute('center-3d-text', '');
-        shadow.setAttribute('position', `0.014 ${y - 0.014} -0.028`);
+        shadow.setAttribute('position', `0.010 ${y - 0.010} -0.022`);
         shadow.setAttribute('text-geometry', {
           value: line,
           font: '#font-bold',
           size,
-          height: 0.020,
-          curveSegments: 6,
+          height: 0.016,
+          curveSegments: 5,
           bevelEnabled: true,
-          bevelSize: 0.0035,
-          bevelThickness: 0.0035,
+          bevelSize: 0.0025,
+          bevelThickness: 0.0025,
           bevelSegments: 1
         });
         shadow.setAttribute(
           'material',
-          'shader: standard; color: #3a2a00; emissive: #171100; metalness: 0.05; roughness: 0.7; side: double; transparent: true; opacity: 0.88;'
+          'shader: standard; color: #3a2a00; emissive: #171100; metalness: 0.04; roughness: 0.72; side: double; transparent: true; opacity: 0.88;'
         );
 
-        // Main 3D text
         const main = document.createElement('a-entity');
         main.setAttribute('center-3d-text', '');
         main.setAttribute('position', `0 ${y} 0`);
@@ -505,16 +519,16 @@
           value: line,
           font: '#font-bold',
           size,
-          height: 0.026,
-          curveSegments: 8,
+          height: 0.020,
+          curveSegments: 6,
           bevelEnabled: true,
-          bevelSize: 0.0045,
-          bevelThickness: 0.0045,
+          bevelSize: 0.003,
+          bevelThickness: 0.003,
           bevelSegments: 2
         });
         main.setAttribute(
           'material',
-          'shader: standard; color: #ffd60a; emissive: #5a4700; metalness: 0.10; roughness: 0.32; side: double;'
+          'shader: standard; color: #ffd60a; emissive: #4b3a00; metalness: 0.08; roughness: 0.36; side: double;'
         );
 
         group.appendChild(shadow);
