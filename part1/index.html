@@ -1,11 +1,12 @@
 <!DOCTYPE html>
-<!-- Mobile-first Part 1: AR Vocabulary Scanner -->
+<!-- Part 1: AR Vocabulary Scanner - Mobile sharp text version -->
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>Part 1 – AR Vocabulary Scanner</title>
 
+  <!-- A-Frame + MindAR -->
   <script src="https://cdn.jsdelivr.net/npm/aframe@1.4.2/dist/aframe.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
 
@@ -13,113 +14,217 @@
   <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;900&family=Space+Mono:wght@700&display=swap" rel="stylesheet" />
 
   <style>
-    body { margin: 0; overflow: hidden; background: #000; overscroll-behavior: none; }
-    a-scene { position: fixed; inset: 0; }
+    body {
+      margin: 0;
+      overflow: hidden;
+      background: #000;
+      touch-action: manipulation;
+    }
 
-    .mobile-start {
+    a-scene {
+      position: fixed;
+      inset: 0;
+      width: 100vw;
+      height: 100vh;
+    }
+
+    /* Start screen: avoids auto camera start on mobile */
+    .start-screen {
       position: fixed;
       inset: 0;
       z-index: 2500;
+      background:
+        radial-gradient(circle at 50% 25%, rgba(0,212,255,0.18), transparent 35%),
+        #0a0e1a;
       display: flex;
       align-items: center;
       justify-content: center;
       padding: 1.2rem;
-      background: radial-gradient(circle at top, rgba(0,212,255,0.16), #0a0e1a 58%);
       text-align: center;
     }
+
     .start-card {
-      width: min(360px, 92vw);
-      background: rgba(18,24,43,0.96);
-      border: 1.5px solid rgba(0,212,255,0.35);
-      border-radius: 24px;
-      padding: 1.3rem;
-      box-shadow: 0 24px 80px rgba(0,0,0,0.45);
+      width: min(92vw, 420px);
+      background: rgba(18,24,43,0.92);
+      border: 1.5px solid rgba(0,212,255,0.28);
+      border-radius: 26px;
+      padding: 1.4rem;
+      box-shadow: 0 18px 60px rgba(0,0,0,0.35);
     }
-    .start-title { font-size: 1.5rem; font-weight: 900; color: var(--cyan); margin-bottom: 0.35rem; }
-    .start-desc { color: var(--text-muted); font-weight: 700; line-height: 1.45; font-size: 0.92rem; margin-bottom: 1rem; }
+
+    .start-title {
+      font-size: 1.4rem;
+      font-weight: 900;
+      color: var(--cyan);
+      margin-bottom: 0.4rem;
+    }
+
+    .start-desc {
+      font-size: 0.9rem;
+      color: var(--text-muted);
+      font-weight: 700;
+      line-height: 1.5;
+      margin-bottom: 1.1rem;
+    }
+
     .start-btn {
-      width: 100%; padding: 0.95rem 1rem; border-radius: 999px;
-      background: var(--cyan); color: #001018; font-weight: 900; font-size: 1.05rem;
+      width: 100%;
+      border-radius: 999px;
+      padding: 0.95rem 1.2rem;
+      font-family: var(--font-main);
+      font-size: 1rem;
+      font-weight: 900;
+      background: var(--cyan);
+      color: #001018;
+      border: none;
+      cursor: pointer;
     }
-    .start-note { margin-top: 0.8rem; color: rgba(255,255,255,0.42); font-size: 0.72rem; font-weight: 700; }
 
-    #loading-overlay { display: none; }
-    #loading-overlay.show { display: flex; }
+    .start-note {
+      margin-top: 0.75rem;
+      font-size: 0.72rem;
+      color: var(--text-dim);
+      font-weight: 700;
+    }
 
-    #popup-word { font-size: 2.05rem; }
+    .hidden {
+      display: none !important;
+    }
+
+    /* Popup: remove example sentence */
+    #popup-word {
+      font-size: 2.35rem;
+      line-height: 1.05;
+    }
+
     #popup-phonetic {
-      font-size: 0.82rem; color: var(--text-muted); font-weight: 700;
-      margin-bottom: 0.25rem; font-family: var(--font-mono);
+      font-size: 0.95rem;
+      color: var(--text-muted);
+      font-weight: 700;
+      margin-top: 0.35rem;
+      font-family: var(--font-mono);
     }
+
     #popup-type {
-      display: inline-block; font-size: 0.62rem; font-weight: 900; letter-spacing: 2px;
-      text-transform: uppercase; background: rgba(0,212,255,0.15); color: var(--cyan);
-      border: 1px solid rgba(0,212,255,0.3); padding: 0.15rem 0.55rem;
-      border-radius: 20px; margin-bottom: 0.5rem;
+      display: inline-block;
+      font-size: 0.65rem;
+      font-weight: 900;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      background: rgba(0,212,255,0.15);
+      color: var(--cyan);
+      border: 1px solid rgba(0,212,255,0.35);
+      padding: 0.18rem 0.6rem;
+      border-radius: 999px;
+      margin-bottom: 0.6rem;
     }
-    #popup-example {
-      font-size: 0.82rem; color: var(--text-muted); font-weight: 700; font-style: italic;
-      margin-top: 0.45rem; line-height: 1.45; border-left: 2px solid var(--cyan); padding-left: 0.7rem;
+
+    .ar-popup {
+      padding-bottom: 1.5rem;
     }
+
+    .popup-buttons {
+      margin-top: 1rem;
+    }
+
     .notice-box {
-      position: fixed; bottom: 2rem; left: 1rem; right: 1rem; z-index: 2600;
-      display: none; background: rgba(255,59,143,0.16); border: 1.5px solid rgba(255,59,143,0.45);
-      color: var(--pink); border-radius: 16px; padding: 0.9rem 1rem;
-      font-size: 0.82rem; font-weight: 800; text-align: center;
+      position: fixed;
+      bottom: 2rem;
+      left: 1rem;
+      right: 1rem;
+      background: rgba(255,59,143,0.16);
+      border: 1.5px solid rgba(255,59,143,0.42);
+      border-radius: 16px;
+      padding: 0.9rem 1rem;
+      font-size: 0.82rem;
+      font-weight: 800;
+      color: var(--pink);
+      z-index: 2600;
+      display: none;
+      line-height: 1.45;
     }
-    .ar-popup { padding-bottom: calc(1.8rem + env(safe-area-inset-bottom)); }
+
+    @media (max-width: 420px) {
+      #popup-word {
+        font-size: 2.05rem;
+      }
+
+      .ar-popup {
+        padding: 1rem 1rem 1.35rem;
+      }
+    }
   </style>
 </head>
+
 <body class="ar-page">
 
-  <div class="mobile-start" id="mobile-start">
+  <!-- Start screen -->
+  <div class="start-screen" id="start-screen">
     <div class="start-card">
-      <div class="start-title">AR Vocabulary</div>
-      <p class="start-desc">Use a phone camera to scan a logo or sign. Tap start when you are ready.</p>
-      <button class="start-btn" id="btn-start">📷 Start Camera</button>
-      <div class="start-note">Optimized for mobile phones</div>
+      <div class="start-title">AR Vocabulary Scanner</div>
+      <div class="start-desc">
+        Point your phone camera at a logo or sign.<br>
+        The English word will appear in AR.
+      </div>
+      <button class="start-btn" id="start-btn" type="button">📷 Start Camera</button>
+      <div class="start-note">Best on mobile Chrome · Please allow camera permission</div>
     </div>
   </div>
 
-  <div class="loading-overlay" id="loading-overlay">
+  <!-- Loading overlay -->
+  <div class="loading-overlay hidden" id="loading-overlay">
     <div class="loading-spinner"></div>
-    <p class="loading-text" id="loading-text">Loading AR…</p>
+    <p class="loading-text" id="loading-text">Starting camera…</p>
   </div>
 
-  <button class="ar-back-btn" onclick="goBack()">← Back</button>
-  <div class="ar-status scanning" id="ar-status">TAP START</div>
+  <!-- Back button -->
+  <button class="ar-back-btn" type="button" onclick="window.location='../'">← Back</button>
 
-  <div class="scan-hint" id="scan-hint">
-    <div class="scan-frame"><div class="scan-line"></div></div>
-    <p class="scan-hint-text">Point your phone at a target image</p>
+  <!-- Status -->
+  <div class="ar-status scanning" id="ar-status">READY</div>
+
+  <!-- Scan hint -->
+  <div class="scan-hint hidden" id="scan-hint">
+    <div class="scan-frame">
+      <div class="scan-line"></div>
+    </div>
+    <p class="scan-hint-text">Point camera at a target image</p>
   </div>
 
+  <!-- Vocabulary popup -->
   <div class="ar-popup accent-cyan" id="ar-popup">
     <p class="popup-label">VOCABULARY FOUND</p>
     <span id="popup-type">Brand</span>
-    <div class="popup-word" id="popup-word">Word</div>
-    <div id="popup-phonetic"></div>
-    <div id="popup-example"></div>
+    <div class="popup-word" id="popup-word">Coca-Cola</div>
+    <div id="popup-phonetic">/ˌkoʊkəˈkoʊlə/</div>
+
     <div class="popup-buttons">
-      <button class="btn btn-cyan" onclick="speakCurrent()">🔊 Speak</button>
-      <button class="btn btn-ghost" id="btn-again" onclick="speakCurrentAgain()">🔄 Again</button>
+      <button class="btn btn-cyan" id="btn-speak" type="button" onclick="speakCurrent()">
+        🔊 Speak
+      </button>
+      <button class="btn btn-ghost" id="btn-again" type="button" onclick="speakCurrentAgain()">
+        🔄 Again
+      </button>
     </div>
   </div>
 
-  <div class="notice-box" id="notice-box">Camera access is required. Please allow camera permission and reload.</div>
+  <!-- Camera error notice -->
+  <div class="notice-box" id="notice-box">
+    📷 Camera access required. Please allow camera permission and reload.
+  </div>
 
+  <!-- AR Scene -->
   <a-scene
-    mindar-image="imageTargetSrc: ../assets/targets/targets.mind; autoStart: false; uiLoading: no; uiError: no; uiScanning: no; maxTrack: 1; filterMinCF: 0.0001; filterBeta: 0.01;"
+    mindar-image="imageTargetSrc: ../assets/targets/targets.mind; autoStart: false; uiLoading: no; uiError: no; uiScanning: no; maxTrack: 1;"
     color-space="sRGB"
-    renderer="colorManagement: true; antialias: false; precision: mediump; powerPreference: high-performance"
+    renderer="colorManagement: true; antialias: true; precision: highp; powerPreference: high-performance;"
     vr-mode-ui="enabled: false"
     device-orientation-permission-ui="enabled: false"
-    embedded
     id="ar-scene"
   >
-    <a-assets></a-assets>
     <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
 
+    <!-- Empty targets. Text labels are injected by JavaScript for sharper control. -->
     <a-entity mindar-image-target="targetIndex: 0" id="target-0"></a-entity>
     <a-entity mindar-image-target="targetIndex: 1" id="target-1"></a-entity>
     <a-entity mindar-image-target="targetIndex: 2" id="target-2"></a-entity>
@@ -137,85 +242,44 @@
 
     let vocabData = [];
     let currentVocab = null;
+    let sceneLoaded = false;
     let arStarted = false;
 
     const scene = document.getElementById('ar-scene');
-    const startScreen = document.getElementById('mobile-start');
+    const startScreen = document.getElementById('start-screen');
+    const startBtn = document.getElementById('start-btn');
     const loadingOverlay = document.getElementById('loading-overlay');
     const loadingText = document.getElementById('loading-text');
     const arStatus = document.getElementById('ar-status');
     const scanHint = document.getElementById('scan-hint');
     const arPopup = document.getElementById('ar-popup');
+    const noticeBox = document.getElementById('notice-box');
 
-    const fallbackWords = [
-      "McDonald's", 'Nike', 'Coca-Cola', '7-Eleven', 'Starbucks',
-      'Restroom', 'Exit', 'Warning', 'No Smoking', 'Information'
-    ];
-
+    // Load vocab data
     fetch('../assets/data/vocab.json')
-      .then(r => r.json())
+      .then(r => {
+        if (!r.ok) throw new Error('vocab.json not found');
+        return r.json();
+      })
       .then(data => {
         vocabData = data;
-        for (let i = 0; i < 10; i++) {
-          const item = vocabData.find(v => v.index === i);
-          renderThickLabel(`target-${i}`, item ? item.word : fallbackWords[i], '#00d4ff', 3.0);
-        }
+        renderSharpARLabels();
       })
-      .catch(() => {
-        for (let i = 0; i < 10; i++) renderThickLabel(`target-${i}`, fallbackWords[i], '#00d4ff', 3.0);
+      .catch(err => {
+        console.error('[Part1] Failed to load vocab.json:', err);
+        noticeBox.textContent = '⚠️ Cannot load vocab.json. Please check assets/data/vocab.json';
+        noticeBox.style.display = 'block';
       });
 
-    function renderThickLabel(targetId, text, mainColor, width) {
-      const root = document.getElementById(targetId);
-      if (!root) return;
-      root.innerHTML = '';
-
-      const layers = [
-        { color: '#001018', x: 0.060, y: 0.385, z: -0.070, w: width },
-        { color: '#004050', x: 0.040, y: 0.405, z: -0.050, w: width },
-        { color: '#ffffff', x: 0.014, y: 0.434, z: -0.018, w: width * 1.01, opacity: 0.45 },
-        { color: mainColor, x: 0, y: 0.455, z: 0, w: width }
-      ];
-
-      layers.forEach(layer => {
-        const t = document.createElement('a-text');
-        t.setAttribute('value', text);
-        t.setAttribute('align', 'center');
-        t.setAttribute('baseline', 'center');
-        t.setAttribute('color', layer.color);
-        t.setAttribute('width', layer.w);
-        t.setAttribute('position', `${layer.x} ${layer.y} ${layer.z}`);
-        t.setAttribute('font', 'https://cdn.aframe.io/fonts/Exo2Bold.fnt');
-        if (layer.opacity) t.setAttribute('opacity', layer.opacity);
-        root.appendChild(t);
-      });
-    }
-
-    document.getElementById('btn-start').addEventListener('click', startAR);
-
-    async function startAR() {
-      if (arStarted) return;
-      arStarted = true;
-      warmupSpeech();
-      startScreen.style.display = 'none';
-      loadingOverlay.classList.add('show');
-      loadingText.textContent = 'Starting camera…';
-      arStatus.textContent = 'STARTING';
-
-      try {
-        const arSystem = scene.systems['mindar-image-system'];
-        if (!arSystem) throw new Error('MindAR system is not ready yet.');
-        await arSystem.start();
-      } catch (err) {
-        console.error('[Part1] AR start error:', err);
-        loadingText.textContent = 'Camera error. Please allow camera access.';
-        document.getElementById('notice-box').style.display = 'block';
-        arStarted = false;
-      }
-    }
+    // A-Frame scene loaded
+    scene.addEventListener('loaded', () => {
+      sceneLoaded = true;
+      attachTargetEvents();
+    });
 
     scene.addEventListener('arReady', () => {
-      loadingOverlay.classList.remove('show');
+      loadingOverlay.classList.add('hidden');
+      scanHint.classList.remove('hidden');
       arStatus.textContent = 'SCANNING';
       arStatus.className = 'ar-status scanning';
     });
@@ -223,84 +287,161 @@
     scene.addEventListener('arError', err => {
       console.error('[Part1] AR Error:', err);
       loadingText.textContent = 'Camera error. Please allow camera access.';
-      loadingOverlay.classList.add('show');
-      document.getElementById('notice-box').style.display = 'block';
+      noticeBox.style.display = 'block';
     });
 
-    scene.addEventListener('loaded', () => {
+    startBtn.addEventListener('click', startAR);
+
+    function startAR() {
+      if (arStarted) return;
+      arStarted = true;
+
+      startScreen.classList.add('hidden');
+      loadingOverlay.classList.remove('hidden');
+      loadingText.textContent = 'Loading AR engine…';
+      arStatus.textContent = 'LOADING';
+
+      const tryStart = () => {
+        const sys = scene.systems && scene.systems['mindar-image-system'];
+        if (!sceneLoaded || !sys) {
+          setTimeout(tryStart, 120);
+          return;
+        }
+
+        const result = sys.start();
+        if (result && typeof result.catch === 'function') {
+          result.catch(err => {
+            console.error('[Part1] Failed to start AR:', err);
+            loadingText.textContent = 'Cannot start camera. Please allow camera access.';
+            noticeBox.style.display = 'block';
+          });
+        }
+      };
+
+      tryStart();
+    }
+
+    function attachTargetEvents() {
       for (let i = 0; i < 10; i++) {
         const entity = document.getElementById(`target-${i}`);
         if (!entity) continue;
+
         entity.addEventListener('targetFound', () => showVocabPopup(i));
         entity.addEventListener('targetLost', hideVocabPopup);
       }
-    });
+    }
+
+    // Clearer AR text:
+    // - no black background plane
+    // - no multi-layer glow
+    // - one sharp MSDF text only
+    function renderSharpARLabels() {
+      vocabData.forEach(item => {
+        const target = document.getElementById(`target-${item.index}`);
+        if (!target) return;
+
+        target.innerHTML = '';
+
+        const wordLength = item.word.length;
+        let textWidth = 1.95;
+
+        if (wordLength <= 4) textWidth = 1.55;
+        else if (wordLength <= 7) textWidth = 1.75;
+        else if (wordLength <= 10) textWidth = 1.95;
+        else textWidth = 2.15;
+
+        const label = document.createElement('a-entity');
+        label.setAttribute('position', '0 0.42 0.025');
+        label.setAttribute('text', {
+          value: item.word,
+          align: 'center',
+          anchor: 'center',
+          baseline: 'center',
+          width: textWidth,
+          color: '#00eaff',
+          font: 'https://cdn.aframe.io/fonts/Exo2Bold.fnt',
+          shader: 'msdf',
+          alphaTest: 0.72,
+          side: 'double',
+          wrapCount: 18
+        });
+
+        target.appendChild(label);
+      });
+    }
 
     function showVocabPopup(targetIndex) {
-      const vocab = vocabData.find(v => v.index === targetIndex) || {
-        word: fallbackWords[targetIndex], phonetic: '', type: 'Vocabulary', example: ''
-      };
+      const vocab = vocabData.find(v => v.index === targetIndex);
+      if (!vocab) return;
+
       currentVocab = vocab;
 
       document.getElementById('popup-word').textContent = vocab.word;
       document.getElementById('popup-phonetic').textContent = vocab.phonetic || '';
-      document.getElementById('popup-type').textContent = vocab.type || 'Vocabulary';
-      document.getElementById('popup-example').textContent = vocab.example || '';
+      document.getElementById('popup-type').textContent = vocab.type || 'Word';
 
       arPopup.classList.add('show');
       scanHint.classList.add('hidden');
+
       arStatus.textContent = 'FOUND';
       arStatus.className = 'ar-status found';
+
       speakCurrent();
-      vibrate(50);
+
+      if ('vibrate' in navigator) navigator.vibrate(45);
     }
 
     function hideVocabPopup() {
       currentVocab = null;
       arPopup.classList.remove('show');
       scanHint.classList.remove('hidden');
-      arStatus.textContent = 'SCANNING';
-      arStatus.className = 'ar-status scanning';
-      stopSpeech();
+
+      if (arStarted) {
+        arStatus.textContent = 'SCANNING';
+        arStatus.className = 'ar-status scanning';
+      }
+
+      if ('speechSynthesis' in window) window.speechSynthesis.cancel();
     }
 
     function speakCurrent() {
-      if (currentVocab) speak(currentVocab.word);
+      if (!currentVocab) return;
+      speak(currentVocab.word);
     }
 
     function speakCurrentAgain() {
       speakCurrent();
+
       const btn = document.getElementById('btn-again');
       btn.textContent = '✓ Speaking…';
-      setTimeout(() => { btn.textContent = '🔄 Again'; }, 1200);
+      setTimeout(() => {
+        btn.textContent = '🔄 Again';
+      }, 1400);
     }
 
     function speak(text) {
-      if (!('speechSynthesis' in window) || !text) return;
+      if (!('speechSynthesis' in window)) {
+        alert('Text-to-speech is not supported on this device.');
+        return;
+      }
+
       window.speechSynthesis.cancel();
+
       const utt = new SpeechSynthesisUtterance(text);
       utt.lang = 'en-US';
       utt.rate = 0.86;
       utt.pitch = 1;
+
       const voices = window.speechSynthesis.getVoices();
-      const voice = voices.find(v => v.lang === 'en-US' && v.localService) || voices.find(v => v.lang && v.lang.startsWith('en'));
-      if (voice) utt.voice = voice;
+      const engVoice = voices.find(v => v.lang.startsWith('en') && v.localService);
+      if (engVoice) utt.voice = engVoice;
+
       window.speechSynthesis.speak(utt);
     }
 
-    function warmupSpeech() {
-      if ('speechSynthesis' in window) window.speechSynthesis.getVoices();
-    }
-
-    function stopSpeech() {
-      if ('speechSynthesis' in window) window.speechSynthesis.cancel();
-    }
-
-    function goBack() {
-      stopSpeech();
-      const sys = scene.systems && scene.systems['mindar-image-system'];
-      if (sys && arStarted) sys.stop();
-      window.location = '../';
+    if ('speechSynthesis' in window) {
+      window.speechSynthesis.getVoices();
+      window.speechSynthesis.onvoiceschanged = () => window.speechSynthesis.getVoices();
     }
   </script>
 </body>
