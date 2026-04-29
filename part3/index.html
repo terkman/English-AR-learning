@@ -1,162 +1,417 @@
 <!DOCTYPE html>
-<!-- Mobile-first Part 3: AR Answer Mission Wheel -->
+<!-- Part 3: AR Answer Mission Wheel - Pre-rendered Text3D Question + Fixed Wheel -->
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>Part 3 – AR Answer Mission Wheel</title>
 
+  <!-- A-Frame + MindAR -->
   <script src="https://cdn.jsdelivr.net/npm/aframe@1.4.2/dist/aframe.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
+
+  <!-- 3D extruded text for A-Frame -->
+  <script src="https://unpkg.com/aframe-text-geometry-component@0.5.2/dist/aframe-text-geometry-component.min.js"></script>
 
   <link rel="stylesheet" href="../style.css" />
   <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;900&family=Space+Mono:wght@700&display=swap" rel="stylesheet" />
 
   <style>
-    body { margin: 0; overflow: hidden; background: #000; overscroll-behavior: none; }
-    a-scene { position: fixed; inset: 0; }
+    body {
+      margin: 0;
+      overflow: hidden;
+      background: #000;
+      touch-action: manipulation;
+      overscroll-behavior: none;
+    }
 
-    .mobile-start {
-      position: fixed; inset: 0; z-index: 2500;
-      display: flex; align-items: center; justify-content: center;
-      padding: 1.2rem; background: radial-gradient(circle at top, rgba(255,59,143,0.15), #0a0e1a 58%);
+    a-scene {
+      position: fixed;
+      inset: 0;
+      width: 100vw;
+      height: 100vh;
+    }
+
+    .start-screen {
+      position: fixed;
+      inset: 0;
+      z-index: 2500;
+      background:
+        radial-gradient(circle at 50% 25%, rgba(255,59,143,0.18), transparent 35%),
+        #0a0e1a;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 1.2rem;
       text-align: center;
     }
+
     .start-card {
-      width: min(360px, 92vw); background: rgba(18,24,43,0.96);
-      border: 1.5px solid rgba(255,59,143,0.35); border-radius: 24px;
-      padding: 1.3rem; box-shadow: 0 24px 80px rgba(0,0,0,0.45);
+      width: min(92vw, 420px);
+      background: rgba(18,24,43,0.94);
+      border: 1.5px solid rgba(255,59,143,0.32);
+      border-radius: 26px;
+      padding: 1.4rem;
+      box-shadow: 0 18px 60px rgba(0,0,0,0.35);
     }
-    .start-title { font-size: 1.42rem; font-weight: 900; color: var(--pink); margin-bottom: 0.35rem; }
-    .start-desc { color: var(--text-muted); font-weight: 700; line-height: 1.45; font-size: 0.92rem; margin-bottom: 1rem; }
-    .start-btn { width: 100%; padding: 0.95rem 1rem; border-radius: 999px; background: var(--pink); color: #fff; font-weight: 900; font-size: 1.05rem; }
-    .start-note { margin-top: 0.8rem; color: rgba(255,255,255,0.42); font-size: 0.72rem; font-weight: 700; }
 
-    #loading-overlay { display: none; }
-    #loading-overlay.show { display: flex; }
-    .loading-spinner { border-top-color: var(--pink); }
+    .start-title {
+      font-size: 1.4rem;
+      font-weight: 900;
+      color: var(--pink);
+      margin-bottom: 0.4rem;
+    }
 
-    #popup-question-area .popup-label { color: var(--pink); }
-    #popup-q-target { font-size: 0.96rem; font-weight: 900; color: var(--pink); margin-bottom: 0.25rem; }
-    #popup-q-text {
-      font-size: clamp(0.98rem, 4.3vw, 1.13rem);
-      font-weight: 900; color: var(--text-white); line-height: 1.35;
-      margin: 0.5rem 0 0.8rem;
+    .start-desc {
+      font-size: 0.9rem;
+      color: var(--text-muted);
+      font-weight: 700;
+      line-height: 1.5;
+      margin-bottom: 1.1rem;
     }
-    #q-progress { font-size: 0.65rem; font-family: var(--font-mono); color: var(--text-dim); font-weight: 800; }
 
-    #wheel-modal {
-      position: fixed; inset: 0; background: rgba(10,14,26,0.97); z-index: 1500;
-      display: flex; flex-direction: column; align-items: center; justify-content: flex-start;
-      padding: calc(1.2rem + env(safe-area-inset-top)) 1rem calc(1rem + env(safe-area-inset-bottom));
-      transform: translateY(100%); transition: transform 0.32s cubic-bezier(0.34,1.56,0.64,1);
+    .start-btn {
+      width: 100%;
+      border-radius: 999px;
+      padding: 0.95rem 1.2rem;
+      font-family: var(--font-main);
+      font-size: 1rem;
+      font-weight: 900;
+      background: var(--pink);
+      color: #fff;
+      border: none;
+      cursor: pointer;
     }
-    #wheel-modal.show { transform: translateY(0); }
-    .wheel-modal-header { width: 100%; display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.5rem; }
-    .wheel-modal-title { font-size: 1rem; font-weight: 900; color: var(--pink); }
-    .wheel-modal-close {
-      background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15);
-      color: #fff; font-size: 0.8rem; font-weight: 800; padding: 0.38rem 0.8rem; border-radius: 20px; font-family: var(--font-main);
+
+    .start-note {
+      margin-top: 0.75rem;
+      font-size: 0.72rem;
+      color: var(--text-dim);
+      font-weight: 700;
     }
-    #wheel-modal-question {
-      font-size: 0.86rem; font-weight: 800; color: var(--text-muted); text-align: center;
-      margin-bottom: 0.8rem; padding: 0.55rem 0.85rem;
-      background: rgba(255,59,143,0.1); border: 1px solid rgba(255,59,143,0.25);
-      border-radius: 12px; line-height: 1.38; width: 100%; max-width: 380px;
+
+    .hidden {
+      display: none !important;
     }
-    .wheel-wrap { position: relative; width: min(292px, 80vw); height: min(292px, 80vw); margin: 0 auto; }
-    #wheel-canvas { width: 100%; height: 100%; border-radius: 50%; }
-    .wheel-pointer { position: absolute; top: -18px; left: 50%; transform: translateX(-50%); font-size: 1.55rem; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5)); z-index: 10; }
-    #wheel-result { margin-top: 0.7rem; text-align: center; min-height: 3.8rem; transition: opacity 0.25s; }
-    #wheel-result.hidden { opacity: 0; }
-    #result-emoji { font-size: 1.8rem; margin-bottom: 0.1rem; }
-    #result-text { font-size: 1.02rem; font-weight: 900; color: var(--text-white); line-height: 1.25; }
-    #result-sub { font-size: 0.76rem; color: var(--text-muted); font-weight: 700; margin-top: 0.15rem; }
-    #btn-spin {
-      margin-top: 0.7rem; font-size: 1rem; padding: 0.85rem 1.8rem; border-radius: 999px;
-      background: linear-gradient(135deg, var(--pink), var(--purple)); color: #fff;
-      font-weight: 900; font-family: var(--font-main); border: none;
+
+    #loading-overlay {
+      display: none;
     }
-    #btn-spin:disabled { opacity: 0.55; }
+
+    #loading-overlay.show {
+      display: flex;
+    }
+
+    .loading-spinner {
+      border-top-color: var(--pink);
+    }
+
+    #popup-target-name {
+      font-size: 2rem;
+      font-weight: 900;
+      color: var(--pink);
+      line-height: 1.08;
+      margin: 0.2rem 0 0.8rem;
+    }
+
+    .ar-popup {
+      padding-bottom: calc(1.5rem + env(safe-area-inset-bottom));
+      border-top-color: var(--pink);
+    }
+
+    .popup-buttons {
+      margin-top: 0.3rem;
+    }
+
     .notice-box {
-      position: fixed; bottom: 2rem; left: 1rem; right: 1rem; z-index: 2600;
-      display: none; background: rgba(255,59,143,0.16); border: 1.5px solid rgba(255,59,143,0.45);
-      color: var(--pink); border-radius: 16px; padding: 0.9rem 1rem;
-      font-size: 0.82rem; font-weight: 800; text-align: center;
+      position: fixed;
+      bottom: 2rem;
+      left: 1rem;
+      right: 1rem;
+      background: rgba(255,59,143,0.16);
+      border: 1.5px solid rgba(255,59,143,0.42);
+      border-radius: 16px;
+      padding: 0.9rem 1rem;
+      font-size: 0.82rem;
+      font-weight: 800;
+      color: var(--pink);
+      z-index: 2600;
+      display: none;
+      line-height: 1.45;
+      text-align: center;
     }
-    .ar-popup { padding-bottom: calc(1.8rem + env(safe-area-inset-bottom)); }
+
+    /* Wheel modal */
+    #wheel-modal {
+      position: fixed;
+      inset: 0;
+      background: rgba(10,14,26,0.97);
+      z-index: 1500;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      padding: calc(1.2rem + env(safe-area-inset-top)) 1rem calc(1rem + env(safe-area-inset-bottom));
+      transform: translateY(100%);
+      transition: transform 0.32s cubic-bezier(0.34, 1.56, 0.64, 1);
+      will-change: transform;
+    }
+
+    #wheel-modal.show {
+      transform: translateY(0);
+    }
+
+    .wheel-modal-header {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 0.5rem;
+    }
+
+    .wheel-modal-title {
+      font-size: 1rem;
+      font-weight: 900;
+      color: var(--pink);
+    }
+
+    .wheel-modal-close {
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.15);
+      color: #fff;
+      font-size: 0.8rem;
+      font-weight: 800;
+      padding: 0.38rem 0.8rem;
+      border-radius: 20px;
+      font-family: var(--font-main);
+    }
+
+    #wheel-modal-question {
+      font-size: 0.86rem;
+      font-weight: 800;
+      color: var(--text-muted);
+      text-align: center;
+      margin-bottom: 0.8rem;
+      padding: 0.55rem 0.85rem;
+      background: rgba(255,59,143,0.1);
+      border: 1px solid rgba(255,59,143,0.25);
+      border-radius: 12px;
+      line-height: 1.38;
+      width: 100%;
+      max-width: 380px;
+      max-height: 4.6em;
+      overflow: hidden;
+    }
+
+    .wheel-wrap {
+      position: relative;
+      width: min(292px, 80vw);
+      height: min(292px, 80vw);
+      margin: 0 auto;
+      flex: 0 0 auto;
+    }
+
+    #wheel-canvas {
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      display: block;
+      touch-action: none;
+    }
+
+    .wheel-pointer {
+      position: absolute;
+      top: -18px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 1.55rem;
+      filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5));
+      z-index: 10;
+      pointer-events: none;
+    }
+
+    #wheel-result {
+      margin-top: 0.7rem;
+      text-align: center;
+      min-height: 3.8rem;
+      transition: opacity 0.25s;
+    }
+
+    #wheel-result.hidden {
+      opacity: 0;
+    }
+
+    #result-emoji {
+      font-size: 1.8rem;
+      margin-bottom: 0.1rem;
+    }
+
+    #result-text {
+      font-size: 1.02rem;
+      font-weight: 900;
+      color: var(--text-white);
+      line-height: 1.25;
+      max-width: 92vw;
+    }
+
+    #result-sub {
+      font-size: 0.76rem;
+      color: var(--text-muted);
+      font-weight: 700;
+      margin-top: 0.15rem;
+    }
+
+    #btn-spin {
+      margin-top: 0.7rem;
+      font-size: 1rem;
+      padding: 0.85rem 1.8rem;
+      border-radius: 999px;
+      background: linear-gradient(135deg, var(--pink), var(--purple));
+      color: #fff;
+      font-weight: 900;
+      font-family: var(--font-main);
+      border: none;
+      touch-action: manipulation;
+    }
+
+    #btn-spin:disabled {
+      opacity: 0.55;
+    }
+
+    @media (max-width: 420px) {
+      #popup-target-name {
+        font-size: 1.65rem;
+      }
+
+      .ar-popup {
+        padding: 1rem 1rem calc(1.35rem + env(safe-area-inset-bottom));
+      }
+
+      .wheel-wrap {
+        width: min(278px, 78vw);
+        height: min(278px, 78vw);
+      }
+    }
+
+    @media (max-height: 720px) {
+      .wheel-wrap {
+        width: min(250px, 68vw);
+        height: min(250px, 68vw);
+      }
+
+      #wheel-modal-question {
+        font-size: 0.78rem;
+        margin-bottom: 0.55rem;
+      }
+
+      #btn-spin {
+        margin-top: 0.45rem;
+        padding: 0.72rem 1.5rem;
+      }
+
+      #wheel-result {
+        min-height: 3.2rem;
+        margin-top: 0.45rem;
+      }
+    }
   </style>
 </head>
+
 <body class="ar-page">
 
-  <div class="mobile-start" id="mobile-start">
+  <!-- Start screen -->
+  <div class="start-screen" id="start-screen">
     <div class="start-card">
       <div class="start-title">AR Mission Wheel</div>
-      <p class="start-desc">Scan a target, get one question, then spin the wheel for your mission.</p>
-      <button class="start-btn" id="btn-start">📷 Start Camera</button>
+      <div class="start-desc">
+        Scan a target, read one question,<br>
+        then spin the wheel for your mission.
+      </div>
+      <button class="start-btn" id="start-btn" type="button">📷 Start Camera</button>
       <div class="start-note">Optimized for mobile phones</div>
     </div>
   </div>
 
+  <!-- Loading overlay -->
   <div class="loading-overlay" id="loading-overlay">
     <div class="loading-spinner"></div>
-    <p class="loading-text" id="loading-text">Loading AR…</p>
+    <p class="loading-text" id="loading-text">Starting camera…</p>
   </div>
 
-  <button class="ar-back-btn" onclick="goBack()">← Back</button>
-  <div class="ar-status scanning" id="ar-status">TAP START</div>
+  <!-- Back button -->
+  <button class="ar-back-btn" type="button" onclick="goBack()">← Back</button>
 
+  <!-- Status -->
+  <div class="ar-status scanning" id="ar-status">READY</div>
+
+  <!-- Scan hint -->
   <div class="scan-hint" id="scan-hint">
     <div class="scan-frame" style="border-color: rgba(255,59,143,0.4);">
       <div class="scan-line" style="background: linear-gradient(90deg, transparent, #ff3b8f, transparent);"></div>
     </div>
-    <p class="scan-hint-text">Point your phone at a target image</p>
+    <p class="scan-hint-text">Point camera at a target image</p>
   </div>
 
+  <!-- Popup bottom: question is shown as AR Text3D, not here -->
   <div class="ar-popup accent-pink" id="ar-popup">
-    <div id="popup-question-area">
-      <p class="popup-label">MISSION QUESTION</p>
-      <div id="popup-q-target">Target</div>
-      <div id="q-progress">Q 1 / 5</div>
-      <div id="popup-q-text">Question will appear here.</div>
-      <div class="popup-buttons">
-        <button class="btn btn-pink" onclick="speakMissionQuestion()">🔊 Read</button>
-        <button class="btn btn-ghost" onclick="openWheel()">🎯 Spin Wheel</button>
-      </div>
+    <p class="popup-label">QUESTION</p>
+    <div id="popup-target-name">Target</div>
+
+    <div class="popup-buttons">
+      <button class="btn btn-pink" type="button" onclick="speakMissionQuestion()">🔊 Read</button>
+      <button class="btn btn-ghost" type="button" onclick="openWheel()">🎯 Spin Wheel</button>
     </div>
   </div>
 
+  <!-- Wheel modal -->
   <div id="wheel-modal">
     <div class="wheel-modal-header">
       <span class="wheel-modal-title">🎯 MISSION WHEEL</span>
-      <button class="wheel-modal-close" onclick="closeWheel()">✕ Close</button>
+      <button class="wheel-modal-close" type="button" onclick="closeWheel()">✕ Close</button>
     </div>
-    <div id="wheel-modal-question">…</div>
+
+    <div id="wheel-modal-question">Spin the wheel.</div>
+
     <div class="wheel-wrap">
       <div class="wheel-pointer">▼</div>
       <canvas id="wheel-canvas" width="600" height="600"></canvas>
     </div>
+
     <div id="wheel-result" class="hidden">
       <div id="result-emoji">🎯</div>
       <div id="result-text">Spin the wheel!</div>
       <div id="result-sub">Your mission will appear here.</div>
     </div>
-    <button id="btn-spin" onclick="spinWheel()">🎰 SPIN THE WHEEL</button>
+
+    <button id="btn-spin" type="button" onclick="spinWheel()">🎰 SPIN THE WHEEL</button>
   </div>
 
-  <div class="notice-box" id="notice-box">Camera access is required. Please allow camera permission and reload.</div>
+  <div class="notice-box" id="notice-box">
+    Camera access is required. Please allow camera permission and reload.
+  </div>
 
+  <!-- AR Scene -->
   <a-scene
-    mindar-image="imageTargetSrc: ../assets/targets/targets.mind; autoStart: false; uiLoading: no; uiError: no; uiScanning: no; maxTrack: 1; filterMinCF: 0.0001; filterBeta: 0.01;"
+    mindar-image="imageTargetSrc: ../assets/targets/targets.mind; autoStart: false; uiLoading: no; uiError: no; uiScanning: no; maxTrack: 1; filterMinCF: 0.0001; filterBeta: 0.001;"
     color-space="sRGB"
-    renderer="colorManagement: true; antialias: false; precision: mediump; powerPreference: high-performance"
+    renderer="colorManagement: true; antialias: true; precision: highp; powerPreference: high-performance;"
     vr-mode-ui="enabled: false"
     device-orientation-permission-ui="enabled: false"
-    embedded
     id="ar-scene"
   >
+    <a-assets>
+      <a-asset-item
+        id="font-bold"
+        src="https://cdn.jsdelivr.net/gh/mrdoob/three.js@r147/examples/fonts/helvetiker_bold.typeface.json">
+      </a-asset-item>
+    </a-assets>
+
     <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
 
+    <a-light type="ambient" color="#ffffff" intensity="0.9"></a-light>
+    <a-light type="directional" color="#ffffff" intensity="1.2" position="0.5 1 1"></a-light>
+
+    <!-- Targets. Text3D questions are pre-rendered into each target. -->
     <a-entity mindar-image-target="targetIndex: 0" id="target-0"></a-entity>
     <a-entity mindar-image-target="targetIndex: 1" id="target-1"></a-entity>
     <a-entity mindar-image-target="targetIndex: 2" id="target-2"></a-entity>
@@ -172,89 +427,116 @@
   <script>
     'use strict';
 
+    AFRAME.registerComponent('center-3d-text', {
+      init: function () {
+        this.center = this.center.bind(this);
+        this.el.addEventListener('object3dset', this.center);
+        setTimeout(this.center, 250);
+        setTimeout(this.center, 700);
+        setTimeout(this.center, 1200);
+      },
+      center: function () {
+        const mesh = this.el.getObject3D('mesh');
+        if (!mesh || !mesh.geometry) return;
+
+        mesh.geometry.computeBoundingBox();
+        const box = mesh.geometry.boundingBox;
+        if (!box) return;
+
+        const xOffset = -0.5 * (box.max.x - box.min.x) - box.min.x;
+        const yOffset = -0.5 * (box.max.y - box.min.y) - box.min.y;
+
+        mesh.geometry.translate(xOffset, yOffset, 0);
+        mesh.geometry.computeBoundingBox();
+      }
+    });
+
+    AFRAME.registerComponent('fit-3d-question', {
+      schema: {
+        maxWidth: { type: 'number', default: 1.05 },
+        maxHeight: { type: 'number', default: 0.36 }
+      },
+      init: function () {
+        this.fit = this.fit.bind(this);
+        setTimeout(this.fit, 350);
+        setTimeout(this.fit, 850);
+        setTimeout(this.fit, 1400);
+      },
+      fit: function () {
+        const obj = this.el.object3D;
+        if (!obj || !window.THREE) return;
+
+        obj.scale.set(1, 1, 1);
+
+        const box = new THREE.Box3().setFromObject(obj);
+        if (!box || box.isEmpty()) return;
+
+        const size = new THREE.Vector3();
+        box.getSize(size);
+        if (!size.x || !size.y) return;
+
+        const sx = this.data.maxWidth / size.x;
+        const sy = this.data.maxHeight / size.y;
+        const s = Math.min(sx, sy, 1);
+
+        obj.scale.setScalar(s);
+      }
+    });
+
     let missionsData = null;
     let segments = [];
     let currentTarget = null;
+    let sceneLoaded = false;
     let arStarted = false;
-    const questionQueues = {};
+    let currentAngle = 0;
+    let isSpinning = false;
 
     const scene = document.getElementById('ar-scene');
-    const startScreen = document.getElementById('mobile-start');
+    const startScreen = document.getElementById('start-screen');
+    const startBtn = document.getElementById('start-btn');
     const loadingOverlay = document.getElementById('loading-overlay');
     const loadingText = document.getElementById('loading-text');
     const arStatus = document.getElementById('ar-status');
     const scanHint = document.getElementById('scan-hint');
     const arPopup = document.getElementById('ar-popup');
+    const noticeBox = document.getElementById('notice-box');
 
-    for (let i = 0; i < 10; i++) renderThickLabel(`target-${i}`, 'SPIN', '#ff3b8f', 3.0);
+    const lockedQuestions = {};
+    const spokenTargets = {};
+    const hideTimers = {};
 
-    function renderThickLabel(targetId, text, mainColor, width) {
-      const root = document.getElementById(targetId);
-      if (!root) return;
-      root.innerHTML = '';
-      const layers = [
-        { color: '#18000a', x: 0.060, y: 0.395, z: -0.070, w: width },
-        { color: '#7e1240', x: 0.040, y: 0.415, z: -0.050, w: width },
-        { color: '#ffffff', x: 0.014, y: 0.444, z: -0.018, w: width * 1.01, opacity: 0.42 },
-        { color: mainColor, x: 0, y: 0.465, z: 0, w: width }
-      ];
-      layers.forEach(layer => {
-        const t = document.createElement('a-text');
-        t.setAttribute('value', text);
-        t.setAttribute('align', 'center');
-        t.setAttribute('baseline', 'center');
-        t.setAttribute('color', layer.color);
-        t.setAttribute('width', layer.w);
-        t.setAttribute('position', `${layer.x} ${layer.y} ${layer.z}`);
-        t.setAttribute('font', 'https://cdn.aframe.io/fonts/Exo2Bold.fnt');
-        if (layer.opacity) t.setAttribute('opacity', layer.opacity);
-        root.appendChild(t);
-      });
-    }
-
-    function shuffle(arr) {
-      const a = [...arr];
-      for (let i = a.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [a[i], a[j]] = [a[j], a[i]];
-      }
-      return a;
-    }
+    const canvas = document.getElementById('wheel-canvas');
+    const ctx = canvas.getContext('2d');
+    const CX = canvas.width / 2;
+    const CY = canvas.height / 2;
+    const R = CX - 10;
 
     fetch('../assets/data/missions.json')
-      .then(r => r.json())
+      .then(r => {
+        if (!r.ok) throw new Error('missions.json not found');
+        return r.json();
+      })
       .then(data => {
         missionsData = data;
         segments = data.wheelSegments || [];
+        prepareLockedQuestions();
+        renderAllMissionText3D();
         drawWheel();
       })
-      .catch(err => console.error('[Part3] Failed to load missions.json', err));
+      .catch(err => {
+        console.error('[Part3] Failed to load missions.json:', err);
+        noticeBox.textContent = '⚠️ Cannot load missions.json. Please check assets/data/missions.json';
+        noticeBox.style.display = 'block';
+      });
 
-    document.getElementById('btn-start').addEventListener('click', startAR);
-
-    async function startAR() {
-      if (arStarted) return;
-      arStarted = true;
-      warmupSpeech();
-      startScreen.style.display = 'none';
-      loadingOverlay.classList.add('show');
-      loadingText.textContent = 'Starting camera…';
-      arStatus.textContent = 'STARTING';
-
-      try {
-        const arSystem = scene.systems['mindar-image-system'];
-        if (!arSystem) throw new Error('MindAR system is not ready yet.');
-        await arSystem.start();
-      } catch (err) {
-        console.error('[Part3] AR start error:', err);
-        loadingText.textContent = 'Camera error. Please allow camera access.';
-        document.getElementById('notice-box').style.display = 'block';
-        arStarted = false;
-      }
-    }
+    scene.addEventListener('loaded', () => {
+      sceneLoaded = true;
+      attachTargetEvents();
+    });
 
     scene.addEventListener('arReady', () => {
       loadingOverlay.classList.remove('show');
+      scanHint.classList.remove('hidden');
       arStatus.textContent = 'SCANNING';
       arStatus.className = 'ar-status scanning';
     });
@@ -263,60 +545,223 @@
       console.error('[Part3] AR Error:', err);
       loadingText.textContent = 'Camera error. Please allow camera access.';
       loadingOverlay.classList.add('show');
-      document.getElementById('notice-box').style.display = 'block';
+      noticeBox.style.display = 'block';
     });
 
-    scene.addEventListener('loaded', () => {
+    startBtn.addEventListener('click', startAR);
+
+    async function startAR() {
+      if (arStarted) return;
+      arStarted = true;
+
+      warmupSpeech();
+
+      startScreen.classList.add('hidden');
+      loadingOverlay.classList.add('show');
+      loadingText.textContent = 'Starting camera…';
+      arStatus.textContent = 'STARTING';
+
+      const tryStart = async () => {
+        const sys = scene.systems && scene.systems['mindar-image-system'];
+
+        if (!sceneLoaded || !sys) {
+          setTimeout(tryStart, 120);
+          return;
+        }
+
+        try {
+          await sys.start();
+        } catch (err) {
+          console.error('[Part3] Failed to start AR:', err);
+          loadingText.textContent = 'Cannot start camera. Please allow camera access.';
+          noticeBox.style.display = 'block';
+          arStarted = false;
+        }
+      };
+
+      tryStart();
+    }
+
+    function attachTargetEvents() {
       for (let i = 0; i < 10; i++) {
-        const el = document.getElementById(`target-${i}`);
-        if (!el) continue;
-        el.addEventListener('targetFound', () => showMissionQuestion(i));
-        el.addEventListener('targetLost', hideMissionQuestion);
+        const entity = document.getElementById(`target-${i}`);
+        if (!entity) continue;
+
+        entity.addEventListener('targetFound', () => showMissionQuestion(i));
+        entity.addEventListener('targetLost', () => hideMissionQuestionWithDelay(i));
       }
-    });
+    }
+
+    function prepareLockedQuestions() {
+      if (!missionsData || !missionsData.questions) return;
+
+      missionsData.questions.forEach(item => {
+        if (!item.questions || !item.questions.length) return;
+        const randomIndex = Math.floor(Math.random() * item.questions.length);
+        lockedQuestions[item.targetIndex] = item.questions[randomIndex];
+      });
+    }
+
+    function renderAllMissionText3D() {
+      if (!missionsData || !missionsData.questions) return;
+
+      missionsData.questions.forEach(item => {
+        const question = lockedQuestions[item.targetIndex];
+        if (!question) return;
+        renderQuestionText3D(item.targetIndex, question);
+      });
+    }
 
     function showMissionQuestion(targetIndex) {
-      if (!missionsData) return;
+      if (hideTimers[targetIndex]) {
+        clearTimeout(hideTimers[targetIndex]);
+        hideTimers[targetIndex] = null;
+      }
+
+      if (!missionsData || !missionsData.questions) return;
+
       const data = missionsData.questions.find(d => d.targetIndex === targetIndex);
       if (!data) return;
 
-      if (!questionQueues[targetIndex]) questionQueues[targetIndex] = { queue: shuffle(data.questions), idx: 0 };
-      const qState = questionQueues[targetIndex];
-      if (qState.idx >= qState.queue.length) {
-        qState.queue = shuffle(data.questions);
-        qState.idx = 0;
-      }
-
-      const question = qState.queue[qState.idx];
-      qState.idx++;
+      const question = lockedQuestions[targetIndex];
+      if (!question) return;
 
       currentTarget = {
         targetIndex,
         target: data.target,
-        currentQuestion: question,
-        qNum: qState.idx,
-        qTotal: data.questions.length
+        currentQuestion: question
       };
 
-      document.getElementById('popup-q-target').textContent = data.target;
-      document.getElementById('popup-q-text').textContent = question;
-      document.getElementById('q-progress').textContent = `Q ${qState.idx} / ${data.questions.length}`;
+      document.getElementById('popup-target-name').textContent = data.target;
 
       arPopup.classList.add('show');
       scanHint.classList.add('hidden');
+
       arStatus.textContent = 'FOUND';
       arStatus.className = 'ar-status found';
-      speakMissionQuestion();
-      vibrate(50);
+
+      if (!spokenTargets[targetIndex]) {
+        spokenTargets[targetIndex] = true;
+        speakMissionQuestion();
+      }
+
+      vibrate(45);
     }
 
-    function hideMissionQuestion() {
-      currentTarget = null;
-      arPopup.classList.remove('show');
-      scanHint.classList.remove('hidden');
-      arStatus.textContent = 'SCANNING';
-      arStatus.className = 'ar-status scanning';
-      stopSpeech();
+    function hideMissionQuestionWithDelay(targetIndex) {
+      hideTimers[targetIndex] = setTimeout(() => {
+        if (currentTarget && currentTarget.targetIndex === targetIndex) {
+          currentTarget = null;
+          arPopup.classList.remove('show');
+          scanHint.classList.remove('hidden');
+
+          if (arStarted) {
+            arStatus.textContent = 'SCANNING';
+            arStatus.className = 'ar-status scanning';
+          }
+
+          stopSpeech();
+        }
+      }, 700);
+    }
+
+    function makeTwoLines(text) {
+      const clean = String(text).replace(/\s+/g, ' ').trim();
+      const words = clean.split(' ');
+
+      if (clean.length <= 20) return [clean];
+
+      let best = null;
+
+      for (let i = 1; i < words.length; i++) {
+        const a = words.slice(0, i).join(' ');
+        const b = words.slice(i).join(' ');
+        const longest = Math.max(a.length, b.length);
+        const balance = Math.abs(a.length - b.length);
+        const score = longest * 3 + balance;
+
+        if (!best || score < best.score) {
+          best = { lines: [a, b], score };
+        }
+      }
+
+      return best ? best.lines : [clean];
+    }
+
+    function getQuestionTextSize(lines) {
+      const longest = Math.max(...lines.map(line => line.length));
+
+      if (longest > 42) return 0.030;
+      if (longest > 36) return 0.034;
+      if (longest > 30) return 0.039;
+      if (longest > 24) return 0.046;
+      if (longest > 18) return 0.054;
+      return 0.064;
+    }
+
+    function renderQuestionText3D(targetIndex, question) {
+      const target = document.getElementById(`target-${targetIndex}`);
+      if (!target) return;
+
+      target.innerHTML = '';
+
+      const lines = makeTwoLines(question);
+      const size = getQuestionTextSize(lines);
+      const lineGap = size * 1.9;
+
+      const group = document.createElement('a-entity');
+      group.setAttribute('position', '0 0.43 0.045');
+      group.setAttribute('rotation', '-7 0 0');
+      group.setAttribute('fit-3d-question', 'maxWidth: 1.05; maxHeight: 0.36;');
+
+      lines.forEach((line, i) => {
+        const y = lines.length === 1
+          ? 0
+          : (i === 0 ? lineGap / 2 : -lineGap / 2);
+
+        const shadow = document.createElement('a-entity');
+        shadow.setAttribute('center-3d-text', '');
+        shadow.setAttribute('position', `0.010 ${y - 0.012} -0.024`);
+        shadow.setAttribute('text-geometry', {
+          value: line,
+          font: '#font-bold',
+          size,
+          height: 0.015,
+          curveSegments: 5,
+          bevelEnabled: true,
+          bevelSize: 0.0024,
+          bevelThickness: 0.0024,
+          bevelSegments: 1
+        });
+        shadow.setAttribute(
+          'material',
+          'shader: standard; color: #3a0018; emissive: #18000a; metalness: 0.04; roughness: 0.72; side: double; transparent: true; opacity: 0.88;'
+        );
+
+        const main = document.createElement('a-entity');
+        main.setAttribute('center-3d-text', '');
+        main.setAttribute('position', `0 ${y} 0`);
+        main.setAttribute('text-geometry', {
+          value: line,
+          font: '#font-bold',
+          size,
+          height: 0.020,
+          curveSegments: 6,
+          bevelEnabled: true,
+          bevelSize: 0.003,
+          bevelThickness: 0.003,
+          bevelSegments: 2
+        });
+        main.setAttribute(
+          'material',
+          'shader: standard; color: #ff3b8f; emissive: #5b0f35; metalness: 0.08; roughness: 0.36; side: double;'
+        );
+
+        group.appendChild(shadow);
+        group.appendChild(main);
+      });
+
+      target.appendChild(group);
     }
 
     function speakMissionQuestion() {
@@ -325,29 +770,42 @@
     }
 
     function openWheel() {
+      if (!currentTarget) {
+        noticeBox.textContent = 'Please scan a target first.';
+        noticeBox.style.display = 'block';
+        setTimeout(() => { noticeBox.style.display = 'none'; }, 1600);
+        return;
+      }
+
+      if (!segments || !segments.length) {
+        noticeBox.textContent = 'Wheel data is not ready yet.';
+        noticeBox.style.display = 'block';
+        setTimeout(() => { noticeBox.style.display = 'none'; }, 1600);
+        return;
+      }
+
       const modal = document.getElementById('wheel-modal');
       modal.classList.add('show');
-      document.getElementById('wheel-modal-question').textContent = currentTarget ? currentTarget.currentQuestion : 'Spin the wheel.';
+
+      document.getElementById('wheel-modal-question').textContent = currentTarget.currentQuestion;
       document.getElementById('wheel-result').classList.add('hidden');
-      document.getElementById('btn-spin').disabled = false;
-      document.getElementById('btn-spin').textContent = '🎰 SPIN THE WHEEL';
+
+      const spinBtn = document.getElementById('btn-spin');
+      spinBtn.disabled = false;
+      spinBtn.textContent = '🎰 SPIN THE WHEEL';
+
+      drawWheel(currentAngle);
     }
 
     function closeWheel() {
       document.getElementById('wheel-modal').classList.remove('show');
     }
 
-    const canvas = document.getElementById('wheel-canvas');
-    const ctx = canvas.getContext('2d');
-    const CX = canvas.width / 2;
-    const CY = canvas.height / 2;
-    const R = CX - 10;
-    let currentAngle = 0;
-    let isSpinning = false;
-
     function drawWheel(rotation = 0) {
-      if (!segments || segments.length === 0) return;
+      if (!ctx || !segments || segments.length === 0) return;
+
       ctx.clearRect(0, 0, canvas.width, canvas.height);
+
       const numSeg = segments.length;
       const arcSize = (2 * Math.PI) / numSeg;
 
@@ -360,29 +818,32 @@
         ctx.moveTo(CX, CY);
         ctx.arc(CX, CY, R, startAngle, endAngle);
         ctx.closePath();
-        ctx.fillStyle = seg.color;
+        ctx.fillStyle = seg.color || '#ff3b8f';
         ctx.fill();
-        ctx.strokeStyle = 'rgba(10,14,26,0.6)';
+        ctx.strokeStyle = 'rgba(10,14,26,0.65)';
         ctx.lineWidth = 4;
         ctx.stroke();
 
         ctx.save();
         ctx.translate(CX, CY);
         ctx.rotate(startAngle + arcSize / 2);
+
         ctx.textAlign = 'right';
         ctx.textBaseline = 'middle';
         ctx.fillStyle = '#000';
-        ctx.font = 'bold 20px Nunito, sans-serif';
+        ctx.font = 'bold 20px Nunito, Arial, sans-serif';
 
-        const lines = String(seg.text).split('\n');
+        const lines = String(seg.text || '').split('\n');
         const lineH = 24;
         const totalH = lines.length * lineH;
+
         lines.forEach((line, li) => {
           ctx.fillText(line, R - 18, -totalH / 2 + li * lineH + lineH / 2);
         });
 
         ctx.font = '22px serif';
-        ctx.fillText(seg.emoji || '🎯', R - 115, 0);
+        ctx.fillText(seg.emoji || '🎯', R - 114, 0);
+
         ctx.restore();
       }
 
@@ -401,12 +862,23 @@
     }
 
     function spinWheel() {
-      if (isSpinning || !segments.length) return;
+      if (isSpinning) return;
+
+      if (!segments || !segments.length) {
+        noticeBox.textContent = 'Wheel data is not ready yet.';
+        noticeBox.style.display = 'block';
+        setTimeout(() => { noticeBox.style.display = 'none'; }, 1600);
+        return;
+      }
+
       isSpinning = true;
+
       const spinBtn = document.getElementById('btn-spin');
       spinBtn.disabled = true;
       spinBtn.textContent = '🌀 Spinning…';
+
       document.getElementById('wheel-result').classList.add('hidden');
+
       vibrate([30, 50, 30]);
 
       const spinAmount = (Math.random() * 4 + 5) * 2 * Math.PI;
@@ -415,11 +887,14 @@
       const duration = 2800 + Math.random() * 600;
       const startTime = performance.now();
 
-      function easeOut(t) { return 1 - Math.pow(1 - t, 4); }
+      function easeOut(t) {
+        return 1 - Math.pow(1 - t, 4);
+      }
 
       function animate(now) {
         const progress = Math.min((now - startTime) / duration, 1);
         currentAngle = startAngle + spinAmount * easeOut(progress);
+
         drawWheel(currentAngle);
 
         if (progress < 1) {
@@ -429,6 +904,7 @@
           currentAngle = targetAngle % (2 * Math.PI);
           drawWheel(currentAngle);
           showResult();
+
           spinBtn.disabled = false;
           spinBtn.textContent = '🎰 SPIN AGAIN';
         }
@@ -438,43 +914,70 @@
     }
 
     function showResult() {
-      if (!segments.length) return;
+      if (!segments || !segments.length) return;
+
       const numSeg = segments.length;
       const arcSize = (2 * Math.PI) / numSeg;
       const pointerAngle = 3 * Math.PI / 2;
+
       const normalised = ((pointerAngle - currentAngle) % (2 * Math.PI) + 2 * Math.PI) % (2 * Math.PI);
       const segIndex = Math.floor(normalised / arcSize) % numSeg;
       const result = segments[segIndex];
 
       document.getElementById('result-emoji').textContent = result.emoji || '🎯';
-      document.getElementById('result-text').textContent = String(result.text).replace('\n', ' ');
+      document.getElementById('result-text').textContent = String(result.text || '').replace('\n', ' ');
       document.getElementById('result-sub').textContent = 'That is your mission!';
       document.getElementById('wheel-result').classList.remove('hidden');
-      speak('Your mission: ' + String(result.text).replace('\n', ' '));
+
+      speak('Your mission: ' + String(result.text || '').replace('\n', ' '));
+
       vibrate([50, 30, 90]);
     }
 
     function speak(text) {
       if (!('speechSynthesis' in window) || !text) return;
+
       window.speechSynthesis.cancel();
+
       const utt = new SpeechSynthesisUtterance(text);
       utt.lang = 'en-US';
       utt.rate = 0.88;
       utt.pitch = 1;
+
       const voices = window.speechSynthesis.getVoices();
-      const voice = voices.find(v => v.lang === 'en-US' && v.localService) || voices.find(v => v.lang && v.lang.startsWith('en'));
+      const voice =
+        voices.find(v => v.lang === 'en-US' && v.localService) ||
+        voices.find(v => v.lang && v.lang.startsWith('en'));
+
       if (voice) utt.voice = voice;
+
       window.speechSynthesis.speak(utt);
     }
 
-    function warmupSpeech() { if ('speechSynthesis' in window) window.speechSynthesis.getVoices(); }
-    function stopSpeech() { if ('speechSynthesis' in window) window.speechSynthesis.cancel(); }
+    function warmupSpeech() {
+      if ('speechSynthesis' in window) window.speechSynthesis.getVoices();
+    }
+
+    function stopSpeech() {
+      if ('speechSynthesis' in window) window.speechSynthesis.cancel();
+    }
+
+    function vibrate(pattern = 50) {
+      if ('vibrate' in navigator) navigator.vibrate(pattern);
+    }
 
     function goBack() {
       stopSpeech();
+
       const sys = scene.systems && scene.systems['mindar-image-system'];
       if (sys && arStarted) sys.stop();
+
       window.location = '../';
+    }
+
+    if ('speechSynthesis' in window) {
+      window.speechSynthesis.getVoices();
+      window.speechSynthesis.onvoiceschanged = () => window.speechSynthesis.getVoices();
     }
   </script>
 </body>
