@@ -492,3 +492,234 @@ button { cursor: pointer; font-family: inherit; border: none; outline: none; }
 
 /* ── Utility ────────────────────────────────── */
 .visually-hidden { display: none; }
+/* ══════════════════════════════════════════════
+   HOME PAGE MOBILE FIX
+   - Stop index page from sliding up/down
+   - Fix Part 4 card text overlap
+   - Mobile app-like layout
+   ══════════════════════════════════════════════ */
+
+html {
+  width: 100%;
+  height: 100%;
+  overflow-x: hidden;
+}
+
+body.home-page {
+  width: 100%;
+  height: 100vh;
+  height: 100dvh;
+  max-height: 100dvh;
+  overflow: hidden;
+  overscroll-behavior: none;
+  display: flex;
+  flex-direction: column;
+  touch-action: manipulation;
+}
+
+/* Prevent background orbs from creating accidental overflow */
+.home-page .bg-orb {
+  max-width: 70vw;
+  max-height: 70vw;
+}
+
+/* Header */
+.home-page .site-header {
+  flex: 0 0 auto;
+  padding: clamp(0.8rem, 2.2dvh, 1.55rem) 1rem clamp(0.35rem, 1dvh, 0.65rem);
+}
+
+.home-page .header-logo {
+  gap: 0.65rem;
+  margin-bottom: 0.2rem;
+}
+
+.home-page .logo-icon {
+  font-size: clamp(1.7rem, 5vw, 2.15rem);
+}
+
+.home-page .logo-main {
+  font-size: clamp(1.28rem, 5vw, 1.68rem);
+}
+
+.home-page .logo-sub {
+  font-size: clamp(0.66rem, 2.6vw, 0.82rem);
+  letter-spacing: 2.2px;
+}
+
+.home-page .header-desc {
+  font-size: clamp(0.64rem, 2.5vw, 0.82rem);
+  letter-spacing: 2.8px;
+}
+
+/* Main menu */
+.home-page .main-menu {
+  flex: 1 1 auto;
+  min-height: 0;
+  width: 100%;
+  max-width: 480px;
+  display: flex;
+  flex-direction: column;
+  padding: 0.25rem 0.85rem calc(0.62rem + env(safe-area-inset-bottom));
+}
+
+.home-page .menu-intro {
+  flex: 0 0 auto;
+  font-size: clamp(0.68rem, 2.65vw, 0.82rem);
+  margin-bottom: clamp(0.45rem, 1.1dvh, 0.85rem);
+}
+
+/* Four cards fit inside mobile screen */
+.home-page .parts-grid {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: grid;
+  grid-template-rows: repeat(4, minmax(0, 1fr));
+  gap: clamp(0.42rem, 1.15dvh, 0.72rem);
+}
+
+.home-page .part-card {
+  display: grid;
+  grid-template-columns: clamp(2.25rem, 9.4vw, 2.85rem) minmax(0, 1fr) auto;
+  grid-template-areas:
+    "icon body arrow"
+    "icon tag  arrow";
+  align-items: center;
+  column-gap: clamp(0.55rem, 2.2vw, 0.78rem);
+  row-gap: 0.18rem;
+  min-height: 0;
+  padding: clamp(0.62rem, 1.35dvh, 0.92rem) 0.82rem;
+  border-radius: clamp(16px, 4vw, 22px);
+}
+
+/* Keep card content above gradients */
+.home-page .part-card > * {
+  position: relative;
+  z-index: 1;
+}
+
+.home-page .card-icon {
+  grid-area: icon;
+  font-size: clamp(1.55rem, 7.2vw, 2.15rem);
+  line-height: 1;
+}
+
+.home-page .card-body {
+  grid-area: body;
+  min-width: 0;
+}
+
+.home-page .card-title {
+  font-size: clamp(0.82rem, 3.55vw, 1rem);
+  line-height: 1.12;
+  margin-bottom: 0.18rem;
+  padding-right: 1.3rem;
+}
+
+.home-page .card-desc {
+  font-size: clamp(0.64rem, 2.65vw, 0.76rem);
+  line-height: 1.22;
+
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* This fixes the Part 4 overlapping issue */
+.home-page .card-tag {
+  grid-area: tag;
+  position: static;
+  justify-self: start;
+  align-self: start;
+  max-width: 100%;
+  min-width: 0;
+
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+
+  font-size: clamp(0.48rem, 2vw, 0.58rem);
+  line-height: 1;
+  letter-spacing: 0.7px;
+  padding: 0.16rem 0.42rem;
+  border-radius: 999px;
+  margin-top: 0.06rem;
+}
+
+.home-page .card-arrow {
+  grid-area: arrow;
+  align-self: center;
+  font-size: clamp(0.95rem, 4.2vw, 1.18rem);
+}
+
+.home-page .card-num {
+  top: 0.48rem;
+  right: 0.75rem;
+  font-size: 0.62rem;
+}
+
+/* Footer */
+.home-page .site-footer {
+  flex: 0 0 auto;
+  margin-top: clamp(0.42rem, 1.1dvh, 0.68rem);
+  font-size: clamp(0.56rem, 2.2vw, 0.68rem);
+  line-height: 1.25;
+  padding-bottom: 0.05rem;
+}
+
+/* Compact mode for shorter phones */
+@media (max-height: 720px) {
+  .home-page .site-header {
+    padding-top: 0.7rem;
+    padding-bottom: 0.25rem;
+  }
+
+  .home-page .header-desc {
+    display: none;
+  }
+
+  .home-page .menu-intro {
+    margin-bottom: 0.35rem;
+  }
+
+  .home-page .parts-grid {
+    gap: 0.42rem;
+  }
+
+  .home-page .part-card {
+    padding-top: 0.52rem;
+    padding-bottom: 0.52rem;
+  }
+
+  .home-page .card-title {
+    margin-bottom: 0.1rem;
+  }
+
+  .home-page .card-desc {
+    -webkit-line-clamp: 1;
+  }
+
+  .home-page .site-footer {
+    margin-top: 0.35rem;
+  }
+}
+
+/* Very short screens */
+@media (max-height: 640px) {
+  .home-page .menu-intro {
+    display: none;
+  }
+
+  .home-page .card-tag {
+    display: none;
+  }
+
+  .home-page .part-card {
+    grid-template-areas: "icon body arrow";
+  }
+
+  .home-page .site-footer {
+    font-size: 0.54rem;
+  }
+}
