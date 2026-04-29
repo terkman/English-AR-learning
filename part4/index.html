@@ -191,55 +191,72 @@
 
     .info-panel {
       position: fixed;
-      left: 0;
-      right: 0;
-      bottom: 0;
+      left: 16px;
+      top: 180px;
+      width: min(360px, calc(100vw - 32px));
+      max-height: min(46vh, 420px);
+      overflow: auto;
       z-index: 70;
-      background: rgba(18,24,43,0.97);
+      background: rgba(18,24,43,0.94);
+      border: 1px solid rgba(255,255,255,0.12);
       border-top: 2px solid var(--green);
-      border-radius: 24px 24px 0 0;
-      padding: 1.15rem 1.15rem calc(1.45rem + env(safe-area-inset-bottom));
-      transform: translateY(100%);
-      transition: transform 0.32s cubic-bezier(0.34, 1.56, 0.64, 1);
-      box-shadow: 0 -16px 48px rgba(0,0,0,0.36);
+      border-radius: 22px;
+      padding: 1.05rem 1.05rem 1.15rem;
+      opacity: 0;
+      transform: scale(0.96);
+      pointer-events: none;
+      transition:
+        opacity 0.18s ease,
+        transform 0.18s ease,
+        left 0.08s linear,
+        top 0.08s linear;
+      box-shadow: 0 18px 54px rgba(0,0,0,0.42);
       backdrop-filter: blur(18px);
     }
 
     .info-panel.show {
-      transform: translateY(0);
+      opacity: 1;
+      transform: scale(1);
+      pointer-events: auto;
     }
 
     .panel-close {
       position: absolute;
-      top: 0.75rem;
-      right: 0.85rem;
+      top: 0.68rem;
+      right: 0.72rem;
       background: rgba(255,255,255,0.08);
       color: #fff;
       border: 1px solid rgba(255,255,255,0.14);
       border-radius: 999px;
-      padding: 0.32rem 0.7rem;
+      padding: 0.3rem 0.66rem;
       font-family: var(--font-main);
-      font-size: 0.75rem;
+      font-size: 0.72rem;
       font-weight: 900;
     }
 
     .panel-label {
+      display: inline-block;
       font-size: 0.62rem;
       font-weight: 900;
-      color: var(--text-muted);
-      letter-spacing: 2.4px;
-      text-transform: uppercase;
-      margin-bottom: 0.35rem;
-      padding-right: 3.5rem;
+      color: var(--green);
+      letter-spacing: 0.2px;
+      text-transform: none;
+      margin-bottom: 0.5rem;
+      padding: 0.24rem 0.64rem;
+      padding-right: 0.64rem;
+      background: rgba(6,214,160,0.14);
+      border: 1px solid rgba(6,214,160,0.24);
+      border-radius: 999px;
+      max-width: calc(100% - 3.2rem);
     }
 
     .panel-word {
-      color: var(--green);
-      font-size: 2rem;
+      color: var(--text-white);
+      font-size: 1.9rem;
       font-weight: 900;
       line-height: 1.02;
-      margin-bottom: 0.25rem;
-      padding-right: 3.5rem;
+      margin-bottom: 0.28rem;
+      padding-right: 3.2rem;
       word-break: break-word;
     }
 
@@ -256,18 +273,9 @@
       font-size: 0.86rem;
       line-height: 1.45;
       font-weight: 700;
-      border-left: 2px solid var(--green);
-      padding-left: 0.7rem;
+      border-left: none;
+      padding-left: 0;
       margin: 0.6rem 0 0.85rem;
-    }
-
-    .object-name {
-      color: rgba(255,255,255,0.34);
-      font-size: 0.66rem;
-      font-family: var(--font-mono);
-      font-weight: 800;
-      margin: 0.45rem 0 0.85rem;
-      overflow-wrap: anywhere;
     }
 
     .panel-buttons {
@@ -456,8 +464,6 @@
     <div class="panel-phonetic" id="panel-phonetic"></div>
     <div class="panel-example" id="panel-example"></div>
     <div class="dialogue-box" id="dialogue-box"></div>
-    <div class="object-name" id="object-name"></div>
-
     <div class="panel-buttons">
       <button class="btn btn-green" type="button" id="speak-btn">🔊 Speak</button>
       <button class="btn btn-ghost" type="button" id="teach-selected-btn">✏️ Teach this</button>
@@ -493,7 +499,6 @@
     const panelPhonetic = document.getElementById('panel-phonetic');
     const panelExample = document.getElementById('panel-example');
     const dialogueBox = document.getElementById('dialogue-box');
-    const objectNameEl = document.getElementById('object-name');
     const speakBtn = document.getElementById('speak-btn');
     const teachSelectedBtn = document.getElementById('teach-selected-btn');
 
@@ -510,6 +515,7 @@
     let clickableObjects = [];
     let originalMaterials = new Map();
     let selectedHighlight = null;
+    let panelAnchorPoint = null;
 
     let pointerDown = null;
 
@@ -674,8 +680,9 @@
       const exit = makeBox('Exit Sign', [0.9, 0.32, 0.05], [2.0, 2.05, -2.13], 0x06d6a0);
       const restroom = makeBox('Restroom Sign', [0.9, 0.32, 0.05], [-2.0, 2.05, -2.13], 0x00d4ff);
       const warning = makeBox('Warning Sign', [0.65, 0.46, 0.05], [0, 2.02, -2.13], 0xff9f1c);
+      const conversation = createConversationPeople();
 
-      modelRoot.add(shelf1, shelf2, counter, cashier, cola, water, exit, restroom, warning);
+      modelRoot.add(shelf1, shelf2, counter, cashier, cola, water, exit, restroom, warning, conversation);
 
       scene.add(modelRoot);
     }
@@ -708,6 +715,85 @@
       mesh.castShadow = true;
       mesh.receiveShadow = true;
       return mesh;
+    }
+
+    function createConversationPeople() {
+      const group = new THREE.Group();
+      group.name = 'At the Counter Conversation';
+
+      // Place the conversation beside the cashier counter, not on top of it.
+      // Counter area is around x -2.5 to -0.3, z 0.4 to 1.2.
+      // These people are moved to the right side of the counter.
+      const customer = createPerson('Customer', [0.45, 0, 1.08], 0x00d4ff, 0xf0c7a6);
+      customer.rotation.y = Math.PI * 0.48;
+
+      const seller = createPerson('Seller', [1.05, 0, 0.48], 0xffd60a, 0xf0c7a6);
+      seller.rotation.y = -Math.PI * 0.28;
+
+      // Large invisible hit area so learners can tap the conversation easily.
+      // It is also moved beside the cashier counter to avoid overlapping the counter mesh.
+      const hitGeometry = new THREE.BoxGeometry(1.05, 1.65, 0.95);
+      const hitMaterial = new THREE.MeshBasicMaterial({
+        color: 0x06d6a0,
+        transparent: true,
+        opacity: 0.015,
+        depthWrite: false
+      });
+      const hitBox = new THREE.Mesh(hitGeometry, hitMaterial);
+      hitBox.name = 'At the Counter Conversation';
+      hitBox.position.set(0.75, 0.88, 0.78);
+      hitBox.userData.isConversationHitbox = true;
+
+      group.add(customer, seller, hitBox);
+      return group;
+    }
+
+    function createPerson(name, position, shirtColor, skinColor) {
+      const group = new THREE.Group();
+      group.name = name;
+      group.position.set(...position);
+
+      const body = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.16, 0.22, 0.62, 24),
+        new THREE.MeshStandardMaterial({ color: shirtColor, roughness: 0.52, metalness: 0.05 })
+      );
+      body.name = `${name} Body`;
+      body.position.set(0, 0.62, 0);
+      body.castShadow = true;
+
+      const head = new THREE.Mesh(
+        new THREE.SphereGeometry(0.17, 24, 18),
+        new THREE.MeshStandardMaterial({ color: skinColor, roughness: 0.58, metalness: 0.02 })
+      );
+      head.name = `${name} Head`;
+      head.position.set(0, 1.08, 0);
+      head.castShadow = true;
+
+      const leftArm = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.04, 0.04, 0.46, 12),
+        new THREE.MeshStandardMaterial({ color: skinColor, roughness: 0.58, metalness: 0.02 })
+      );
+      leftArm.name = `${name} Arm`;
+      leftArm.position.set(-0.23, 0.7, 0.02);
+      leftArm.rotation.z = -0.55;
+      leftArm.castShadow = true;
+
+      const rightArm = leftArm.clone();
+      rightArm.name = `${name} Arm`;
+      rightArm.position.set(0.23, 0.7, 0.02);
+      rightArm.rotation.z = 0.55;
+      rightArm.castShadow = true;
+
+      const legs = new THREE.Mesh(
+        new THREE.BoxGeometry(0.28, 0.34, 0.16),
+        new THREE.MeshStandardMaterial({ color: 0x1a2035, roughness: 0.6, metalness: 0.04 })
+      );
+      legs.name = `${name} Legs`;
+      legs.position.set(0, 0.18, 0);
+      legs.castShadow = true;
+
+      group.add(body, head, leftArm, rightArm, legs);
+      return group;
     }
 
     function collectClickableObjects() {
@@ -782,19 +868,21 @@
 
       if (!hits.length) return;
 
-      const mesh = hits[0].object;
+      const hit = hits[0];
+      const mesh = hit.object;
       currentObject = mesh;
+      panelAnchorPoint = hit.point.clone();
 
       tapHint.classList.add('hidden');
       highlightObject(mesh);
 
       if (teachMode) {
-        teachObject(mesh);
+        teachObject(mesh, panelAnchorPoint);
         return;
       }
 
       const info = getInfoForObject(mesh);
-      showInfo(info, mesh);
+      showInfo(info, mesh, panelAnchorPoint);
     }
 
     function highlightObject(mesh) {
@@ -922,6 +1010,28 @@
     }
 
     function matchBuiltin(normalizedKey) {
+      if (
+        normalizedKey.includes('at the counter conversation') ||
+        normalizedKey.includes('conversation icon') ||
+        normalizedKey.includes('customer') ||
+        normalizedKey.includes('seller')
+      ) {
+        return {
+          type: 'dialogue',
+          word: 'At the Counter',
+          dialogue: [
+            { speaker: 'A', line: 'Hello. What would you like to buy?' },
+            { speaker: 'B', line: 'I would like a bottle of water, please.' },
+            { speaker: 'A', line: 'Sure. Anything else?' },
+            { speaker: 'B', line: 'No, thank you. How much is it?' },
+            { speaker: 'A', line: 'It is twenty baht.' },
+            { speaker: 'B', line: 'Here you are.' },
+            { speaker: 'A', line: 'Thank you. Have a nice day.' },
+            { speaker: 'B', line: 'Thank you.' }
+          ]
+        };
+      }
+
       const builtins = [
         { keys: ['table', 'desk'], word: 'Table', phonetic: '/ˈteɪbəl/', example: 'This is a table.' },
         { keys: ['chair', 'seat'], word: 'Chair', phonetic: '/tʃer/', example: 'Please sit on the chair.' },
@@ -968,7 +1078,7 @@
       return titleCase(cleaned);
     }
 
-    function teachObject(obj) {
+    function teachObject(obj, anchorPoint = null) {
       const key = getObjectKey(obj);
       const current = getInfoForObject(obj);
       const word = prompt('English word for this object:', current.word && current.word !== 'Unknown Object' ? current.word : '');
@@ -1000,7 +1110,7 @@
         label: 'TAUGHT WORD',
         objectKey: key,
         source: 'localStorage'
-      }, obj);
+      }, obj, anchorPoint || getObjectAnchorPoint(obj));
 
       refreshObjectList();
     }
@@ -1017,16 +1127,81 @@
       localStorage.setItem(STORAGE_KEY, JSON.stringify(taught));
     }
 
+
+    function getObjectAnchorPoint(obj) {
+      const box = new THREE.Box3().setFromObject(obj);
+      const center = new THREE.Vector3();
+
+      if (!box.isEmpty()) {
+        box.getCenter(center);
+        const size = new THREE.Vector3();
+        box.getSize(size);
+        center.y += Math.min(size.y * 0.25, 0.35);
+        return center;
+      }
+
+      obj.getWorldPosition(center);
+      return center;
+    }
+
+    function updateFloatingPanelPosition(force = false) {
+      if (!panel.classList.contains('show') || !panelAnchorPoint) return;
+
+      const projected = panelAnchorPoint.clone().project(camera);
+
+      if (projected.z < -1 || projected.z > 1) {
+        if (force) {
+          panel.style.left = '16px';
+          panel.style.top = '160px';
+        }
+        return;
+      }
+
+      const screenX = (projected.x * 0.5 + 0.5) * window.innerWidth;
+      const screenY = (-projected.y * 0.5 + 0.5) * window.innerHeight;
+
+      const rect = panel.getBoundingClientRect();
+      const width = rect.width || Math.min(360, window.innerWidth - 32);
+      const height = rect.height || 260;
+
+      const margin = 12;
+      const topLimit = Math.max(86, window.innerHeight * 0.10);
+      const bottomLimit = window.innerHeight - height - Math.max(18, window.innerHeight * 0.03);
+
+      let left = screenX + 18;
+
+      if (left + width > window.innerWidth - margin) {
+        left = screenX - width - 18;
+      }
+
+      if (left < margin) {
+        left = screenX - width / 2;
+      }
+
+      left = clamp(left, margin, window.innerWidth - width - margin);
+
+      let top = screenY - height * 0.48;
+
+      top = clamp(top, topLimit, Math.max(topLimit, bottomLimit));
+
+      panel.style.left = `${left}px`;
+      panel.style.top = `${top}px`;
+    }
+
+    function clamp(value, min, max) {
+      return Math.max(min, Math.min(max, value));
+    }
+
     // ───────────────────────────────────────
     // UI Panel
     // ───────────────────────────────────────
-    function showInfo(info, obj) {
+    function showInfo(info, obj, anchorPoint = null) {
       currentInfo = info;
+      panelAnchorPoint = anchorPoint ? anchorPoint.clone() : getObjectAnchorPoint(obj);
 
       panelLabel.textContent = info.label || 'VOCABULARY';
       panelWord.textContent = info.word || 'Unknown Object';
       panelPhonetic.textContent = info.phonetic || '';
-      objectNameEl.textContent = `Object name: ${info.objectKey || getObjectKey(obj)}`;
 
       dialogueBox.innerHTML = '';
 
@@ -1057,6 +1232,7 @@
       }
 
       panel.classList.add('show');
+      updateFloatingPanelPosition(true);
 
       speakWordOnly(info);
       setStatus(`${info.word || 'Object'} selected`);
@@ -1064,6 +1240,7 @@
 
     function closePanel() {
       panel.classList.remove('show');
+      panelAnchorPoint = null;
     }
 
     function speakWordOnly(info) {
@@ -1175,7 +1352,7 @@
     speakBtn.addEventListener('click', speakFullInfo);
     teachSelectedBtn.addEventListener('click', () => {
       if (!currentObject) return;
-      teachObject(currentObject);
+      teachObject(currentObject, getObjectAnchorPoint(currentObject));
     });
 
     // ───────────────────────────────────────
@@ -1220,11 +1397,13 @@
 
       renderer.setSize(window.innerWidth, window.innerHeight);
       renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.75));
+      updateFloatingPanelPosition(true);
     });
 
     function animate() {
       requestAnimationFrame(animate);
       controls.update();
+      updateFloatingPanelPosition();
       renderer.render(scene, camera);
     }
 
