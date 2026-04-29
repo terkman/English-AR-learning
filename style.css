@@ -723,3 +723,179 @@ body.home-page {
     font-size: 0.54rem;
   }
 }
+
+/* ══════════════════════════════════════════════
+   INDEX UI PATCH — restore old layout
+   - Put 01–04 back to top-right
+   - Keep cards like the original
+   - Make tag border fit text
+   - Prevent Part 4 text/tag overlap
+   ══════════════════════════════════════════════ */
+
+/* Let the home page scroll normally like the original */
+html {
+  height: auto;
+  overflow-x: hidden;
+}
+
+body.home-page {
+  height: auto;
+  max-height: none;
+  min-height: 100vh;
+  min-height: 100dvh;
+  overflow-x: hidden;
+  overflow-y: auto;
+  display: block;
+  overscroll-behavior-y: auto;
+}
+
+/* Restore original menu flow */
+.home-page .site-header {
+  padding: 2rem 1rem 1rem;
+}
+
+.home-page .main-menu {
+  width: 100%;
+  max-width: 480px;
+  margin: 0 auto;
+  padding: 0 1rem 2rem;
+  display: block;
+}
+
+.home-page .menu-intro {
+  display: block;
+  margin-bottom: 1rem;
+}
+
+/* Restore original vertical card list */
+.home-page .parts-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+}
+
+/* Restore original card layout */
+.home-page .part-card {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+
+  min-height: auto;
+  padding: 1.1rem 1rem 2.25rem;
+
+  border-radius: var(--r-lg);
+  overflow: hidden;
+}
+
+/* Do not force all children to relative.
+   This was the reason 01–04 dropped to the bottom. */
+.home-page .part-card > * {
+  z-index: 1;
+}
+
+/* Number 01–04 back to original top-right position */
+.home-page .card-num {
+  position: absolute !important;
+  top: 0.6rem !important;
+  right: 0.9rem !important;
+  left: auto !important;
+  bottom: auto !important;
+
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  font-weight: 700;
+  opacity: 0.7;
+}
+
+/* Restore normal icon/body/arrow behavior */
+.home-page .card-icon {
+  flex-shrink: 0;
+  font-size: 2.2rem;
+  line-height: 1;
+}
+
+.home-page .card-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.home-page .card-title {
+  font-size: 1rem;
+  line-height: 1.25;
+  margin-bottom: 0.3rem;
+  padding-right: 1.5rem;
+}
+
+.home-page .card-desc {
+  font-size: 0.78rem;
+  line-height: 1.4;
+  padding-right: 0.8rem;
+}
+
+/* Tag border fits the text and stays below without overlapping */
+.home-page .card-tag {
+  position: absolute !important;
+  left: auto !important;
+  right: 2.2rem !important;
+  bottom: 0.65rem !important;
+  top: auto !important;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  width: max-content;
+  max-width: calc(100% - 4.4rem);
+
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+
+  font-size: 0.6rem;
+  font-weight: 700;
+  letter-spacing: 1px;
+  line-height: 1;
+  text-transform: uppercase;
+
+  border: 1px solid;
+  padding: 0.18rem 0.5rem;
+  border-radius: 20px;
+}
+
+/* Arrow back to the right side */
+.home-page .card-arrow {
+  flex-shrink: 0;
+  font-size: 1.2rem;
+}
+
+/* Footer text */
+.home-page .site-footer {
+  text-align: center;
+  margin-top: 2rem;
+  font-size: 0.7rem;
+  color: var(--text-dim);
+  font-weight: 600;
+}
+
+/* Small phones: keep cards comfortable */
+@media (max-width: 420px) {
+  .home-page .part-card {
+    padding: 1rem 0.9rem 2.35rem;
+    gap: 0.85rem;
+  }
+
+  .home-page .card-title {
+    font-size: 0.98rem;
+  }
+
+  .home-page .card-desc {
+    font-size: 0.76rem;
+  }
+
+  .home-page .card-tag {
+    right: 2rem !important;
+    max-width: calc(100% - 4rem);
+    font-size: 0.56rem;
+  }
+}
