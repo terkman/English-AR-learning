@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- Part 2: AR Question - Mobile Text3D fixed-size + locked question version -->
+<!-- Part 2: AR Question - Locked camera-fixed Text3D version -->
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
@@ -93,7 +93,6 @@
       display: none !important;
     }
 
-    /* Bottom popup: no question text, no counter */
     #popup-target-name {
       font-size: 2rem;
       font-weight: 900;
@@ -142,32 +141,27 @@
 
 <body class="ar-page">
 
-  <!-- Start screen -->
   <div class="start-screen" id="start-screen">
     <div class="start-card">
       <div class="start-title">AR Question</div>
       <div class="start-desc">
         Point your phone camera at a logo or sign.<br>
-        A 3D English question will appear.
+        A 3D English question will appear and stay.
       </div>
       <button class="start-btn" id="start-btn" type="button">📷 Start Camera</button>
       <div class="start-note">Best on mobile Chrome · Please allow camera permission</div>
     </div>
   </div>
 
-  <!-- Loading overlay -->
   <div class="loading-overlay hidden" id="loading-overlay">
     <div class="loading-spinner" style="border-top-color: var(--yellow);"></div>
     <p class="loading-text" id="loading-text">Starting camera…</p>
   </div>
 
-  <!-- Back button -->
   <button class="ar-back-btn" type="button" onclick="window.location='../'">← Back</button>
 
-  <!-- Status -->
   <div class="ar-status scanning" id="ar-status">READY</div>
 
-  <!-- Scan hint -->
   <div class="scan-hint hidden" id="scan-hint">
     <div class="scan-frame" style="border-color: rgba(255,214,10,0.4);">
       <div class="scan-line" style="background: linear-gradient(90deg, transparent, #ffd60a, transparent);"></div>
@@ -175,7 +169,6 @@
     <p class="scan-hint-text">Point camera at a target image</p>
   </div>
 
-  <!-- Bottom popup: question is shown in AR only -->
   <div class="ar-popup accent-yellow" id="ar-popup">
     <p class="popup-label">QUESTION</p>
     <div id="popup-target-name">Coca-Cola</div>
@@ -191,9 +184,8 @@
     📷 Camera access required. Please allow camera permission and reload.
   </div>
 
-  <!-- AR Scene -->
   <a-scene
-    mindar-image="imageTargetSrc: ../assets/targets/targets.mind; autoStart: false; uiLoading: no; uiError: no; uiScanning: no; maxTrack: 1;"
+    mindar-image="imageTargetSrc: ../assets/targets/targets.mind; autoStart: false; uiLoading: no; uiError: no; uiScanning: no; maxTrack: 1; filterMinCF: 0.0001; filterBeta: 0.001;"
     color-space="sRGB"
     renderer="colorManagement: true; antialias: true; precision: highp; powerPreference: high-performance;"
     vr-mode-ui="enabled: false"
@@ -207,12 +199,16 @@
       </a-asset-item>
     </a-assets>
 
-    <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
+    <!-- Camera-fixed 3D question anchor.
+         The question is rendered here so it will NOT disappear when target tracking flickers. -->
+    <a-camera id="camera" position="0 0 0" look-controls="enabled: false">
+      <a-entity id="locked-question-anchor" position="0 0.68 -1.55" rotation="-5 0 0"></a-entity>
+    </a-camera>
 
     <a-light type="ambient" color="#ffffff" intensity="0.85"></a-light>
     <a-light type="directional" color="#ffffff" intensity="1.15" position="0.5 1 1"></a-light>
 
-    <!-- Empty targets. 3D questions are injected only once per target. -->
+    <!-- Tracking-only targets. They do not hold the question text anymore. -->
     <a-entity mindar-image-target="targetIndex: 0" id="target-0"></a-entity>
     <a-entity mindar-image-target="targetIndex: 1" id="target-1"></a-entity>
     <a-entity mindar-image-target="targetIndex: 2" id="target-2"></a-entity>
@@ -228,7 +224,6 @@
   <script>
     'use strict';
 
-    // Center true 3D text geometry after it is created
     AFRAME.registerComponent('center-3d-text', {
       init: function () {
         this.center = this.center.bind(this);
@@ -252,11 +247,10 @@
       }
     });
 
-    // Fit the 3D question into a safe AR area so it does not overflow.
     AFRAME.registerComponent('fit-3d-question', {
       schema: {
-        maxWidth: { type: 'number', default: 1.08 },
-        maxHeight: { type: 'number', default: 0.34 }
+        maxWidth: { type: 'number', default: 1.35 },
+        maxHeight: { type: 'number', default: 0.38 }
       },
       init: function () {
         this.fit = this.fit.bind(this);
@@ -290,6 +284,7 @@
     let currentTarget = null;
     let sceneLoaded = false;
     let arStarted = false;
+    let locked = false;
 
     const scene = document.getElementById('ar-scene');
     const startScreen = document.getElementById('start-screen');
@@ -300,10 +295,7 @@
     const scanHint = document.getElementById('scan-hint');
     const arPopup = document.getElementById('ar-popup');
     const noticeBox = document.getElementById('notice-box');
-
-    // Locks the selected question for each target while staying on this page.
-    // It will only randomize again after leaving/reloading Part 2.
-    const lockedQuestions = {};
+    const lockedQuestionAnchor = document.getElementById('locked-question-anchor');
 
     fetch('../assets/data/questions.json')
       .then(r => {
@@ -370,8 +362,11 @@
         const entity = document.getElementById(`target-${i}`);
         if (!entity) continue;
 
-        entity.addEventListener('targetFound', () => showQuestion(i));
-        entity.addEventListener('targetLost', () => hideQuestion(i));
+        entity.addEventListener('targetFound', () => lockQuestionFromTarget(i));
+
+        // Important: do nothing on targetLost.
+        // This keeps the question visible even if tracking flickers.
+        entity.addEventListener('targetLost', () => {});
       }
     }
 
@@ -380,22 +375,16 @@
       return data.questions[index];
     }
 
-    function getLockedQuestion(data) {
-      const key = data.targetIndex;
+    function lockQuestionFromTarget(targetIndex) {
+      // Once a question is locked, do not change it until user reloads/re-enters Part 2.
+      if (locked) return;
 
-      if (!lockedQuestions[key]) {
-        lockedQuestions[key] = randomQuestion(data);
-      }
-
-      return lockedQuestions[key];
-    }
-
-    function showQuestion(targetIndex) {
       const data = questionsData.find(d => d.targetIndex === targetIndex);
       if (!data) return;
 
-      const question = getLockedQuestion(data);
+      const question = randomQuestion(data);
 
+      locked = true;
       currentTarget = {
         targetIndex,
         target: data.target,
@@ -404,42 +393,19 @@
 
       document.getElementById('popup-target-name').textContent = data.target;
 
-      const target = document.getElementById(`target-${targetIndex}`);
-      if (target && target.children.length === 0) {
-        renderQuestionText3D(targetIndex, question);
-      }
+      renderLockedQuestion(question);
 
       arPopup.classList.add('show');
       scanHint.classList.add('hidden');
 
-      arStatus.textContent = 'FOUND';
+      arStatus.textContent = 'LOCKED';
       arStatus.className = 'ar-status found';
 
       speakQuestion();
 
-      if ('vibrate' in navigator) navigator.vibrate(45);
+      if ('vibrate' in navigator) navigator.vibrate([45, 30, 45]);
     }
 
-    function hideQuestion(targetIndex) {
-      // Do not clear AR text here.
-      // Keeping the children makes the same question stay locked when tracking flickers.
-
-      if (currentTarget && currentTarget.targetIndex === targetIndex) {
-        currentTarget = null;
-      }
-
-      arPopup.classList.remove('show');
-      scanHint.classList.remove('hidden');
-
-      if (arStarted) {
-        arStatus.textContent = 'SCANNING';
-        arStatus.className = 'ar-status scanning';
-      }
-
-      if ('speechSynthesis' in window) window.speechSynthesis.cancel();
-    }
-
-    // Split into exactly 1 or 2 lines, never more.
     function makeTwoLines(text) {
       const clean = text.replace(/\s+/g, ' ').trim();
       const words = clean.split(' ');
@@ -466,27 +432,23 @@
     function getQuestionTextSize(lines) {
       const longest = Math.max(...lines.map(line => line.length));
 
-      if (longest > 36) return 0.038;
-      if (longest > 30) return 0.043;
-      if (longest > 24) return 0.049;
-      if (longest > 18) return 0.056;
-      return 0.066;
+      if (longest > 38) return 0.052;
+      if (longest > 32) return 0.058;
+      if (longest > 26) return 0.066;
+      if (longest > 20) return 0.074;
+      return 0.086;
     }
 
-    function renderQuestionText3D(targetIndex, question) {
-      const target = document.getElementById(`target-${targetIndex}`);
-      if (!target) return;
-
-      target.innerHTML = '';
+    function renderLockedQuestion(question) {
+      lockedQuestionAnchor.innerHTML = '';
 
       const lines = makeTwoLines(question);
       const size = getQuestionTextSize(lines);
-      const lineGap = size * 1.55;
+      const lineGap = size * 1.52;
 
       const group = document.createElement('a-entity');
-      group.setAttribute('position', '0 0.42 0.04');
-      group.setAttribute('rotation', '-7 0 0');
-      group.setAttribute('fit-3d-question', 'maxWidth: 1.08; maxHeight: 0.34;');
+      group.setAttribute('position', '0 0 0');
+      group.setAttribute('fit-3d-question', 'maxWidth: 1.35; maxHeight: 0.38;');
 
       lines.forEach((line, i) => {
         const y = lines.length === 1
@@ -495,7 +457,7 @@
 
         const shadow = document.createElement('a-entity');
         shadow.setAttribute('center-3d-text', '');
-        shadow.setAttribute('position', `0.010 ${y - 0.010} -0.022`);
+        shadow.setAttribute('position', `0.012 ${y - 0.012} -0.026`);
         shadow.setAttribute('text-geometry', {
           value: line,
           font: '#font-bold',
@@ -519,7 +481,7 @@
           value: line,
           font: '#font-bold',
           size,
-          height: 0.020,
+          height: 0.022,
           curveSegments: 6,
           bevelEnabled: true,
           bevelSize: 0.003,
@@ -535,7 +497,7 @@
         group.appendChild(main);
       });
 
-      target.appendChild(group);
+      lockedQuestionAnchor.appendChild(group);
     }
 
     function speakQuestion() {
