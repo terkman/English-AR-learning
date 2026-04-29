@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v1.0 - Part 2: AR Open Question -->
+<!-- Mobile-first Part 2: AR Open Question -->
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
@@ -13,161 +13,129 @@
   <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;900&family=Space+Mono:wght@700&display=swap" rel="stylesheet" />
 
   <style>
-    body { margin: 0; overflow: hidden; background: #000; }
+    body { margin: 0; overflow: hidden; background: #000; overscroll-behavior: none; }
     a-scene { position: fixed; inset: 0; }
 
-    /* Question popup styling */
-    #popup-target-name {
-      font-size: 1.1rem;
-      font-weight: 900;
-      color: var(--yellow);
-      margin-bottom: 0.3rem;
+    .mobile-start {
+      position: fixed; inset: 0; z-index: 2500;
+      display: flex; align-items: center; justify-content: center;
+      padding: 1.2rem; background: radial-gradient(circle at top, rgba(255,214,10,0.15), #0a0e1a 58%);
+      text-align: center;
     }
+    .start-card {
+      width: min(360px, 92vw); background: rgba(18,24,43,0.96);
+      border: 1.5px solid rgba(255,214,10,0.35); border-radius: 24px;
+      padding: 1.3rem; box-shadow: 0 24px 80px rgba(0,0,0,0.45);
+    }
+    .start-title { font-size: 1.45rem; font-weight: 900; color: var(--yellow); margin-bottom: 0.35rem; }
+    .start-desc { color: var(--text-muted); font-weight: 700; line-height: 1.45; font-size: 0.92rem; margin-bottom: 1rem; }
+    .start-btn { width: 100%; padding: 0.95rem 1rem; border-radius: 999px; background: var(--yellow); color: #161000; font-weight: 900; font-size: 1.05rem; }
+    .start-note { margin-top: 0.8rem; color: rgba(255,255,255,0.42); font-size: 0.72rem; font-weight: 700; }
+
+    #loading-overlay { display: none; }
+    #loading-overlay.show { display: flex; }
+    .loading-spinner { border-top-color: var(--yellow); }
+
+    #popup-target-name { font-size: 1.0rem; font-weight: 900; color: var(--yellow); margin-bottom: 0.25rem; }
     #popup-question {
-      font-size: 1.2rem;
-      font-weight: 800;
-      color: var(--text-white);
-      line-height: 1.45;
-      margin: 0.7rem 0;
-      min-height: 3rem;
+      font-size: clamp(1rem, 4.5vw, 1.18rem);
+      font-weight: 900; color: var(--text-white); line-height: 1.35;
+      margin: 0.55rem 0; min-height: 2.7rem;
     }
-    #popup-question-num {
-      font-size: 0.7rem;
-      color: var(--text-muted);
-      font-weight: 700;
-      font-family: var(--font-mono);
-    }
+    #popup-question-num { font-size: 0.68rem; color: var(--text-muted); font-weight: 800; font-family: var(--font-mono); }
     .q-mark {
-      font-size: 3rem;
-      position: absolute;
-      top: -0.8rem;
-      right: 1rem;
-      opacity: 0.08;
-      font-family: var(--font-mono);
-      font-weight: 900;
-      pointer-events: none;
+      font-size: 3.4rem; position: absolute; top: -0.95rem; right: 1rem;
+      opacity: 0.08; font-family: var(--font-mono); font-weight: 900; pointer-events: none;
     }
-    /* Animate question change */
-    .question-fade {
-      animation: qfade 0.3s ease;
+    .question-fade { animation: qfade 0.24s ease; }
+    @keyframes qfade { 0% { opacity: 0; transform: translateY(7px); } 100% { opacity: 1; transform: translateY(0); } }
+    .notice-box {
+      position: fixed; bottom: 2rem; left: 1rem; right: 1rem; z-index: 2600;
+      display: none; background: rgba(255,59,143,0.16); border: 1.5px solid rgba(255,59,143,0.45);
+      color: var(--pink); border-radius: 16px; padding: 0.9rem 1rem;
+      font-size: 0.82rem; font-weight: 800; text-align: center;
     }
-    @keyframes qfade {
-      0%   { opacity: 0; transform: translateY(6px); }
-      100% { opacity: 1; transform: translateY(0); }
-    }
+    .ar-popup { padding-bottom: calc(1.8rem + env(safe-area-inset-bottom)); }
   </style>
 </head>
 <body class="ar-page">
 
-  <!-- ── Loading overlay ───────────────────── -->
-  <div class="loading-overlay" id="loading-overlay">
-    <div class="loading-spinner"></div>
-    <p class="loading-text" id="loading-text">Starting camera…</p>
+  <div class="mobile-start" id="mobile-start">
+    <div class="start-card">
+      <div class="start-title">AR Open Question</div>
+      <p class="start-desc">Scan a logo or sign to get a random English question.</p>
+      <button class="start-btn" id="btn-start">📷 Start Camera</button>
+      <div class="start-note">Optimized for mobile phones</div>
+    </div>
   </div>
 
-  <!-- ── Back button ───────────────────────── -->
-  <button class="ar-back-btn" onclick="window.location='../'">← Back</button>
+  <div class="loading-overlay" id="loading-overlay">
+    <div class="loading-spinner"></div>
+    <p class="loading-text" id="loading-text">Loading AR…</p>
+  </div>
 
-  <!-- ── AR Status badge ───────────────────── -->
-  <div class="ar-status scanning" id="ar-status">🔍 SCANNING</div>
+  <button class="ar-back-btn" onclick="goBack()">← Back</button>
+  <div class="ar-status scanning" id="ar-status">TAP START</div>
 
-  <!-- ── Scan frame hint ───────────────────── -->
   <div class="scan-hint" id="scan-hint">
     <div class="scan-frame" style="border-color: rgba(255,214,10,0.4);">
       <div class="scan-line" style="background: linear-gradient(90deg, transparent, #ffd60a, transparent);"></div>
     </div>
-    <p class="scan-hint-text">Scan a target to get a question</p>
+    <p class="scan-hint-text">Point your phone at a target image</p>
   </div>
 
-  <!-- ── Question popup ───────────────────── -->
   <div class="ar-popup accent-yellow" id="ar-popup">
     <span class="q-mark">?</span>
     <p class="popup-label">OPEN QUESTION</p>
-    <div id="popup-target-name">McDonald's</div>
+    <div id="popup-target-name">Target</div>
     <div id="popup-question-num">Question 1 of 7</div>
-    <div id="popup-question">What do you usually order here?</div>
-
+    <div id="popup-question">Question will appear here.</div>
     <div class="popup-buttons">
-      <!-- Read question aloud -->
-      <button class="btn btn-yellow" id="btn-speak" onclick="speakQuestion()">
-        🔊 Read
-      </button>
-      <!-- Get a new random question for this target -->
-      <button class="btn btn-ghost" id="btn-new" onclick="nextQuestion()">
-        🎲 New Question
-      </button>
+      <button class="btn btn-yellow" onclick="speakQuestion()">🔊 Read</button>
+      <button class="btn btn-ghost" onclick="nextQuestion()">🎲 New Question</button>
     </div>
   </div>
 
-  <!-- ═══════════════════════════════════════════
-       A-Frame AR Scene
-       ═══════════════════════════════════════════ -->
+  <div class="notice-box" id="notice-box">Camera access is required. Please allow camera permission and reload.</div>
+
   <a-scene
-    mindar-image="imageTargetSrc: ../assets/targets/targets.mind; autoStart: false; uiLoading: no; uiError: no; uiScanning: no;"
+    mindar-image="imageTargetSrc: ../assets/targets/targets.mind; autoStart: false; uiLoading: no; uiError: no; uiScanning: no; maxTrack: 1; filterMinCF: 0.0001; filterBeta: 0.01;"
     color-space="sRGB"
-    renderer="colorManagement: true"
+    renderer="colorManagement: true; antialias: false; precision: mediump; powerPreference: high-performance"
     vr-mode-ui="enabled: false"
     device-orientation-permission-ui="enabled: false"
+    embedded
     id="ar-scene"
   >
     <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
 
-    <!--
-      AR text shown above each detected target.
-      Shows a "?" symbol to hint at the question feature.
-    -->
-
-    <a-entity mindar-image-target="targetIndex: 0" id="target-0">
-      <a-text value="?" color="#ffd60a" align="center" width="2.5" position="0 0.35 0"
-        font="https://cdn.aframe.io/fonts/Exo2Bold.fnt"></a-text>
-    </a-entity>
-    <a-entity mindar-image-target="targetIndex: 1" id="target-1">
-      <a-text value="?" color="#ffd60a" align="center" width="2.5" position="0 0.35 0"
-        font="https://cdn.aframe.io/fonts/Exo2Bold.fnt"></a-text>
-    </a-entity>
-    <a-entity mindar-image-target="targetIndex: 2" id="target-2">
-      <a-text value="?" color="#ffd60a" align="center" width="2.5" position="0 0.35 0"
-        font="https://cdn.aframe.io/fonts/Exo2Bold.fnt"></a-text>
-    </a-entity>
-    <a-entity mindar-image-target="targetIndex: 3" id="target-3">
-      <a-text value="?" color="#ffd60a" align="center" width="2.5" position="0 0.35 0"
-        font="https://cdn.aframe.io/fonts/Exo2Bold.fnt"></a-text>
-    </a-entity>
-    <a-entity mindar-image-target="targetIndex: 4" id="target-4">
-      <a-text value="?" color="#ffd60a" align="center" width="2.5" position="0 0.35 0"
-        font="https://cdn.aframe.io/fonts/Exo2Bold.fnt"></a-text>
-    </a-entity>
-    <a-entity mindar-image-target="targetIndex: 5" id="target-5">
-      <a-text value="?" color="#ffd60a" align="center" width="2.5" position="0 0.35 0"
-        font="https://cdn.aframe.io/fonts/Exo2Bold.fnt"></a-text>
-    </a-entity>
-    <a-entity mindar-image-target="targetIndex: 6" id="target-6">
-      <a-text value="?" color="#ffd60a" align="center" width="2.5" position="0 0.35 0"
-        font="https://cdn.aframe.io/fonts/Exo2Bold.fnt"></a-text>
-    </a-entity>
-    <a-entity mindar-image-target="targetIndex: 7" id="target-7">
-      <a-text value="?" color="#ffd60a" align="center" width="2.5" position="0 0.35 0"
-        font="https://cdn.aframe.io/fonts/Exo2Bold.fnt"></a-text>
-    </a-entity>
-    <a-entity mindar-image-target="targetIndex: 8" id="target-8">
-      <a-text value="?" color="#ffd60a" align="center" width="2.5" position="0 0.35 0"
-        font="https://cdn.aframe.io/fonts/Exo2Bold.fnt"></a-text>
-    </a-entity>
-    <a-entity mindar-image-target="targetIndex: 9" id="target-9">
-      <a-text value="?" color="#ffd60a" align="center" width="2.5" position="0 0.35 0"
-        font="https://cdn.aframe.io/fonts/Exo2Bold.fnt"></a-text>
-    </a-entity>
+    <a-entity mindar-image-target="targetIndex: 0" id="target-0"></a-entity>
+    <a-entity mindar-image-target="targetIndex: 1" id="target-1"></a-entity>
+    <a-entity mindar-image-target="targetIndex: 2" id="target-2"></a-entity>
+    <a-entity mindar-image-target="targetIndex: 3" id="target-3"></a-entity>
+    <a-entity mindar-image-target="targetIndex: 4" id="target-4"></a-entity>
+    <a-entity mindar-image-target="targetIndex: 5" id="target-5"></a-entity>
+    <a-entity mindar-image-target="targetIndex: 6" id="target-6"></a-entity>
+    <a-entity mindar-image-target="targetIndex: 7" id="target-7"></a-entity>
+    <a-entity mindar-image-target="targetIndex: 8" id="target-8"></a-entity>
+    <a-entity mindar-image-target="targetIndex: 9" id="target-9"></a-entity>
   </a-scene>
 
   <script>
     'use strict';
 
-    // ── Question data & state ────────────────
     let questionsData = [];
-    let currentTarget = null; // { targetIndex, target, questions }
-    let currentQIndex = 0;    // index of current question in the array
+    let currentTarget = null;
+    let arStarted = false;
 
-    // Shuffle array helper (Fisher-Yates)
+    const scene = document.getElementById('ar-scene');
+    const startScreen = document.getElementById('mobile-start');
+    const loadingOverlay = document.getElementById('loading-overlay');
+    const loadingText = document.getElementById('loading-text');
+    const arStatus = document.getElementById('ar-status');
+    const scanHint = document.getElementById('scan-hint');
+    const arPopup = document.getElementById('ar-popup');
+
     function shuffle(arr) {
       const a = [...arr];
       for (let i = a.length - 1; i > 0; i--) {
@@ -177,135 +145,157 @@
       return a;
     }
 
-    // ── Load questions JSON ──────────────────
     fetch('../assets/data/questions.json')
       .then(r => r.json())
       .then(data => {
         questionsData = data;
-        console.log('[Part2] Questions loaded:', data.length, 'targets');
       })
       .catch(err => console.error('[Part2] Failed to load questions.json', err));
 
-    // ── DOM refs ─────────────────────────────
-    const scene          = document.getElementById('ar-scene');
-    const loadingOverlay = document.getElementById('loading-overlay');
-    const arStatus       = document.getElementById('ar-status');
-    const scanHint       = document.getElementById('scan-hint');
-    const arPopup        = document.getElementById('ar-popup');
+    for (let i = 0; i < 10; i++) renderThickLabel(`target-${i}`, 'QUESTION', '#ffd60a', 3.15);
 
-    // ── AR lifecycle ─────────────────────────
+    function renderThickLabel(targetId, text, mainColor, width) {
+      const root = document.getElementById(targetId);
+      if (!root) return;
+      root.innerHTML = '';
+      const layers = [
+        { color: '#1a1200', x: 0.060, y: 0.395, z: -0.070, w: width },
+        { color: '#7a5a00', x: 0.040, y: 0.415, z: -0.050, w: width },
+        { color: '#ffffff', x: 0.014, y: 0.444, z: -0.018, w: width * 1.01, opacity: 0.45 },
+        { color: mainColor, x: 0, y: 0.465, z: 0, w: width }
+      ];
+      layers.forEach(layer => {
+        const t = document.createElement('a-text');
+        t.setAttribute('value', text);
+        t.setAttribute('align', 'center');
+        t.setAttribute('baseline', 'center');
+        t.setAttribute('color', layer.color);
+        t.setAttribute('width', layer.w);
+        t.setAttribute('position', `${layer.x} ${layer.y} ${layer.z}`);
+        t.setAttribute('font', 'https://cdn.aframe.io/fonts/Exo2Bold.fnt');
+        if (layer.opacity) t.setAttribute('opacity', layer.opacity);
+        root.appendChild(t);
+      });
+    }
+
+    document.getElementById('btn-start').addEventListener('click', startAR);
+
+    async function startAR() {
+      if (arStarted) return;
+      arStarted = true;
+      warmupSpeech();
+      startScreen.style.display = 'none';
+      loadingOverlay.classList.add('show');
+      loadingText.textContent = 'Starting camera…';
+      arStatus.textContent = 'STARTING';
+
+      try {
+        const arSystem = scene.systems['mindar-image-system'];
+        if (!arSystem) throw new Error('MindAR system is not ready yet.');
+        await arSystem.start();
+      } catch (err) {
+        console.error('[Part2] AR start error:', err);
+        loadingText.textContent = 'Camera error. Please allow camera access.';
+        document.getElementById('notice-box').style.display = 'block';
+        arStarted = false;
+      }
+    }
+
     scene.addEventListener('arReady', () => {
-      loadingOverlay.classList.add('hidden');
+      loadingOverlay.classList.remove('show');
+      arStatus.textContent = 'SCANNING';
+      arStatus.className = 'ar-status scanning';
     });
-    scene.addEventListener('loaded', () => {
-      document.getElementById('loading-text').textContent = 'Loading AR engine…';
-      const sys = scene.systems['mindar-image-system'];
-      if (sys) setTimeout(() => sys.start(), 300);
 
-      // Attach target events
+    scene.addEventListener('arError', err => {
+      console.error('[Part2] AR Error:', err);
+      loadingText.textContent = 'Camera error. Please allow camera access.';
+      loadingOverlay.classList.add('show');
+      document.getElementById('notice-box').style.display = 'block';
+    });
+
+    scene.addEventListener('loaded', () => {
       for (let i = 0; i < 10; i++) {
-        const el  = document.getElementById(`target-${i}`);
+        const el = document.getElementById(`target-${i}`);
         if (!el) continue;
-        const idx = i;
-        el.addEventListener('targetFound', () => showQuestion(idx));
-        el.addEventListener('targetLost',  () => hideQuestion());
+        el.addEventListener('targetFound', () => showQuestion(i));
+        el.addEventListener('targetLost', hideQuestion);
       }
     });
 
-    // ── Show question for detected target ────
     function showQuestion(targetIndex) {
       const data = questionsData.find(d => d.targetIndex === targetIndex);
       if (!data) return;
-
-      // Shuffle questions when a new target is detected
-      currentTarget = {
-        ...data,
-        shuffled: shuffle(data.questions),
-        currentIdx: 0
-      };
-
+      currentTarget = { ...data, shuffled: shuffle(data.questions), currentIdx: 0 };
       displayCurrentQuestion();
-
       arPopup.classList.add('show');
       scanHint.classList.add('hidden');
-      arStatus.textContent = '✅ FOUND';
-      arStatus.className   = 'ar-status found';
-
-      // Auto-read the question
+      arStatus.textContent = 'FOUND';
+      arStatus.className = 'ar-status found';
       speakQuestion();
-
-      if ('vibrate' in navigator) navigator.vibrate(60);
+      vibrate(50);
     }
 
-    // ── Display current question ─────────────
     function displayCurrentQuestion() {
       if (!currentTarget) return;
-      const { shuffled, currentIdx, target } = currentTarget;
-      const question = shuffled[currentIdx];
+      const question = currentTarget.shuffled[currentTarget.currentIdx];
+      document.getElementById('popup-target-name').textContent = currentTarget.target;
+      document.getElementById('popup-question').textContent = question;
+      document.getElementById('popup-question-num').textContent = `Question ${currentTarget.currentIdx + 1} of ${currentTarget.shuffled.length}`;
 
-      document.getElementById('popup-target-name').textContent = target;
-      document.getElementById('popup-question').textContent    = question;
-      document.getElementById('popup-question-num').textContent =
-        `Question ${currentIdx + 1} of ${shuffled.length}`;
-
-      // Fade animation
       const qEl = document.getElementById('popup-question');
       qEl.classList.remove('question-fade');
-      void qEl.offsetWidth; // reflow to restart animation
+      void qEl.offsetWidth;
       qEl.classList.add('question-fade');
     }
 
-    // ── Next question (no repeats until all seen) ──
     function nextQuestion() {
       if (!currentTarget) return;
-      const { shuffled } = currentTarget;
-
       currentTarget.currentIdx++;
-      // If we've gone through all questions, reshuffle and restart
-      if (currentTarget.currentIdx >= shuffled.length) {
-        currentTarget.shuffled = shuffle(currentTarget.shuffled);
+      if (currentTarget.currentIdx >= currentTarget.shuffled.length) {
+        currentTarget.shuffled = shuffle(currentTarget.questions);
         currentTarget.currentIdx = 0;
       }
-
       displayCurrentQuestion();
       speakQuestion();
-
-      if ('vibrate' in navigator) navigator.vibrate(30);
+      vibrate(25);
     }
 
-    // ── Hide popup ───────────────────────────
     function hideQuestion() {
       currentTarget = null;
       arPopup.classList.remove('show');
       scanHint.classList.remove('hidden');
-      arStatus.textContent = '🔍 SCANNING';
-      arStatus.className   = 'ar-status scanning';
-      if ('speechSynthesis' in window) window.speechSynthesis.cancel();
+      arStatus.textContent = 'SCANNING';
+      arStatus.className = 'ar-status scanning';
+      stopSpeech();
     }
 
-    // ── Speak the current question ───────────
     function speakQuestion() {
       if (!currentTarget) return;
-      const question = currentTarget.shuffled[currentTarget.currentIdx];
-      speak(question);
+      speak(currentTarget.shuffled[currentTarget.currentIdx]);
     }
 
     function speak(text) {
-      if (!('speechSynthesis' in window)) return;
+      if (!('speechSynthesis' in window) || !text) return;
       window.speechSynthesis.cancel();
-      const utt   = new SpeechSynthesisUtterance(text);
-      utt.lang    = 'en-US';
-      utt.rate    = 0.88;
-      utt.pitch   = 1;
+      const utt = new SpeechSynthesisUtterance(text);
+      utt.lang = 'en-US';
+      utt.rate = 0.88;
+      utt.pitch = 1;
       const voices = window.speechSynthesis.getVoices();
-      const eng   = voices.find(v => v.lang.startsWith('en') && v.localService);
-      if (eng) utt.voice = eng;
+      const voice = voices.find(v => v.lang === 'en-US' && v.localService) || voices.find(v => v.lang && v.lang.startsWith('en'));
+      if (voice) utt.voice = voice;
       window.speechSynthesis.speak(utt);
     }
 
-    if ('speechSynthesis' in window) {
-      window.speechSynthesis.getVoices();
-      window.speechSynthesis.onvoiceschanged = () => window.speechSynthesis.getVoices();
+    function warmupSpeech() { if ('speechSynthesis' in window) window.speechSynthesis.getVoices(); }
+    function stopSpeech() { if ('speechSynthesis' in window) window.speechSynthesis.cancel(); }
+
+    function goBack() {
+      stopSpeech();
+      const sys = scene.systems && scene.systems['mindar-image-system'];
+      if (sys && arStarted) sys.stop();
+      window.location = '../';
     }
   </script>
 </body>
