@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- Part 1: AR Vocabulary Scanner - Mobile sharp text version -->
+<!-- Part 1: AR Vocabulary Scanner - True 3D TextGeometry version -->
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
@@ -9,6 +9,9 @@
   <!-- A-Frame + MindAR -->
   <script src="https://cdn.jsdelivr.net/npm/aframe@1.4.2/dist/aframe.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
+
+  <!-- 3D extruded text for A-Frame -->
+  <script src="https://unpkg.com/aframe-text-geometry-component@0.5.2/dist/aframe-text-geometry-component.min.js"></script>
 
   <link rel="stylesheet" href="../style.css" />
   <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;900&family=Space+Mono:wght@700&display=swap" rel="stylesheet" />
@@ -28,7 +31,6 @@
       height: 100vh;
     }
 
-    /* Start screen: avoids auto camera start on mobile */
     .start-screen {
       position: fixed;
       inset: 0;
@@ -45,7 +47,7 @@
 
     .start-card {
       width: min(92vw, 420px);
-      background: rgba(18,24,43,0.92);
+      background: rgba(18,24,43,0.94);
       border: 1.5px solid rgba(0,212,255,0.28);
       border-radius: 26px;
       padding: 1.4rem;
@@ -91,7 +93,7 @@
       display: none !important;
     }
 
-    /* Popup: remove example sentence */
+    /* Popup: example sentence removed */
     #popup-word {
       font-size: 2.35rem;
       line-height: 1.05;
@@ -158,32 +160,27 @@
 
 <body class="ar-page">
 
-  <!-- Start screen -->
   <div class="start-screen" id="start-screen">
     <div class="start-card">
       <div class="start-title">AR Vocabulary Scanner</div>
       <div class="start-desc">
         Point your phone camera at a logo or sign.<br>
-        The English word will appear in AR.
+        The English word will appear in 3D.
       </div>
       <button class="start-btn" id="start-btn" type="button">📷 Start Camera</button>
       <div class="start-note">Best on mobile Chrome · Please allow camera permission</div>
     </div>
   </div>
 
-  <!-- Loading overlay -->
   <div class="loading-overlay hidden" id="loading-overlay">
     <div class="loading-spinner"></div>
     <p class="loading-text" id="loading-text">Starting camera…</p>
   </div>
 
-  <!-- Back button -->
   <button class="ar-back-btn" type="button" onclick="window.location='../'">← Back</button>
 
-  <!-- Status -->
   <div class="ar-status scanning" id="ar-status">READY</div>
 
-  <!-- Scan hint -->
   <div class="scan-hint hidden" id="scan-hint">
     <div class="scan-frame">
       <div class="scan-line"></div>
@@ -191,7 +188,6 @@
     <p class="scan-hint-text">Point camera at a target image</p>
   </div>
 
-  <!-- Vocabulary popup -->
   <div class="ar-popup accent-cyan" id="ar-popup">
     <p class="popup-label">VOCABULARY FOUND</p>
     <span id="popup-type">Brand</span>
@@ -208,12 +204,10 @@
     </div>
   </div>
 
-  <!-- Camera error notice -->
   <div class="notice-box" id="notice-box">
     📷 Camera access required. Please allow camera permission and reload.
   </div>
 
-  <!-- AR Scene -->
   <a-scene
     mindar-image="imageTargetSrc: ../assets/targets/targets.mind; autoStart: false; uiLoading: no; uiError: no; uiScanning: no; maxTrack: 1;"
     color-space="sRGB"
@@ -222,9 +216,21 @@
     device-orientation-permission-ui="enabled: false"
     id="ar-scene"
   >
+    <a-assets>
+      <!-- Font used for true extruded 3D text -->
+      <a-asset-item
+        id="font-bold"
+        src="https://cdn.jsdelivr.net/gh/mrdoob/three.js@r147/examples/fonts/helvetiker_bold.typeface.json">
+      </a-asset-item>
+    </a-assets>
+
     <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
 
-    <!-- Empty targets. Text labels are injected by JavaScript for sharper control. -->
+    <!-- Lights help show bevel/depth on 3D letters -->
+    <a-light type="ambient" color="#ffffff" intensity="0.85"></a-light>
+    <a-light type="directional" color="#ffffff" intensity="1.15" position="0.5 1 1"></a-light>
+
+    <!-- Empty targets. 3D labels are injected by JavaScript. -->
     <a-entity mindar-image-target="targetIndex: 0" id="target-0"></a-entity>
     <a-entity mindar-image-target="targetIndex: 1" id="target-1"></a-entity>
     <a-entity mindar-image-target="targetIndex: 2" id="target-2"></a-entity>
@@ -239,6 +245,30 @@
 
   <script>
     'use strict';
+
+    // Center true 3D text geometry after it is created
+    AFRAME.registerComponent('center-3d-text', {
+      init: function () {
+        this.center = this.center.bind(this);
+        this.el.addEventListener('object3dset', this.center);
+        setTimeout(this.center, 250);
+        setTimeout(this.center, 700);
+      },
+      center: function () {
+        const mesh = this.el.getObject3D('mesh');
+        if (!mesh || !mesh.geometry) return;
+
+        mesh.geometry.computeBoundingBox();
+        const box = mesh.geometry.boundingBox;
+        if (!box) return;
+
+        const xOffset = -0.5 * (box.max.x - box.min.x) - box.min.x;
+        const yOffset = -0.5 * (box.max.y - box.min.y) - box.min.y;
+
+        mesh.geometry.translate(xOffset, yOffset, 0);
+        mesh.geometry.computeBoundingBox();
+      }
+    });
 
     let vocabData = [];
     let currentVocab = null;
@@ -255,7 +285,6 @@
     const arPopup = document.getElementById('ar-popup');
     const noticeBox = document.getElementById('notice-box');
 
-    // Load vocab data
     fetch('../assets/data/vocab.json')
       .then(r => {
         if (!r.ok) throw new Error('vocab.json not found');
@@ -263,7 +292,7 @@
       })
       .then(data => {
         vocabData = data;
-        renderSharpARLabels();
+        renderText3DLabels();
       })
       .catch(err => {
         console.error('[Part1] Failed to load vocab.json:', err);
@@ -271,7 +300,6 @@
         noticeBox.style.display = 'block';
       });
 
-    // A-Frame scene loaded
     scene.addEventListener('loaded', () => {
       sceneLoaded = true;
       attachTargetEvents();
@@ -308,14 +336,11 @@
           return;
         }
 
-        const result = sys.start();
-        if (result && typeof result.catch === 'function') {
-          result.catch(err => {
-            console.error('[Part1] Failed to start AR:', err);
-            loadingText.textContent = 'Cannot start camera. Please allow camera access.';
-            noticeBox.style.display = 'block';
-          });
-        }
+        sys.start().catch(err => {
+          console.error('[Part1] Failed to start AR:', err);
+          loadingText.textContent = 'Cannot start camera. Please allow camera access.';
+          noticeBox.style.display = 'block';
+        });
       };
 
       tryStart();
@@ -331,42 +356,55 @@
       }
     }
 
-    // Clearer AR text:
-    // - no black background plane
-    // - no multi-layer glow
-    // - one sharp MSDF text only
-    function renderSharpARLabels() {
+    function getTextSize(word) {
+      const len = word.length;
+      if (len <= 4) return 0.23;
+      if (len <= 7) return 0.19;
+      if (len <= 10) return 0.165;
+      return 0.135;
+    }
+
+    function renderText3DLabels() {
       vocabData.forEach(item => {
         const target = document.getElementById(`target-${item.index}`);
         if (!target) return;
 
         target.innerHTML = '';
 
-        const wordLength = item.word.length;
-        let textWidth = 1.95;
+        const size = getTextSize(item.word);
 
-        if (wordLength <= 4) textWidth = 1.55;
-        else if (wordLength <= 7) textWidth = 1.75;
-        else if (wordLength <= 10) textWidth = 1.95;
-        else textWidth = 2.15;
+        const group = document.createElement('a-entity');
+        group.setAttribute('position', '0 0.44 0.04');
+        group.setAttribute('rotation', '-9 0 0');
 
-        const label = document.createElement('a-entity');
-        label.setAttribute('position', '0 0.42 0.025');
-        label.setAttribute('text', {
-          value: item.word,
-          align: 'center',
-          anchor: 'center',
-          baseline: 'center',
-          width: textWidth,
-          color: '#00eaff',
-          font: 'https://cdn.aframe.io/fonts/Exo2Bold.fnt',
-          shader: 'msdf',
-          alphaTest: 0.72,
-          side: 'double',
-          wrapCount: 18
-        });
+        // Main extruded 3D text
+        const text3d = document.createElement('a-entity');
+        text3d.setAttribute('center-3d-text', '');
+        text3d.setAttribute(
+          'text-geometry',
+          `value: ${item.word}; font: #font-bold; size: ${size}; height: 0.035; curveSegments: 8; bevelEnabled: true; bevelSize: 0.006; bevelThickness: 0.006; bevelSegments: 2;`
+        );
+        text3d.setAttribute(
+          'material',
+          'shader: standard; color: #00eaff; emissive: #004b5e; metalness: 0.12; roughness: 0.28; side: double;'
+        );
 
-        target.appendChild(label);
+        // Dark side/back layer for better contrast without a background box
+        const shadow3d = document.createElement('a-entity');
+        shadow3d.setAttribute('center-3d-text', '');
+        shadow3d.setAttribute('position', '0.018 -0.018 -0.035');
+        shadow3d.setAttribute(
+          'text-geometry',
+          `value: ${item.word}; font: #font-bold; size: ${size}; height: 0.028; curveSegments: 6; bevelEnabled: true; bevelSize: 0.004; bevelThickness: 0.004; bevelSegments: 1;`
+        );
+        shadow3d.setAttribute(
+          'material',
+          'shader: standard; color: #062334; emissive: #001018; metalness: 0.05; roughness: 0.7; side: double; transparent: true; opacity: 0.86;'
+        );
+
+        group.appendChild(shadow3d);
+        group.appendChild(text3d);
+        target.appendChild(group);
       });
     }
 
