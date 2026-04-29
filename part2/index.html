@@ -1,114 +1,218 @@
 <!DOCTYPE html>
-<!-- Mobile-first Part 2: AR Open Question -->
+<!-- Part 2: AR Question - Mobile Text3D version -->
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>Part 2 – AR Open Question</title>
+  <title>Part 2 – AR Question</title>
 
+  <!-- A-Frame + MindAR -->
   <script src="https://cdn.jsdelivr.net/npm/aframe@1.4.2/dist/aframe.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
+
+  <!-- True 3D extruded text -->
+  <script src="https://unpkg.com/aframe-text-geometry-component@0.5.2/dist/aframe-text-geometry-component.min.js"></script>
 
   <link rel="stylesheet" href="../style.css" />
   <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;900&family=Space+Mono:wght@700&display=swap" rel="stylesheet" />
 
   <style>
-    body { margin: 0; overflow: hidden; background: #000; overscroll-behavior: none; }
-    a-scene { position: fixed; inset: 0; }
+    body {
+      margin: 0;
+      overflow: hidden;
+      background: #000;
+      touch-action: manipulation;
+    }
 
-    .mobile-start {
-      position: fixed; inset: 0; z-index: 2500;
-      display: flex; align-items: center; justify-content: center;
-      padding: 1.2rem; background: radial-gradient(circle at top, rgba(255,214,10,0.15), #0a0e1a 58%);
+    a-scene {
+      position: fixed;
+      inset: 0;
+      width: 100vw;
+      height: 100vh;
+    }
+
+    .start-screen {
+      position: fixed;
+      inset: 0;
+      z-index: 2500;
+      background:
+        radial-gradient(circle at 50% 25%, rgba(255,214,10,0.18), transparent 35%),
+        #0a0e1a;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 1.2rem;
       text-align: center;
     }
+
     .start-card {
-      width: min(360px, 92vw); background: rgba(18,24,43,0.96);
-      border: 1.5px solid rgba(255,214,10,0.35); border-radius: 24px;
-      padding: 1.3rem; box-shadow: 0 24px 80px rgba(0,0,0,0.45);
+      width: min(92vw, 420px);
+      background: rgba(18,24,43,0.94);
+      border: 1.5px solid rgba(255,214,10,0.28);
+      border-radius: 26px;
+      padding: 1.4rem;
+      box-shadow: 0 18px 60px rgba(0,0,0,0.35);
     }
-    .start-title { font-size: 1.45rem; font-weight: 900; color: var(--yellow); margin-bottom: 0.35rem; }
-    .start-desc { color: var(--text-muted); font-weight: 700; line-height: 1.45; font-size: 0.92rem; margin-bottom: 1rem; }
-    .start-btn { width: 100%; padding: 0.95rem 1rem; border-radius: 999px; background: var(--yellow); color: #161000; font-weight: 900; font-size: 1.05rem; }
-    .start-note { margin-top: 0.8rem; color: rgba(255,255,255,0.42); font-size: 0.72rem; font-weight: 700; }
 
-    #loading-overlay { display: none; }
-    #loading-overlay.show { display: flex; }
-    .loading-spinner { border-top-color: var(--yellow); }
+    .start-title {
+      font-size: 1.4rem;
+      font-weight: 900;
+      color: var(--yellow);
+      margin-bottom: 0.4rem;
+    }
 
-    #popup-target-name { font-size: 1.0rem; font-weight: 900; color: var(--yellow); margin-bottom: 0.25rem; }
-    #popup-question {
-      font-size: clamp(1rem, 4.5vw, 1.18rem);
-      font-weight: 900; color: var(--text-white); line-height: 1.35;
-      margin: 0.55rem 0; min-height: 2.7rem;
+    .start-desc {
+      font-size: 0.9rem;
+      color: var(--text-muted);
+      font-weight: 700;
+      line-height: 1.5;
+      margin-bottom: 1.1rem;
     }
-    #popup-question-num { font-size: 0.68rem; color: var(--text-muted); font-weight: 800; font-family: var(--font-mono); }
-    .q-mark {
-      font-size: 3.4rem; position: absolute; top: -0.95rem; right: 1rem;
-      opacity: 0.08; font-family: var(--font-mono); font-weight: 900; pointer-events: none;
+
+    .start-btn {
+      width: 100%;
+      border-radius: 999px;
+      padding: 0.95rem 1.2rem;
+      font-family: var(--font-main);
+      font-size: 1rem;
+      font-weight: 900;
+      background: var(--yellow);
+      color: #171100;
+      border: none;
+      cursor: pointer;
     }
-    .question-fade { animation: qfade 0.24s ease; }
-    @keyframes qfade { 0% { opacity: 0; transform: translateY(7px); } 100% { opacity: 1; transform: translateY(0); } }
+
+    .start-note {
+      margin-top: 0.75rem;
+      font-size: 0.72rem;
+      color: var(--text-dim);
+      font-weight: 700;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    /* Bottom popup: no question text, no counter */
+    #popup-target-name {
+      font-size: 2rem;
+      font-weight: 900;
+      color: var(--yellow);
+      line-height: 1.05;
+      margin: 0.2rem 0 0.8rem;
+    }
+
+    .ar-popup {
+      padding-bottom: 1.5rem;
+      border-top-color: var(--yellow);
+    }
+
+    .popup-buttons {
+      margin-top: 0.3rem;
+    }
+
     .notice-box {
-      position: fixed; bottom: 2rem; left: 1rem; right: 1rem; z-index: 2600;
-      display: none; background: rgba(255,59,143,0.16); border: 1.5px solid rgba(255,59,143,0.45);
-      color: var(--pink); border-radius: 16px; padding: 0.9rem 1rem;
-      font-size: 0.82rem; font-weight: 800; text-align: center;
+      position: fixed;
+      bottom: 2rem;
+      left: 1rem;
+      right: 1rem;
+      background: rgba(255,59,143,0.16);
+      border: 1.5px solid rgba(255,59,143,0.42);
+      border-radius: 16px;
+      padding: 0.9rem 1rem;
+      font-size: 0.82rem;
+      font-weight: 800;
+      color: var(--pink);
+      z-index: 2600;
+      display: none;
+      line-height: 1.45;
     }
-    .ar-popup { padding-bottom: calc(1.8rem + env(safe-area-inset-bottom)); }
+
+    @media (max-width: 420px) {
+      #popup-target-name {
+        font-size: 1.65rem;
+      }
+
+      .ar-popup {
+        padding: 1rem 1rem 1.35rem;
+      }
+    }
   </style>
 </head>
+
 <body class="ar-page">
 
-  <div class="mobile-start" id="mobile-start">
+  <!-- Start screen -->
+  <div class="start-screen" id="start-screen">
     <div class="start-card">
-      <div class="start-title">AR Open Question</div>
-      <p class="start-desc">Scan a logo or sign to get a random English question.</p>
-      <button class="start-btn" id="btn-start">📷 Start Camera</button>
-      <div class="start-note">Optimized for mobile phones</div>
+      <div class="start-title">AR Question</div>
+      <div class="start-desc">
+        Point your phone camera at a logo or sign.<br>
+        A 3D English question will appear.
+      </div>
+      <button class="start-btn" id="start-btn" type="button">📷 Start Camera</button>
+      <div class="start-note">Best on mobile Chrome · Please allow camera permission</div>
     </div>
   </div>
 
-  <div class="loading-overlay" id="loading-overlay">
-    <div class="loading-spinner"></div>
-    <p class="loading-text" id="loading-text">Loading AR…</p>
+  <!-- Loading overlay -->
+  <div class="loading-overlay hidden" id="loading-overlay">
+    <div class="loading-spinner" style="border-top-color: var(--yellow);"></div>
+    <p class="loading-text" id="loading-text">Starting camera…</p>
   </div>
 
-  <button class="ar-back-btn" onclick="goBack()">← Back</button>
-  <div class="ar-status scanning" id="ar-status">TAP START</div>
+  <!-- Back button -->
+  <button class="ar-back-btn" type="button" onclick="window.location='../'">← Back</button>
 
-  <div class="scan-hint" id="scan-hint">
+  <!-- Status -->
+  <div class="ar-status scanning" id="ar-status">READY</div>
+
+  <!-- Scan hint -->
+  <div class="scan-hint hidden" id="scan-hint">
     <div class="scan-frame" style="border-color: rgba(255,214,10,0.4);">
       <div class="scan-line" style="background: linear-gradient(90deg, transparent, #ffd60a, transparent);"></div>
     </div>
-    <p class="scan-hint-text">Point your phone at a target image</p>
+    <p class="scan-hint-text">Point camera at a target image</p>
   </div>
 
+  <!-- Bottom popup: question is shown in AR only -->
   <div class="ar-popup accent-yellow" id="ar-popup">
-    <span class="q-mark">?</span>
-    <p class="popup-label">OPEN QUESTION</p>
-    <div id="popup-target-name">Target</div>
-    <div id="popup-question-num">Question 1 of 7</div>
-    <div id="popup-question">Question will appear here.</div>
+    <p class="popup-label">QUESTION</p>
+    <div id="popup-target-name">Coca-Cola</div>
+
     <div class="popup-buttons">
-      <button class="btn btn-yellow" onclick="speakQuestion()">🔊 Read</button>
-      <button class="btn btn-ghost" onclick="nextQuestion()">🎲 New Question</button>
+      <button class="btn btn-yellow" id="btn-speak" type="button" onclick="speakQuestion()">
+        🔊 Read
+      </button>
     </div>
   </div>
 
-  <div class="notice-box" id="notice-box">Camera access is required. Please allow camera permission and reload.</div>
+  <div class="notice-box" id="notice-box">
+    📷 Camera access required. Please allow camera permission and reload.
+  </div>
 
+  <!-- AR Scene -->
   <a-scene
-    mindar-image="imageTargetSrc: ../assets/targets/targets.mind; autoStart: false; uiLoading: no; uiError: no; uiScanning: no; maxTrack: 1; filterMinCF: 0.0001; filterBeta: 0.01;"
+    mindar-image="imageTargetSrc: ../assets/targets/targets.mind; autoStart: false; uiLoading: no; uiError: no; uiScanning: no; maxTrack: 1;"
     color-space="sRGB"
-    renderer="colorManagement: true; antialias: false; precision: mediump; powerPreference: high-performance"
+    renderer="colorManagement: true; antialias: true; precision: highp; powerPreference: high-performance;"
     vr-mode-ui="enabled: false"
     device-orientation-permission-ui="enabled: false"
-    embedded
     id="ar-scene"
   >
+    <a-assets>
+      <a-asset-item
+        id="font-bold"
+        src="https://cdn.jsdelivr.net/gh/mrdoob/three.js@r147/examples/fonts/helvetiker_bold.typeface.json">
+      </a-asset-item>
+    </a-assets>
+
     <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
 
+    <a-light type="ambient" color="#ffffff" intensity="0.85"></a-light>
+    <a-light type="directional" color="#ffffff" intensity="1.15" position="0.5 1 1"></a-light>
+
+    <!-- Empty targets. 3D questions are injected only when a target is found. -->
     <a-entity mindar-image-target="targetIndex: 0" id="target-0"></a-entity>
     <a-entity mindar-image-target="targetIndex: 1" id="target-1"></a-entity>
     <a-entity mindar-image-target="targetIndex: 2" id="target-2"></a-entity>
@@ -124,17 +228,117 @@
   <script>
     'use strict';
 
+    // Center true 3D text geometry after it is created
+    AFRAME.registerComponent('center-3d-text', {
+      init: function () {
+        this.center = this.center.bind(this);
+        this.el.addEventListener('object3dset', this.center);
+        setTimeout(this.center, 200);
+        setTimeout(this.center, 650);
+      },
+      center: function () {
+        const mesh = this.el.getObject3D('mesh');
+        if (!mesh || !mesh.geometry) return;
+
+        mesh.geometry.computeBoundingBox();
+        const box = mesh.geometry.boundingBox;
+        if (!box) return;
+
+        const xOffset = -0.5 * (box.max.x - box.min.x) - box.min.x;
+        const yOffset = -0.5 * (box.max.y - box.min.y) - box.min.y;
+
+        mesh.geometry.translate(xOffset, yOffset, 0);
+        mesh.geometry.computeBoundingBox();
+      }
+    });
+
     let questionsData = [];
     let currentTarget = null;
+    let sceneLoaded = false;
     let arStarted = false;
 
     const scene = document.getElementById('ar-scene');
-    const startScreen = document.getElementById('mobile-start');
+    const startScreen = document.getElementById('start-screen');
+    const startBtn = document.getElementById('start-btn');
     const loadingOverlay = document.getElementById('loading-overlay');
     const loadingText = document.getElementById('loading-text');
     const arStatus = document.getElementById('ar-status');
     const scanHint = document.getElementById('scan-hint');
     const arPopup = document.getElementById('ar-popup');
+    const noticeBox = document.getElementById('notice-box');
+
+    // Per-target non-repeating question queues
+    const questionQueues = {};
+
+    fetch('../assets/data/questions.json')
+      .then(r => {
+        if (!r.ok) throw new Error('questions.json not found');
+        return r.json();
+      })
+      .then(data => {
+        questionsData = data;
+      })
+      .catch(err => {
+        console.error('[Part2] Failed to load questions.json:', err);
+        noticeBox.textContent = '⚠️ Cannot load questions.json. Please check assets/data/questions.json';
+        noticeBox.style.display = 'block';
+      });
+
+    scene.addEventListener('loaded', () => {
+      sceneLoaded = true;
+      attachTargetEvents();
+    });
+
+    scene.addEventListener('arReady', () => {
+      loadingOverlay.classList.add('hidden');
+      scanHint.classList.remove('hidden');
+      arStatus.textContent = 'SCANNING';
+      arStatus.className = 'ar-status scanning';
+    });
+
+    scene.addEventListener('arError', err => {
+      console.error('[Part2] AR Error:', err);
+      loadingText.textContent = 'Camera error. Please allow camera access.';
+      noticeBox.style.display = 'block';
+    });
+
+    startBtn.addEventListener('click', startAR);
+
+    function startAR() {
+      if (arStarted) return;
+      arStarted = true;
+
+      startScreen.classList.add('hidden');
+      loadingOverlay.classList.remove('hidden');
+      loadingText.textContent = 'Loading AR engine…';
+      arStatus.textContent = 'LOADING';
+
+      const tryStart = () => {
+        const sys = scene.systems && scene.systems['mindar-image-system'];
+        if (!sceneLoaded || !sys) {
+          setTimeout(tryStart, 120);
+          return;
+        }
+
+        sys.start().catch(err => {
+          console.error('[Part2] Failed to start AR:', err);
+          loadingText.textContent = 'Cannot start camera. Please allow camera access.';
+          noticeBox.style.display = 'block';
+        });
+      };
+
+      tryStart();
+    }
+
+    function attachTargetEvents() {
+      for (let i = 0; i < 10; i++) {
+        const entity = document.getElementById(`target-${i}`);
+        if (!entity) continue;
+
+        entity.addEventListener('targetFound', () => showQuestion(i));
+        entity.addEventListener('targetLost', () => hideQuestion(i));
+      }
+    }
 
     function shuffle(arr) {
       const a = [...arr];
@@ -145,157 +349,206 @@
       return a;
     }
 
-    fetch('../assets/data/questions.json')
-      .then(r => r.json())
-      .then(data => {
-        questionsData = data;
-      })
-      .catch(err => console.error('[Part2] Failed to load questions.json', err));
+    function getNextQuestion(data) {
+      const key = data.targetIndex;
 
-    for (let i = 0; i < 10; i++) renderThickLabel(`target-${i}`, 'QUESTION', '#ffd60a', 3.15);
-
-    function renderThickLabel(targetId, text, mainColor, width) {
-      const root = document.getElementById(targetId);
-      if (!root) return;
-      root.innerHTML = '';
-      const layers = [
-        { color: '#1a1200', x: 0.060, y: 0.395, z: -0.070, w: width },
-        { color: '#7a5a00', x: 0.040, y: 0.415, z: -0.050, w: width },
-        { color: '#ffffff', x: 0.014, y: 0.444, z: -0.018, w: width * 1.01, opacity: 0.45 },
-        { color: mainColor, x: 0, y: 0.465, z: 0, w: width }
-      ];
-      layers.forEach(layer => {
-        const t = document.createElement('a-text');
-        t.setAttribute('value', text);
-        t.setAttribute('align', 'center');
-        t.setAttribute('baseline', 'center');
-        t.setAttribute('color', layer.color);
-        t.setAttribute('width', layer.w);
-        t.setAttribute('position', `${layer.x} ${layer.y} ${layer.z}`);
-        t.setAttribute('font', 'https://cdn.aframe.io/fonts/Exo2Bold.fnt');
-        if (layer.opacity) t.setAttribute('opacity', layer.opacity);
-        root.appendChild(t);
-      });
-    }
-
-    document.getElementById('btn-start').addEventListener('click', startAR);
-
-    async function startAR() {
-      if (arStarted) return;
-      arStarted = true;
-      warmupSpeech();
-      startScreen.style.display = 'none';
-      loadingOverlay.classList.add('show');
-      loadingText.textContent = 'Starting camera…';
-      arStatus.textContent = 'STARTING';
-
-      try {
-        const arSystem = scene.systems['mindar-image-system'];
-        if (!arSystem) throw new Error('MindAR system is not ready yet.');
-        await arSystem.start();
-      } catch (err) {
-        console.error('[Part2] AR start error:', err);
-        loadingText.textContent = 'Camera error. Please allow camera access.';
-        document.getElementById('notice-box').style.display = 'block';
-        arStarted = false;
+      if (!questionQueues[key]) {
+        questionQueues[key] = {
+          queue: shuffle(data.questions),
+          index: 0
+        };
       }
-    }
 
-    scene.addEventListener('arReady', () => {
-      loadingOverlay.classList.remove('show');
-      arStatus.textContent = 'SCANNING';
-      arStatus.className = 'ar-status scanning';
-    });
+      const state = questionQueues[key];
 
-    scene.addEventListener('arError', err => {
-      console.error('[Part2] AR Error:', err);
-      loadingText.textContent = 'Camera error. Please allow camera access.';
-      loadingOverlay.classList.add('show');
-      document.getElementById('notice-box').style.display = 'block';
-    });
-
-    scene.addEventListener('loaded', () => {
-      for (let i = 0; i < 10; i++) {
-        const el = document.getElementById(`target-${i}`);
-        if (!el) continue;
-        el.addEventListener('targetFound', () => showQuestion(i));
-        el.addEventListener('targetLost', hideQuestion);
+      if (state.index >= state.queue.length) {
+        state.queue = shuffle(data.questions);
+        state.index = 0;
       }
-    });
+
+      const question = state.queue[state.index];
+      state.index += 1;
+
+      return question;
+    }
 
     function showQuestion(targetIndex) {
       const data = questionsData.find(d => d.targetIndex === targetIndex);
       if (!data) return;
-      currentTarget = { ...data, shuffled: shuffle(data.questions), currentIdx: 0 };
-      displayCurrentQuestion();
+
+      const question = getNextQuestion(data);
+
+      currentTarget = {
+        targetIndex,
+        target: data.target,
+        question
+      };
+
+      document.getElementById('popup-target-name').textContent = data.target;
+
+      renderQuestionText3D(targetIndex, question);
+
       arPopup.classList.add('show');
       scanHint.classList.add('hidden');
+
       arStatus.textContent = 'FOUND';
       arStatus.className = 'ar-status found';
+
       speakQuestion();
-      vibrate(50);
+
+      if ('vibrate' in navigator) navigator.vibrate(45);
     }
 
-    function displayCurrentQuestion() {
-      if (!currentTarget) return;
-      const question = currentTarget.shuffled[currentTarget.currentIdx];
-      document.getElementById('popup-target-name').textContent = currentTarget.target;
-      document.getElementById('popup-question').textContent = question;
-      document.getElementById('popup-question-num').textContent = `Question ${currentTarget.currentIdx + 1} of ${currentTarget.shuffled.length}`;
+    function hideQuestion(targetIndex) {
+      clearTargetText(targetIndex);
 
-      const qEl = document.getElementById('popup-question');
-      qEl.classList.remove('question-fade');
-      void qEl.offsetWidth;
-      qEl.classList.add('question-fade');
-    }
-
-    function nextQuestion() {
-      if (!currentTarget) return;
-      currentTarget.currentIdx++;
-      if (currentTarget.currentIdx >= currentTarget.shuffled.length) {
-        currentTarget.shuffled = shuffle(currentTarget.questions);
-        currentTarget.currentIdx = 0;
-      }
-      displayCurrentQuestion();
-      speakQuestion();
-      vibrate(25);
-    }
-
-    function hideQuestion() {
       currentTarget = null;
       arPopup.classList.remove('show');
       scanHint.classList.remove('hidden');
-      arStatus.textContent = 'SCANNING';
-      arStatus.className = 'ar-status scanning';
-      stopSpeech();
+
+      if (arStarted) {
+        arStatus.textContent = 'SCANNING';
+        arStatus.className = 'ar-status scanning';
+      }
+
+      if ('speechSynthesis' in window) window.speechSynthesis.cancel();
+    }
+
+    function clearTargetText(targetIndex) {
+      const target = document.getElementById(`target-${targetIndex}`);
+      if (!target) return;
+      target.innerHTML = '';
+    }
+
+    // Wrap question into exactly 1 or 2 lines.
+    // Never more than 2 lines. Size is reduced for long questions.
+    function makeTwoLines(text) {
+      const clean = text.replace(/\s+/g, ' ').trim();
+      const words = clean.split(' ');
+
+      if (clean.length <= 24) return [clean];
+
+      let best = null;
+
+      for (let i = 1; i < words.length; i++) {
+        const a = words.slice(0, i).join(' ');
+        const b = words.slice(i).join(' ');
+        const longest = Math.max(a.length, b.length);
+        const balance = Math.abs(a.length - b.length);
+
+        const score = longest * 3 + balance;
+        if (!best || score < best.score) {
+          best = { lines: [a, b], score, longest };
+        }
+      }
+
+      return best ? best.lines : [clean];
+    }
+
+    function getQuestionTextSize(lines) {
+      const longest = Math.max(...lines.map(line => line.length));
+
+      // Target width is about 1.65 units.
+      // Long questions shrink automatically to stay inside the AR target area.
+      let size = 1.58 / (longest * 0.62);
+
+      if (size > 0.095) size = 0.095;
+      if (size < 0.040) size = 0.040;
+
+      return size;
+    }
+
+    function renderQuestionText3D(targetIndex, question) {
+      const target = document.getElementById(`target-${targetIndex}`);
+      if (!target) return;
+
+      target.innerHTML = '';
+
+      const lines = makeTwoLines(question);
+      const size = getQuestionTextSize(lines);
+      const lineGap = size * 1.42;
+
+      const group = document.createElement('a-entity');
+      group.setAttribute('position', '0 0.48 0.04');
+      group.setAttribute('rotation', '-9 0 0');
+
+      lines.forEach((line, i) => {
+        const y = lines.length === 1
+          ? 0
+          : (i === 0 ? lineGap / 2 : -lineGap / 2);
+
+        // Shadow / side layer
+        const shadow = document.createElement('a-entity');
+        shadow.setAttribute('center-3d-text', '');
+        shadow.setAttribute('position', `0.014 ${y - 0.014} -0.028`);
+        shadow.setAttribute('text-geometry', {
+          value: line,
+          font: '#font-bold',
+          size,
+          height: 0.020,
+          curveSegments: 6,
+          bevelEnabled: true,
+          bevelSize: 0.0035,
+          bevelThickness: 0.0035,
+          bevelSegments: 1
+        });
+        shadow.setAttribute(
+          'material',
+          'shader: standard; color: #3a2a00; emissive: #171100; metalness: 0.05; roughness: 0.7; side: double; transparent: true; opacity: 0.88;'
+        );
+
+        // Main 3D text
+        const main = document.createElement('a-entity');
+        main.setAttribute('center-3d-text', '');
+        main.setAttribute('position', `0 ${y} 0`);
+        main.setAttribute('text-geometry', {
+          value: line,
+          font: '#font-bold',
+          size,
+          height: 0.026,
+          curveSegments: 8,
+          bevelEnabled: true,
+          bevelSize: 0.0045,
+          bevelThickness: 0.0045,
+          bevelSegments: 2
+        });
+        main.setAttribute(
+          'material',
+          'shader: standard; color: #ffd60a; emissive: #5a4700; metalness: 0.10; roughness: 0.32; side: double;'
+        );
+
+        group.appendChild(shadow);
+        group.appendChild(main);
+      });
+
+      target.appendChild(group);
     }
 
     function speakQuestion() {
       if (!currentTarget) return;
-      speak(currentTarget.shuffled[currentTarget.currentIdx]);
+      speak(currentTarget.question);
     }
 
     function speak(text) {
-      if (!('speechSynthesis' in window) || !text) return;
+      if (!('speechSynthesis' in window)) return;
+
       window.speechSynthesis.cancel();
+
       const utt = new SpeechSynthesisUtterance(text);
       utt.lang = 'en-US';
       utt.rate = 0.88;
       utt.pitch = 1;
+
       const voices = window.speechSynthesis.getVoices();
-      const voice = voices.find(v => v.lang === 'en-US' && v.localService) || voices.find(v => v.lang && v.lang.startsWith('en'));
-      if (voice) utt.voice = voice;
+      const engVoice = voices.find(v => v.lang.startsWith('en') && v.localService);
+      if (engVoice) utt.voice = engVoice;
+
       window.speechSynthesis.speak(utt);
     }
 
-    function warmupSpeech() { if ('speechSynthesis' in window) window.speechSynthesis.getVoices(); }
-    function stopSpeech() { if ('speechSynthesis' in window) window.speechSynthesis.cancel(); }
-
-    function goBack() {
-      stopSpeech();
-      const sys = scene.systems && scene.systems['mindar-image-system'];
-      if (sys && arStarted) sys.stop();
-      window.location = '../';
+    if ('speechSynthesis' in window) {
+      window.speechSynthesis.getVoices();
+      window.speechSynthesis.onvoiceschanged = () => window.speechSynthesis.getVoices();
     }
   </script>
 </body>
