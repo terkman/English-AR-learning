@@ -1,0 +1,991 @@
+<!DOCTYPE html>
+<!-- v1.0 - Part 5: AI Reader (Tesseract.js OCR) -->
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="theme-color" content="#0a0e1a" />
+  <title>Part 5 – AI Reader</title>
+
+  <!--
+    ✅ Tesseract.js loaded lazily (only when user presses Scan Text)
+    ✅ Web Speech API for TTS — no API key needed
+    ✅ Camera stream stopped on page exit
+    ✅ Image resized before OCR to protect mobile performance
+    ✅ No backend, no API keys
+  -->
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;900&family=Space+Mono:wght@700&display=swap" rel="stylesheet" />
+
+  <style>
+    /* ══════════════════════════════════════════
+       CSS VARIABLES — match global style.css
+       ══════════════════════════════════════════ */
+    :root {
+      --bg-dark:     #0a0e1a;
+      --bg-card:     #12182b;
+      --bg-card2:    #1a2035;
+
+      /* Part 5 accent — indigo-violet */
+      --c5:          #a259ff;
+      --c5-dim:      rgba(162, 89, 255, 0.18);
+      --c5-border:   rgba(162, 89, 255, 0.35);
+      --c5-glow:     rgba(162, 89, 255, 0.5);
+
+      --cyan:        #00d4ff;
+      --green:       #06d6a0;
+      --pink:        #ff3b8f;
+
+      --text-white:  #ffffff;
+      --text-muted:  #8892a4;
+      --text-dim:    #4a5568;
+
+      --font-main:   'Nunito', sans-serif;
+      --font-mono:   'Space Mono', monospace;
+      --r:           16px;
+      --r-lg:        24px;
+      --r-sm:        10px;
+    }
+
+    /* ── Reset ──────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { -webkit-tap-highlight-color: transparent; }
+    body {
+      font-family: var(--font-main);
+      background: var(--bg-dark);
+      color: var(--text-white);
+      height: 100vh;
+      overflow: hidden;
+      -webkit-font-smoothing: antialiased;
+    }
+    button {
+      cursor: pointer;
+      font-family: inherit;
+      border: none;
+      outline: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    /* ══════════════════════════════════════════
+       SCREEN SYSTEM
+       Only one screen visible at a time.
+       ══════════════════════════════════════════ */
+    .screen {
+      position: fixed;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      transition: opacity 0.3s ease;
+      z-index: 1;
+    }
+    .screen.hidden {
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    /* ══════════════════════════════════════════
+       SCREEN 1 — START SCREEN
+       ══════════════════════════════════════════ */
+    #screen-start {
+      background: var(--bg-dark);
+      padding: 2rem 1.5rem;
+      text-align: center;
+      gap: 0;
+    }
+
+    /* Background orbs */
+    .orb {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(80px);
+      opacity: 0.2;
+      pointer-events: none;
+    }
+    .orb-1 {
+      width: 280px; height: 280px;
+      background: var(--c5);
+      top: -60px; right: -60px;
+      animation: orb-float 8s ease-in-out infinite;
+    }
+    .orb-2 {
+      width: 220px; height: 220px;
+      background: #3b82f6;
+      bottom: 10%; left: -40px;
+      animation: orb-float 11s ease-in-out infinite reverse;
+    }
+    @keyframes orb-float {
+      0%, 100% { transform: translateY(0) scale(1); }
+      50%       { transform: translateY(-25px) scale(1.06); }
+    }
+
+    /* Back button */
+    .back-btn {
+      position: fixed;
+      top: 1rem;
+      left: 1rem;
+      z-index: 900;
+      background: rgba(255,255,255,0.08);
+      border: 1.5px solid rgba(255,255,255,0.15);
+      color: #fff;
+      font-size: 0.82rem;
+      font-weight: 700;
+      padding: 0.5rem 0.9rem;
+      border-radius: 30px;
+      backdrop-filter: blur(8px);
+    }
+
+    /* Part badge */
+    .part-badge {
+      font-size: 0.62rem;
+      font-weight: 800;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: var(--c5);
+      border: 1.5px solid var(--c5-border);
+      padding: 0.25rem 0.8rem;
+      border-radius: 20px;
+      margin-bottom: 1.5rem;
+      background: var(--c5-dim);
+      display: inline-block;
+    }
+
+    /* Icon ring */
+    .start-icon-ring {
+      width: 100px;
+      height: 100px;
+      border-radius: 50%;
+      background: var(--c5-dim);
+      border: 2.5px solid var(--c5-border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 3rem;
+      margin: 0 auto 1.5rem;
+      position: relative;
+      animation: ring-pulse 3s ease-in-out infinite;
+    }
+    @keyframes ring-pulse {
+      0%, 100% { box-shadow: 0 0 0 0 var(--c5-glow); }
+      50%       { box-shadow: 0 0 0 16px rgba(162,89,255,0); }
+    }
+
+    .start-title {
+      font-size: 2rem;
+      font-weight: 900;
+      color: var(--c5);
+      margin-bottom: 0.4rem;
+      letter-spacing: -0.5px;
+    }
+    .start-subtitle {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      font-weight: 700;
+      line-height: 1.55;
+      max-width: 280px;
+      margin: 0 auto 2rem;
+    }
+
+    /* Feature list */
+    .features {
+      display: flex;
+      flex-direction: column;
+      gap: 0.6rem;
+      margin-bottom: 2rem;
+      text-align: left;
+      width: 100%;
+      max-width: 300px;
+    }
+    .feature-item {
+      display: flex;
+      align-items: center;
+      gap: 0.7rem;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.07);
+      padding: 0.65rem 0.9rem;
+      border-radius: var(--r-sm);
+    }
+    .feature-icon { font-size: 1.1rem; }
+    .feature-text { font-size: 0.8rem; font-weight: 700; color: var(--text-muted); }
+
+    /* ── Shared button styles ─────────────────── */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.78rem 1.4rem;
+      border-radius: 50px;
+      font-size: 0.92rem;
+      font-weight: 800;
+      font-family: var(--font-main);
+      transition: transform 0.12s, opacity 0.12s;
+    }
+    .btn:active  { transform: scale(0.94); opacity: 0.85; }
+    .btn:disabled { opacity: 0.4; pointer-events: none; }
+
+    .btn-purple { background: var(--c5); color: #fff; }
+    .btn-purple:hover { background: #b36fff; }
+
+    .btn-ghost {
+      background: rgba(255,255,255,0.07);
+      color: #fff;
+      border: 1.5px solid rgba(255,255,255,0.15);
+    }
+    .btn-cyan  { background: var(--cyan);  color: #000; }
+    .btn-green { background: var(--green); color: #000; }
+    .btn-lg { padding: 0.95rem 2rem; font-size: 1rem; }
+
+    /* ══════════════════════════════════════════
+       SCREEN 2 — CAMERA SCREEN
+       ══════════════════════════════════════════ */
+    #screen-camera {
+      background: #000;
+      padding: 0;
+      justify-content: flex-start;
+    }
+
+    /* Fullscreen video */
+    #camera-video {
+      position: fixed;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      z-index: 0;
+    }
+
+    /* ── Status badge ─────────────────────────── */
+    #cam-status {
+      position: fixed;
+      top: 1rem;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 200;
+      font-size: 0.72rem;
+      font-weight: 800;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      padding: 0.35rem 1rem;
+      border-radius: 20px;
+      white-space: nowrap;
+      backdrop-filter: blur(10px);
+      transition: all 0.3s;
+
+      background: rgba(10,14,26,0.85);
+      border: 1.5px solid rgba(255,255,255,0.1);
+      color: var(--text-muted);
+    }
+    #cam-status.status-ready   { color: var(--c5);   border-color: var(--c5-border); }
+    #cam-status.status-reading { color: var(--cyan);  border-color: rgba(0,212,255,0.4); }
+    #cam-status.status-done    { color: var(--green); border-color: rgba(6,214,160,0.4); }
+    #cam-status.status-error   { color: var(--pink);  border-color: rgba(255,59,143,0.4); }
+
+    /* ── Scan frame overlay ───────────────────── */
+    #scan-frame-wrap {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -54%);
+      z-index: 100;
+      pointer-events: none;
+      transition: opacity 0.3s;
+    }
+    #scan-frame-wrap.hidden { opacity: 0; }
+
+    .scan-box {
+      width: min(320px, 82vw);
+      height: min(200px, 30vh);
+      position: relative;
+    }
+
+    /* Corner brackets */
+    .scan-box::before, .scan-box::after,
+    .scan-corner-br, .scan-corner-bl {
+      content: '';
+      position: absolute;
+      width: 28px; height: 28px;
+    }
+    .scan-box::before {
+      top: 0; left: 0;
+      border-top: 3px solid var(--c5);
+      border-left: 3px solid var(--c5);
+      border-radius: 4px 0 0 0;
+    }
+    .scan-box::after {
+      top: 0; right: 0;
+      border-top: 3px solid var(--c5);
+      border-right: 3px solid var(--c5);
+      border-radius: 0 4px 0 0;
+    }
+    .scan-corner-br {
+      bottom: 0; right: 0;
+      border-bottom: 3px solid var(--c5);
+      border-right: 3px solid var(--c5);
+      border-radius: 0 0 4px 0;
+    }
+    .scan-corner-bl {
+      bottom: 0; left: 0;
+      border-bottom: 3px solid var(--c5);
+      border-left: 3px solid var(--c5);
+      border-radius: 0 0 0 4px;
+    }
+
+    /* Scanning animation — horizontal sweep line */
+    .scan-sweep {
+      position: absolute;
+      left: 4px; right: 4px;
+      height: 2px;
+      background: linear-gradient(90deg, transparent 0%, var(--c5) 30%, #fff 50%, var(--c5) 70%, transparent 100%);
+      animation: sweep 2s ease-in-out infinite;
+      opacity: 0;
+      border-radius: 2px;
+    }
+    .scan-sweep.active { opacity: 1; }
+
+    @keyframes sweep {
+      0%   { top: 4px;   opacity: 0.9; }
+      50%  { opacity: 1; }
+      100% { top: calc(100% - 6px); opacity: 0.3; }
+    }
+
+    /* Subtle box fill */
+    .scan-fill {
+      position: absolute;
+      inset: 0;
+      border: 1px solid rgba(162,89,255,0.2);
+      border-radius: 3px;
+    }
+
+    /* Aim hint text */
+    .scan-hint-text {
+      text-align: center;
+      margin-top: 0.75rem;
+      font-size: 0.72rem;
+      font-weight: 700;
+      color: rgba(255,255,255,0.5);
+      letter-spacing: 1px;
+      text-transform: uppercase;
+    }
+
+    /* ── Scan button ──────────────────────────── */
+    #btn-scan {
+      position: fixed;
+      bottom: max(2.5rem, env(safe-area-inset-bottom, 2.5rem));
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 200;
+      min-width: 180px;
+      justify-content: center;
+      box-shadow: 0 0 24px rgba(162,89,255,0.4);
+      transition: transform 0.12s, opacity 0.12s, box-shadow 0.2s;
+    }
+    #btn-scan:not(:disabled):active {
+      transform: translateX(-50%) scale(0.93);
+      box-shadow: 0 0 10px rgba(162,89,255,0.2);
+    }
+    #btn-scan.hidden { opacity: 0; pointer-events: none; }
+
+    /* ══════════════════════════════════════════
+       PROGRESS BAR (shown during OCR)
+       ══════════════════════════════════════════ */
+    #ocr-progress-wrap {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 300;
+      height: 3px;
+      background: rgba(255,255,255,0.08);
+      transition: opacity 0.3s;
+    }
+    #ocr-progress-wrap.hidden { opacity: 0; }
+    #ocr-progress-bar {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, var(--c5), var(--cyan));
+      border-radius: 0 2px 2px 0;
+      transition: width 0.25s ease;
+    }
+
+    /* ══════════════════════════════════════════
+       RESULT POPUP (slides up from bottom)
+       Matches design of Part 1–4 popups.
+       ══════════════════════════════════════════ */
+    #result-popup {
+      position: fixed;
+      bottom: 0; left: 0; right: 0;
+      z-index: 400;
+      background: var(--bg-card);
+      border-top: 2.5px solid var(--c5);
+      border-radius: 22px 22px 0 0;
+      padding: 1.3rem 1.3rem max(2.2rem, env(safe-area-inset-bottom, 2.2rem));
+      transform: translateY(100%);
+      transition: transform 0.38s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    #result-popup.show { transform: translateY(0); }
+
+    /* Drag handle */
+    .popup-handle {
+      width: 40px; height: 4px;
+      background: rgba(255,255,255,0.15);
+      border-radius: 2px;
+      margin: 0 auto 1rem;
+    }
+
+    #result-label {
+      font-size: 0.62rem;
+      font-weight: 800;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: var(--c5);
+      margin-bottom: 0.55rem;
+    }
+
+    #result-text {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: var(--text-white);
+      line-height: 1.6;
+      max-height: 160px;
+      overflow-y: auto;
+      margin-bottom: 0.9rem;
+      padding-right: 0.3rem;
+
+      /* Custom scrollbar */
+      scrollbar-width: thin;
+      scrollbar-color: var(--c5) transparent;
+    }
+    #result-text::-webkit-scrollbar { width: 4px; }
+    #result-text::-webkit-scrollbar-track { background: transparent; }
+    #result-text::-webkit-scrollbar-thumb { background: var(--c5); border-radius: 2px; }
+
+    /* Error state */
+    #result-text.error {
+      color: var(--pink);
+      font-size: 0.9rem;
+      font-style: italic;
+    }
+
+    /* Speak speaking animation */
+    @keyframes speak-pulse {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(6,214,160,0.5); }
+      50%       { box-shadow: 0 0 0 8px rgba(6,214,160,0); }
+    }
+    #btn-speak-result.speaking {
+      animation: speak-pulse 1s ease-in-out infinite;
+    }
+
+    .popup-buttons {
+      display: flex;
+      gap: 0.6rem;
+      flex-wrap: wrap;
+    }
+
+    /* ══════════════════════════════════════════
+       LOADING OVERLAY (lazy Tesseract download)
+       ══════════════════════════════════════════ */
+    #lib-loading {
+      position: fixed;
+      inset: 0;
+      background: rgba(10,14,26,0.92);
+      z-index: 500;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 1rem;
+      transition: opacity 0.4s;
+    }
+    #lib-loading.hidden { opacity: 0; pointer-events: none; }
+
+    .lib-spinner {
+      width: 48px; height: 48px;
+      border: 3px solid rgba(255,255,255,0.08);
+      border-top-color: var(--c5);
+      border-radius: 50%;
+      animation: spin 0.75s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .lib-text {
+      font-size: 0.82rem;
+      font-weight: 700;
+      color: var(--text-muted);
+    }
+
+    /* hidden canvas for OCR capture */
+    #capture-canvas { display: none; }
+  </style>
+</head>
+<body>
+
+  <!-- Hidden canvas for frame capture -->
+  <canvas id="capture-canvas"></canvas>
+
+  <!-- ═══════════════════════════════════════════
+       SCREEN 1 — START
+       ═══════════════════════════════════════════ -->
+  <div id="screen-start" class="screen">
+
+    <!-- background orbs -->
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+
+    <!-- Back to main menu -->
+    <a href="../" class="back-btn">← Back</a>
+
+    <span class="part-badge">Part 5 · AI</span>
+
+    <div class="start-icon-ring">🔍</div>
+
+    <h1 class="start-title">AI Reader</h1>
+    <p class="start-subtitle">
+      Point your camera at English text on labels, signs, or products.
+    </p>
+
+    <!-- Feature highlights -->
+    <div class="features">
+      <div class="feature-item">
+        <span class="feature-icon">📸</span>
+        <span class="feature-text">Capture any real-world English text</span>
+      </div>
+      <div class="feature-item">
+        <span class="feature-icon">🤖</span>
+        <span class="feature-text">AI reads text from images (OCR)</span>
+      </div>
+      <div class="feature-item">
+        <span class="feature-icon">🔊</span>
+        <span class="feature-text">Hear the text spoken in English</span>
+      </div>
+    </div>
+
+    <button class="btn btn-purple btn-lg" id="btn-start-camera" onclick="startCamera()">
+      📷 Start Camera
+    </button>
+
+  </div>
+
+  <!-- ═══════════════════════════════════════════
+       SCREEN 2 — CAMERA + SCAN
+       ═══════════════════════════════════════════ -->
+  <div id="screen-camera" class="screen hidden">
+
+    <!-- Back button (always visible) -->
+    <button class="back-btn" onclick="exitCamera()">← Back</button>
+
+    <!-- Fullscreen video feed -->
+    <video id="camera-video" autoplay playsinline muted></video>
+
+    <!-- OCR progress bar (top strip) -->
+    <div id="ocr-progress-wrap" class="hidden">
+      <div id="ocr-progress-bar"></div>
+    </div>
+
+    <!-- Status badge -->
+    <div id="cam-status" class="status-ready">📷 READY</div>
+
+    <!-- Scan frame -->
+    <div id="scan-frame-wrap">
+      <div class="scan-box">
+        <div class="scan-fill"></div>
+        <div class="scan-corner-br"></div>
+        <div class="scan-corner-bl"></div>
+        <div class="scan-sweep" id="scan-sweep"></div>
+      </div>
+      <p class="scan-hint-text">Aim at English text</p>
+    </div>
+
+    <!-- Primary action button -->
+    <button class="btn btn-purple btn-lg" id="btn-scan" onclick="doScan()">
+      🔍 Scan Text
+    </button>
+
+    <!-- ── Result Popup ── -->
+    <div id="result-popup">
+      <div class="popup-handle"></div>
+      <div id="result-label">TEXT FOUND</div>
+      <div id="result-text"></div>
+      <div class="popup-buttons">
+        <button class="btn btn-green" id="btn-speak-result" onclick="speakResult()">
+          🔊 Speak
+        </button>
+        <button class="btn btn-ghost" id="btn-scan-again" onclick="scanAgain()">
+          🔄 Scan Again
+        </button>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ═══════════════════════════════════════════
+       LIBRARY LOADING OVERLAY
+       Shown while Tesseract.js is downloading
+       ═══════════════════════════════════════════ -->
+  <div id="lib-loading" class="hidden">
+    <div class="lib-spinner"></div>
+    <p class="lib-text" id="lib-loading-text">Loading AI engine…</p>
+  </div>
+
+  <!-- ═══════════════════════════════════════════
+       JAVASCRIPT
+       ═══════════════════════════════════════════ -->
+  <script>
+    'use strict';
+
+    // ══════════════════════════════════════════
+    // STATE
+    // ══════════════════════════════════════════
+    let cameraStream    = null;   // MediaStream from getUserMedia
+    let tesseractWorker = null;   // Tesseract.js worker (lazy loaded)
+    let isScanning      = false;  // lock to prevent double scan
+    let lastResultText  = '';     // last OCR result for speak
+
+    // ── DOM refs ─────────────────────────────
+    const screenStart   = document.getElementById('screen-start');
+    const screenCamera  = document.getElementById('screen-camera');
+    const camVideo      = document.getElementById('camera-video');
+    const camStatus     = document.getElementById('cam-status');
+    const scanFrameWrap = document.getElementById('scan-frame-wrap');
+    const scanSweep     = document.getElementById('scan-sweep');
+    const btnScan       = document.getElementById('btn-scan');
+    const resultPopup   = document.getElementById('result-popup');
+    const resultText    = document.getElementById('result-text');
+    const resultLabel   = document.getElementById('result-label');
+    const progressWrap  = document.getElementById('ocr-progress-wrap');
+    const progressBar   = document.getElementById('ocr-progress-bar');
+    const libLoading    = document.getElementById('lib-loading');
+    const libLoadingTxt = document.getElementById('lib-loading-text');
+    const captureCanvas = document.getElementById('capture-canvas');
+    const captureCtx    = captureCanvas.getContext('2d');
+    const btnSpeakResult = document.getElementById('btn-speak-result');
+
+    // ══════════════════════════════════════════
+    // SCREEN TRANSITIONS
+    // ══════════════════════════════════════════
+    function showScreen(screenEl) {
+      screenStart.classList.add('hidden');
+      screenCamera.classList.add('hidden');
+      screenEl.classList.remove('hidden');
+    }
+
+    // ══════════════════════════════════════════
+    // CAMERA
+    // ══════════════════════════════════════════
+    async function startCamera() {
+      const btn = document.getElementById('btn-start-camera');
+      btn.textContent = '⏳ Starting…';
+      btn.disabled    = true;
+
+      try {
+        // Request back camera on mobile, any camera on desktop
+        const constraints = {
+          video: {
+            facingMode: { ideal: 'environment' }, // back camera
+            width:      { ideal: 1280 },
+            height:     { ideal: 720 }
+          },
+          audio: false
+        };
+
+        cameraStream = await navigator.mediaDevices.getUserMedia(constraints);
+        camVideo.srcObject = cameraStream;
+
+        // Wait for video metadata before showing camera screen
+        await new Promise(resolve => {
+          camVideo.onloadedmetadata = resolve;
+        });
+
+        showScreen(screenCamera);
+        setStatus('ready', '📷 READY');
+
+      } catch (err) {
+        console.error('[Part5] Camera error:', err);
+        btn.textContent = '📷 Start Camera';
+        btn.disabled    = false;
+
+        let msg = 'Could not access camera.';
+        if (err.name === 'NotAllowedError')     msg = 'Camera permission denied. Please allow access.';
+        else if (err.name === 'NotFoundError')  msg = 'No camera found on this device.';
+        else if (err.name === 'NotReadableError') msg = 'Camera is in use by another app.';
+
+        alert(msg);
+      }
+    }
+
+    function exitCamera() {
+      stopCamera();
+      stopSpeech();
+      showScreen(screenStart);
+      document.getElementById('btn-start-camera').textContent = '📷 Start Camera';
+      document.getElementById('btn-start-camera').disabled = false;
+      resetPopup();
+    }
+
+    function stopCamera() {
+      if (cameraStream) {
+        cameraStream.getTracks().forEach(track => track.stop());
+        cameraStream = null;
+      }
+      camVideo.srcObject = null;
+    }
+
+    // ══════════════════════════════════════════
+    // STATUS HELPER
+    // ══════════════════════════════════════════
+    function setStatus(type, text) {
+      camStatus.textContent  = text;
+      camStatus.className    = `status-${type}`;
+    }
+
+    // ══════════════════════════════════════════
+    // TESSERACT LAZY LOAD
+    // Load Tesseract.js only on first scan press.
+    // ══════════════════════════════════════════
+    async function ensureTesseract() {
+      if (tesseractWorker) return; // already loaded
+
+      libLoading.classList.remove('hidden');
+      libLoadingTxt.textContent = 'Loading AI engine (first time only)…';
+
+      // Dynamically inject Tesseract.js script
+      await new Promise((resolve, reject) => {
+        if (document.getElementById('tesseract-script')) {
+          resolve(); return;
+        }
+        const s  = document.createElement('script');
+        s.id     = 'tesseract-script';
+        s.src    = 'https://unpkg.com/tesseract.js@5/dist/tesseract.min.js';
+        s.onload = resolve;
+        s.onerror = reject;
+        document.head.appendChild(s);
+      });
+
+      libLoadingTxt.textContent = 'Initializing…';
+
+      // Create Tesseract worker (English only for performance)
+      tesseractWorker = await Tesseract.createWorker('eng', 1, {
+        logger: m => {
+          // m.status: 'loading tesseract core' | 'initializing api' | 'recognizing text'
+          if (m.status === 'recognizing text') {
+            const pct = Math.round((m.progress || 0) * 100);
+            setStatus('reading', `🤖 READING ${pct}%`);
+            progressBar.style.width = `${pct}%`;
+          }
+        }
+      });
+
+      libLoading.classList.add('hidden');
+    }
+
+    // ══════════════════════════════════════════
+    // OCR SCAN
+    // ══════════════════════════════════════════
+    async function doScan() {
+      if (isScanning) return;
+      isScanning = true;
+
+      // Close popup if open
+      resetPopup();
+      scanSweep.classList.remove('active');
+
+      try {
+        // Load Tesseract.js if not yet loaded
+        await ensureTesseract();
+        libLoading.classList.add('hidden');
+
+        setStatus('reading', '📸 CAPTURING…');
+        btnScan.disabled = true;
+
+        // ── Capture frame from video ───────────
+        // Crop to scan-box area for better OCR accuracy
+        const vw = camVideo.videoWidth;
+        const vh = camVideo.videoHeight;
+
+        // Scan box is ~82vw × 30vh on screen, map to video pixels
+        const screenW  = window.innerWidth;
+        const screenH  = window.innerHeight;
+        const boxW_pct = 0.82;
+        const boxH_pct = 0.30;
+
+        // Scale factors from screen → video
+        const sx = vw / screenW;
+        const sy = vh / screenH;
+
+        // Box center is at screen center (~54% from top of video area)
+        const boxScreenW = screenW * boxW_pct;
+        const boxScreenH = screenH * boxH_pct;
+        const boxLeft    = (screenW - boxScreenW) / 2;
+        const boxTop     = (screenH - boxScreenH) / 2 - screenH * 0.04;
+
+        // Convert to video coords
+        const cropX = Math.max(0, boxLeft * sx);
+        const cropY = Math.max(0, boxTop  * sy);
+        const cropW = Math.min(boxScreenW * sx, vw - cropX);
+        const cropH = Math.min(boxScreenH * sy, vh - cropY);
+
+        // Draw cropped region onto canvas
+        // Target max width 800px for mobile performance
+        const maxW      = 800;
+        const scale     = Math.min(1, maxW / cropW);
+        const outW      = Math.round(cropW * scale);
+        const outH      = Math.round(cropH * scale);
+
+        captureCanvas.width  = outW;
+        captureCanvas.height = outH;
+        captureCtx.drawImage(camVideo, cropX, cropY, cropW, cropH, 0, 0, outW, outH);
+
+        // Optional: slight contrast boost for OCR accuracy
+        boostContrast(captureCtx, outW, outH);
+
+        // ── Run OCR ────────────────────────────
+        setStatus('reading', '🤖 READING…');
+        progressWrap.classList.remove('hidden');
+        progressBar.style.width = '5%';
+        scanSweep.classList.add('active');
+
+        const result = await tesseractWorker.recognize(captureCanvas);
+        const rawText = (result.data?.text || '').trim();
+
+        // Clean up: remove noise characters, collapse whitespace
+        const cleaned = rawText
+          .replace(/[^a-zA-Z0-9 \n.,!?;:'"()\-–—%@#&+=/\\$€£¥°]/g, '')
+          .replace(/\s{3,}/g, '\n')
+          .replace(/^\s+|\s+$/gm, '')
+          .trim();
+
+        progressBar.style.width = '100%';
+        setTimeout(() => {
+          progressWrap.classList.add('hidden');
+          progressBar.style.width = '0%';
+        }, 600);
+
+        scanSweep.classList.remove('active');
+
+        if (cleaned.length < 2) {
+          showError('No readable text found. Try again.');
+        } else {
+          showResult(cleaned);
+        }
+
+      } catch (err) {
+        console.error('[Part5] Scan error:', err);
+        showError('Scan failed. Please try again.');
+        progressWrap.classList.add('hidden');
+        scanSweep.classList.remove('active');
+      } finally {
+        isScanning   = false;
+        btnScan.disabled = false;
+      }
+    }
+
+    // ── Simple contrast boost via ImageData ──
+    function boostContrast(ctx, w, h) {
+      try {
+        const imageData = ctx.getImageData(0, 0, w, h);
+        const data = imageData.data;
+        const factor = 1.3; // contrast factor
+        const intercept = 128 * (1 - factor);
+        for (let i = 0; i < data.length; i += 4) {
+          data[i]   = Math.min(255, Math.max(0, data[i]   * factor + intercept)); // R
+          data[i+1] = Math.min(255, Math.max(0, data[i+1] * factor + intercept)); // G
+          data[i+2] = Math.min(255, Math.max(0, data[i+2] * factor + intercept)); // B
+        }
+        ctx.putImageData(imageData, 0, 0);
+      } catch (e) {
+        // Ignore canvas security errors (cross-origin) — shouldn't happen here
+      }
+    }
+
+    // ══════════════════════════════════════════
+    // RESULT / ERROR DISPLAY
+    // ══════════════════════════════════════════
+    function showResult(text) {
+      lastResultText = text;
+      resultLabel.textContent = 'TEXT FOUND';
+      resultLabel.style.color = 'var(--c5)';
+      resultText.textContent  = text;
+      resultText.classList.remove('error');
+      resultPopup.classList.add('show');
+      setStatus('done', '✅ DONE');
+      btnScan.classList.add('hidden');
+
+      if ('vibrate' in navigator) navigator.vibrate([40, 30, 80]);
+
+      // Auto-speak the result
+      speakResult();
+    }
+
+    function showError(msg) {
+      lastResultText = '';
+      resultLabel.textContent = 'RESULT';
+      resultLabel.style.color = 'var(--pink)';
+      resultText.textContent  = msg;
+      resultText.classList.add('error');
+      resultPopup.classList.add('show');
+      setStatus('error', '❌ NOT FOUND');
+      btnScan.classList.add('hidden');
+
+      document.getElementById('btn-speak-result').disabled = true;
+      if ('vibrate' in navigator) navigator.vibrate([50, 50, 50]);
+    }
+
+    function resetPopup() {
+      resultPopup.classList.remove('show');
+      resultText.classList.remove('error');
+      btnScan.classList.remove('hidden');
+      document.getElementById('btn-speak-result').disabled = false;
+      document.getElementById('btn-speak-result').classList.remove('speaking');
+      setStatus('ready', '📷 READY');
+      stopSpeech();
+    }
+
+    function scanAgain() {
+      resetPopup();
+    }
+
+    // ══════════════════════════════════════════
+    // TEXT-TO-SPEECH
+    // ══════════════════════════════════════════
+    function speakResult() {
+      if (!lastResultText) return;
+
+      stopSpeech();
+      const utt    = new SpeechSynthesisUtterance(lastResultText);
+      utt.lang     = 'en-US';
+      utt.rate     = 0.88;
+      utt.pitch    = 1;
+
+      // Try to use a local English voice
+      const voices = window.speechSynthesis.getVoices();
+      const eng    = voices.find(v => v.lang.startsWith('en') && v.localService);
+      if (eng) utt.voice = eng;
+
+      // Visual speaking state
+      btnSpeakResult.classList.add('speaking');
+      utt.onend = utt.onerror = () => {
+        btnSpeakResult.classList.remove('speaking');
+      };
+
+      window.speechSynthesis.speak(utt);
+    }
+
+    function stopSpeech() {
+      if ('speechSynthesis' in window) window.speechSynthesis.cancel();
+      btnSpeakResult.classList.remove('speaking');
+    }
+
+    // Preload voices (Chrome requires interaction first on iOS)
+    if ('speechSynthesis' in window) {
+      window.speechSynthesis.getVoices();
+      window.speechSynthesis.onvoiceschanged = () => window.speechSynthesis.getVoices();
+    }
+
+    // ══════════════════════════════════════════
+    // CLEANUP ON PAGE EXIT
+    // ══════════════════════════════════════════
+    window.addEventListener('pagehide',       stopCamera);
+    window.addEventListener('beforeunload',   stopCamera);
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden) stopSpeech();
+    });
+  </script>
+</body>
+</html>
