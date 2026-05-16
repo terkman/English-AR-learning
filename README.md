@@ -1,25 +1,25 @@
-# 🌐 English AR Learning — v1.0
+# English AR Learning — v1.0
 
-เว็บไซต์สื่อการสอนภาษาอังกฤษสำหรับโทรศัพท์มือถือ ที่ผสมการเรียนรู้ภาษาอังกฤษเข้ากับ **WebAR, Image Tracking, เสียงอ่านภาษาอังกฤษ, คำถามปลายเปิด, วงล้อภารกิจ และฉาก 3D Interactive**
+เว็บไซต์สื่อการสอนภาษาอังกฤษสำหรับโทรศัพท์มือถือ ที่ผสมการเรียนรู้ภาษาอังกฤษเข้ากับ WebAR, Image Tracking, เสียงอ่านภาษาอังกฤษ, คำถามปลายเปิด, วงล้อภารกิจ และฉาก 3D Interactive
 
 โปรเจกต์นี้ออกแบบมาเพื่อให้ผู้เรียน “มองเห็นภาษาอังกฤษรอบตัว” ผ่านกล้องมือถือ และฝึกใช้ภาษาอังกฤษจากสถานการณ์จริง เช่น โลโก้สินค้า ป้ายสัญลักษณ์ คำถามชวนคิด ภารกิจการตอบคำถาม และฉากร้านค้า 3D
 
 ---
 
-## ✅ เว็บนี้มีหน้าที่ทำอะไร
+## เว็บนี้มีหน้าที่ทำอะไร
 
 เว็บนี้เป็นสื่อการเรียนรู้ภาษาอังกฤษแบบโต้ตอบ ผู้เรียนสามารถเปิดเว็บบนมือถือแล้วทำกิจกรรมได้ 4 รูปแบบ:
 
-1. **สแกนภาพโลโก้หรือป้าย** เพื่อดูคำศัพท์ภาษาอังกฤษแบบ AR
-2. **สแกนภาพแล้วตอบคำถามปลายเปิด** เพื่อฝึกคิดและพูดภาษาอังกฤษ
-3. **สแกนภาพแล้วหมุนวงล้อภารกิจ** เพื่อสุ่มวิธีตอบคำถาม
-4. **สำรวจฉาก 3D** แตะวัตถุเพื่อเรียนคำศัพท์หรือบทสนทนาในสถานการณ์จริง
+1. สแกนภาพโลโก้หรือป้าย เพื่อดูคำศัพท์ภาษาอังกฤษแบบ AR
+2. สแกนภาพแล้วตอบคำถามปลายเปิด เพื่อฝึกคิดและพูดภาษาอังกฤษ
+3. สแกนภาพแล้วหมุนวงล้อภารกิจ เพื่อสุ่มวิธีตอบคำถาม
+4. สำรวจฉาก 3D แตะวัตถุเพื่อเรียนคำศัพท์หรือบทสนทนาในสถานการณ์จริง
 
 เว็บนี้ไม่มี Backend และไม่ต้องใช้ API Key สามารถอัปขึ้น GitHub Pages แล้วเปิดใช้งานได้ทันทีผ่าน HTTPS
 
 ---
 
-## 🧩 เราทำอะไรกับโปรเจกต์นี้บ้าง
+## เราทำอะไรกับโปรเจกต์นี้บ้าง
 
 เราออกแบบเว็บนี้ให้เป็นสื่อการสอนภาษาอังกฤษที่ใช้มือถือเป็นหลัก ผู้เรียนสามารถเปิดเว็บ เลือกกิจกรรม แล้วเรียนรู้ภาษาอังกฤษผ่านการสแกนภาพ การตอบคำถาม การหมุนวงล้อ และการสำรวจฉาก 3D
 
@@ -39,14 +39,6 @@
 - แสดงข้อมูลคำศัพท์ เช่น คำอ่านและประเภทของคำ
 - ใช้ข้อมูลคำศัพท์จากไฟล์ `vocab.json`
 
-ตัวอย่างการใช้งาน:
-
-```text
-สแกนภาพ Coca-Cola
-เว็บแสดงคำว่า Coca-Cola
-ผู้เรียนกดฟังเสียงอ่านได้
-```
-
 ---
 
 ### Part 2 — AR Open Question
@@ -64,15 +56,6 @@
 - เพิ่มปุ่มอ่านคำถามด้วยเสียง
 - ใช้ข้อมูลคำถามจากไฟล์ `questions.json`
 
-ตัวอย่างการใช้งาน:
-
-```text
-สแกนภาพ Coca-Cola
-เว็บแสดงคำถาม:
-When do you usually drink Coca-Cola?
-ผู้เรียนฝึกตอบเป็นภาษาอังกฤษ
-```
-
 ---
 
 ### Part 3 — AR Answer Mission Wheel
@@ -89,16 +72,6 @@ When do you usually drink Coca-Cola?
 - ปรับคำในวงล้อให้สอดคล้องกับคำถามภาษาอังกฤษ
 - เพิ่มปุ่มอ่านคำถามด้วยเสียง
 - ใช้ข้อมูลคำถามและวงล้อจากไฟล์ `missions.json`
-
-ตัวอย่างการใช้งาน:
-
-```text
-สแกนภาพ Coca-Cola
-เว็บแสดงคำถาม
-ผู้เรียนกด Spin Wheel
-วงล้อสุ่มได้ Give one reason.
-ผู้เรียนตอบโดยให้เหตุผล 1 ข้อ
-```
 
 ---
 
@@ -120,339 +93,28 @@ When do you usually drink Coca-Cola?
 - เพิ่ม Teach Mode สำหรับตั้งชื่อคำศัพท์ให้วัตถุเอง
 - ใช้โมเดล 3D จากไฟล์ `shop.glb` ถ้ามีไฟล์โมเดลจริง
 
-ตัวอย่างการใช้งาน:
-
-```text
-ผู้เรียนแตะขวดน้ำในฉาก 3D
-เว็บแสดงคำว่า Water Bottle
-ผู้เรียนกดฟังเสียงอ่านได้
-```
-
-ตัวอย่างบทสนทนา:
-
-```text
-A: Hello. What would you like to buy?
-B: I would like a bottle of water, please.
-A: Sure. Anything else?
-B: No, thank you. How much is it?
-A: It is twenty baht.
-B: Here you are.
-A: Thank you. Have a nice day.
-B: Thank you.
-```
-
 ---
 
-## 📁 โครงสร้างไฟล์
+## โครงสร้างโปรเจกต์
 
 ```text
-english-ar-learning/
-│
+English-AR-learning/
 ├── index.html
 ├── style.css
 ├── script.js
 ├── README.md
-│
+├── assets/
 ├── part1/
-│   └── index.html
-│
 ├── part2/
-│   └── index.html
-│
 ├── part3/
-│   └── index.html
-│
-├── part4/
-│   └── index.html
-│
-└── assets/
-    ├── targets/
-    │   └── targets.mind
-    │
-    ├── models/
-    │   └── shop.glb
-    │
-    ├── data/
-    │   ├── vocab.json
-    │   ├── questions.json
-    │   ├── missions.json
-    │   └── situation-items.json
-    │
-    └── images/
-        └── target images
+└── part4/
 ```
 
 ---
 
-## 📱 วิธีใช้งานสำหรับผู้เรียน
-
-1. เปิดเว็บไซต์บนโทรศัพท์มือถือ
-2. เลือกกิจกรรมจากหน้าแรก
-3. อนุญาตให้เว็บไซต์ใช้กล้อง
-4. สแกนภาพ target เช่น โลโก้สินค้า หรือป้ายสัญลักษณ์
-5. อ่าน ฟัง หรือพูดตอบตามกิจกรรมของแต่ละ Part
-
----
-
-## 🎯 Target Images ที่ใช้ใน Part 1–3
-
-ภาพ target ต้องเรียงลำดับให้ตรงกับ `targetIndex`
-
-| Index | Target |
-|------:|--------|
-| 0 | McDonald's |
-| 1 | Nike |
-| 2 | Coca-Cola |
-| 3 | 7-Eleven |
-| 4 | Starbucks |
-| 5 | Restroom |
-| 6 | Exit |
-| 7 | Warning |
-| 8 | No Smoking |
-| 9 | Information |
-
----
-
-## 🧠 การเตรียมไฟล์ `targets.mind`
-
-`targets.mind` คือไฟล์ที่ MindAR ใช้จำภาพ target สำหรับ Image Tracking
-
-ขั้นตอนการสร้าง:
-
-1. เตรียมภาพ target ทั้ง 10 ภาพ
-2. เข้าเว็บ MindAR Compiler:
-
-```text
-https://hiukim.github.io/mind-ar-js-doc/tools/compile
-```
-
-3. อัปโหลดภาพเรียงตาม index 0–9
-4. กด Compile
-5. ดาวน์โหลดไฟล์ `targets.mind`
-6. วางไว้ที่:
-
-```text
-assets/targets/targets.mind
-```
-
-ถ้าลำดับภาพไม่ตรงกับ targetIndex ข้อมูลที่แสดงใน AR จะไม่ตรงกับภาพที่สแกน
-
----
-
-## 🏪 การเตรียมโมเดล 3D สำหรับ Part 4
-
-ถ้าต้องการใช้โมเดลจริง ให้วางไฟล์ `.glb` ไว้ที่:
-
-```text
-assets/models/shop.glb
-```
-
-ถ้ายังไม่มีไฟล์ `shop.glb` ระบบจะแสดง demo scene ให้ทดสอบก่อน
-
-คำแนะนำสำหรับโมเดล:
-
-- ใช้ไฟล์ `.glb`
-- ขนาดไฟล์ไม่ควรใหญ่เกินไป
-- ตั้งชื่อ object ในโมเดลให้เข้าใจง่าย เช่น `Counter`, `Water Bottle`, `Shelf`, `Cashier`, `Exit Sign`
-- ถ้าชื่อ object เป็นชื่อแปลก เช่น `Material2_36` หรือ `Cube001` สามารถใช้ Teach Mode ตั้งคำศัพท์ใหม่ได้
-
----
-
-## 🧑‍🏫 Teach Mode ใน Part 4 คืออะไร
-
-Teach Mode ใช้สำหรับสอนคำศัพท์ให้วัตถุในโมเดล 3D
-
-วิธีใช้:
-
-1. เปิด Part 4
-2. กด `Teach: ON`
-3. แตะวัตถุในโมเดล
-4. กรอกคำศัพท์ภาษาอังกฤษ
-5. กรอก pronunciation หรือ example sentence ถ้าต้องการ
-6. ระบบจะบันทึกไว้ใน browser ด้วย `localStorage`
-
-ข้อมูลที่สอนไว้จะอยู่ในเครื่องของผู้ใช้คนนั้น ถ้าเปลี่ยนเครื่องหรือเคลียร์ browser data ข้อมูลจะหาย
-
----
-
-## 🔑 Library ที่ใช้
-
-| Library | ใช้สำหรับ |
-|--------|-----------|
-| A-Frame | สร้าง AR Scene ใน Part 1–3 |
-| MindAR | Image Tracking ใน Part 1–3 |
-| aframe-text-geometry-component | ตัวอักษร 3D แบบนูนใน AR |
-| Three.js | ฉาก 3D Interactive ใน Part 4 |
-| GLTFLoader | โหลดไฟล์ `.glb` |
-| OrbitControls | หมุนและซูมฉาก 3D |
-| Raycaster | ตรวจจับวัตถุที่ผู้ใช้แตะ |
-| Web Speech API | อ่านเสียงภาษาอังกฤษ |
-| Google Fonts | ฟอนต์ Nunito และ Space Mono |
-
----
-
-## 🚀 การ Deploy ขึ้น GitHub Pages
-
-อัปโหลดโปรเจกต์ขึ้น GitHub:
-
-```bash
-git init
-git add .
-git commit -m "English AR Learning v1.0"
-git remote add origin https://github.com/YOUR_USERNAME/english-ar-learning.git
-git branch -M main
-git push -u origin main
-```
-
-เปิด GitHub Pages:
-
-1. เข้า Repository บน GitHub
-2. ไปที่ `Settings`
-3. ไปที่ `Pages`
-4. เลือก `Deploy from a branch`
-5. เลือก branch `main`
-6. เลือก folder `/ root`
-7. กด Save
-
-URL จะเป็นรูปแบบนี้:
-
-```text
-https://YOUR_USERNAME.github.io/english-ar-learning/
-```
-
----
-
-## 🛠️ การปรับแต่งข้อมูล
-
-### เพิ่มคำศัพท์ Part 1
-
-แก้ไฟล์:
-
-```text
-assets/data/vocab.json
-```
-
-จากนั้นต้องเพิ่มภาพ target ใหม่ และ compile `targets.mind` ใหม่ด้วย
-
----
-
-### เพิ่มคำถาม Part 2
-
-แก้ไฟล์:
-
-```text
-assets/data/questions.json
-```
-
-เพิ่มคำถามใน target ที่ต้องการ
-
----
-
-### ปรับคำถามและวงล้อ Part 3
-
-แก้ไฟล์:
-
-```text
-assets/data/missions.json
-```
-
-ใช้สำหรับคำถามของแต่ละ target และข้อความในวงล้อ
-
----
-
-### ปรับข้อมูล Part 4
-
-แก้ไฟล์:
-
-```text
-assets/data/situation-items.json
-```
-
-ใช้สำหรับจับคู่ข้อมูลคำศัพท์หรือบทสนทนากับวัตถุในโมเดล 3D
-
----
-
-## 🎨 การเปลี่ยนธีมสี
-
-แก้ไฟล์:
-
-```text
-style.css
-```
-
-ตัวแปรหลัก:
-
-```css
-:root {
-  --cyan:   #00d4ff;
-  --yellow: #ffd60a;
-  --pink:   #ff3b8f;
-  --green:  #06d6a0;
-}
-```
-
----
-
-## ❓ Troubleshooting
-
-### กล้องไม่เปิด
-
-- ตรวจสอบว่าเปิดเว็บผ่าน HTTPS
-- GitHub Pages ใช้ HTTPS ให้อัตโนมัติ
-- อนุญาต Camera permission ใน browser
-
-### AR ไม่เจอภาพ
-
-- ตรวจสอบว่า `targets.mind` อยู่ที่:
-
-```text
-assets/targets/targets.mind
-```
-
-- ตรวจสอบลำดับภาพ target ตอน compile
-- ใช้ภาพ target ที่ชัด มีรายละเอียด และไม่สะท้อนแสงมากเกินไป
-
-### เสียงไม่เล่น
-
-- Android Chrome ทำงานได้ดีที่สุด
-- iOS อาจต้องกดปุ่ม Speak ก่อน
-- ถ้าเสียงไม่ออก ให้ลองกดปุ่ม Read / Speak อีกครั้ง
-
-### Part 3 วงล้อไม่หมุน
-
-- ตรวจสอบว่า `assets/data/missions.json` โหลดได้
-- ตรวจสอบว่าใน `missions.json` มี `wheelSegments`
-- ล้าง cache หรือเปิดแบบ Incognito หลังอัปเดตไฟล์
-
-### Part 4 ไม่แสดงโมเดลจริง
-
-- ตรวจสอบว่าไฟล์อยู่ที่:
-
-```text
-assets/models/shop.glb
-```
-
-- ถ้าไม่มีไฟล์ ระบบจะแสดง demo scene แทน
-- ถ้าโมเดลใหญ่เกินไป อาจโหลดช้าในมือถือ
-
----
-
-## 📌 หมายเหตุสำหรับการใช้งานจริง
-
-- เว็บไซต์นี้เหมาะกับการเปิดบนมือถือ
-- แนะนำ Android Chrome สำหรับ Part 1–3
-- Part 4 สามารถใช้ได้ทั้งมือถือและคอมพิวเตอร์
-- ควรทดสอบผ่าน GitHub Pages หรือ HTTPS เท่านั้น
-- ถ้าแก้ไฟล์แล้วไม่เห็นผล ให้ล้าง cache หรือเปิดแบบ Incognito
-
----
-
-## 👥 ผู้จัดทำ
-
-Created by JP2T Company
-
----
-
-## 📄 License
-
-สร้างเพื่อการศึกษา สามารถนำไปใช้และปรับแต่งต่อได้
+## การใช้งาน
+
+1. เปิดหน้าเว็บบนมือถือ
+2. เลือก Part ที่ต้องการ
+3. กดอนุญาตการใช้กล้องเมื่อระบบถาม
+4. สแกนภาพหรือใช้งานฉาก 3D ตามกิจกรรม
