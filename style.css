@@ -1046,3 +1046,18 @@ html.game-html { height: 100%; }
   .game-hud  { grid-template-columns: 1fr; }
   .submit-btn { width: 100%; }
 }
+
+/* ================================================================
+   FIX: Part 3 Start screen / Home button touch layer
+   Keeps the Home button clickable while the start overlay is visible.
+   ================================================================ */
+body.ar-page .ar-topbar {
+  z-index: 120 !important;
+}
+
+body.ar-page .ar-back,
+body.ar-page .top-back {
+  position: relative;
+  z-index: 121 !important;
+  pointer-events: auto !important;
+}
