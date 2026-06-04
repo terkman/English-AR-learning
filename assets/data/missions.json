@@ -1,0 +1,6 @@
+{
+  "missions": ["Give a reason", "Compare two choices", "Give an example", "Explain the context"],
+  "questions": [
+    {"id":1,"target":"coffee-shop","question":"Why do coffee shops usually use We are open instead of We are opened?"}
+  ]
+}

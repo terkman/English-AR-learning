@@ -1,0 +1,97 @@
+{
+  "title": "4.2 School Vocabulary Game",
+  "scene": "school",
+  "model": "../../assets/models/part4/school.glb",
+  "items": [
+    {
+      "id": 1,
+      "nodeName": "Classroom Rules",
+      "shownWord": "Classroom Rules",
+      "correctAnswers": [
+        "Classroom Rules"
+      ]
+    },
+    {
+      "id": 2,
+      "nodeName": "Student Work Display",
+      "shownWord": "Student Work Display",
+      "correctAnswers": [
+        "Students' Work",
+        "Students’ Work",
+        "Student Work Display"
+      ]
+    },
+    {
+      "id": 3,
+      "nodeName": "Please Be on Time",
+      "shownWord": "Please Be on Time",
+      "correctAnswers": [
+        "Don't Be Late",
+        "Don’t Be Late",
+        "Please Be on Time"
+      ]
+    },
+    {
+      "id": 4,
+      "nodeName": "Don't Running",
+      "shownWord": "Don't Running",
+      "correctAnswers": [
+        "Don't Run",
+        "Don’t Run",
+        "No Running"
+      ]
+    },
+    {
+      "id": 5,
+      "nodeName": "Keep Silence",
+      "shownWord": "Keep Silence",
+      "correctAnswers": [
+        "Keep Quiet",
+        "Please Keep Quiet"
+      ]
+    },
+    {
+      "id": 6,
+      "nodeName": "Speak English",
+      "shownWord": "Speak English",
+      "correctAnswers": [
+        "Speak English",
+        "Use English"
+      ]
+    },
+    {
+      "id": 7,
+      "nodeName": "Homework Send Box",
+      "shownWord": "Homework Send Box",
+      "correctAnswers": [
+        "Homework Submission Box",
+        "Homework Drop Box"
+      ]
+    },
+    {
+      "id": 8,
+      "nodeName": "Listen Teacher",
+      "shownWord": "Listen Teacher",
+      "correctAnswers": [
+        "Listen to the Teacher"
+      ]
+    },
+    {
+      "id": 9,
+      "nodeName": "Clean Up Yourself",
+      "shownWord": "Clean Up Yourself",
+      "correctAnswers": [
+        "Clean Up After Yourself"
+      ]
+    },
+    {
+      "id": 10,
+      "nodeName": "I Very Like English",
+      "shownWord": "I Very Like English",
+      "correctAnswers": [
+        "I Really Like English",
+        "I Like English Very Much"
+      ]
+    }
+  ]
+}

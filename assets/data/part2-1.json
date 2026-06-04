@@ -1,0 +1,122 @@
+[
+  {
+    "index": 0,
+    "scanTarget": "ป้าย/เสียงประกาศในพื้นที่สาธารณะ",
+    "statement": "Please keep your belongings with you at all times.",
+    "dimension": "Meaning / Form / Politeness / Context",
+    "questions": [
+      "ข้อความนี้ต้องการให้ผู้อ่านทำอะไร?",
+      "ทำไมใช้ Please keep แทน Do not leave?",
+      "วลี at all times เพิ่มความหมายอย่างไร?"
+    ],
+    "targetImage": "01_scan.png"
+  },
+  {
+    "index": 1,
+    "scanTarget": "แอปช้อปปิง/ระบบสั่งอาหาร",
+    "statement": "This item is currently unavailable.",
+    "dimension": "Meaning / Word Choice / Digital Use",
+    "questions": [
+      "ทำไมใช้ currently unavailable แทน not available?",
+      "คำว่า currently ทำให้ความหมายเปลี่ยนอย่างไร?",
+      "ข้อความนี้สุภาพกว่าการบอกว่าไม่มีของหรือไม่?"
+    ],
+    "targetImage": "02_scan.png"
+  },
+  {
+    "index": 2,
+    "scanTarget": "บทสนทนาร้านกาแฟ",
+    "statement": "Would you like it hot or iced?",
+    "dimension": "Conversation / Politeness / Choice",
+    "questions": [
+      "ประโยคนี้ใช้ถามอะไร?",
+      "ทำไมใช้ Would you like แทน Do you want?",
+      "คำว่า hot or iced ช่วยให้ลูกค้าเลือกอะไร?"
+    ],
+    "targetImage": "03_scan.png"
+  },
+  {
+    "index": 3,
+    "scanTarget": "บทสนทนาซื้อสินค้า",
+    "statement": "Can I get a receipt, please?",
+    "dimension": "Request / Spoken Form / Politeness",
+    "questions": [
+      "ทำไมใช้ Can I get… ในการขอของ?",
+      "คำว่า please วางท้ายประโยคมีผลต่อน้ำเสียงอย่างไร?",
+      "ต่างจาก Give me a receipt อย่างไร?"
+    ],
+    "targetImage": "04_scan.png"
+  },
+  {
+    "index": 4,
+    "scanTarget": "ประกาศ/อีเมลมหาวิทยาลัย",
+    "statement": "The meeting has been postponed until further notice.",
+    "dimension": "Meaning / Form / Formal Context",
+    "questions": [
+      "has been postponed หมายถึงอะไร?",
+      "ทำไมใช้รูป passive?",
+      "until further notice หมายถึงถึงเมื่อไร?"
+    ],
+    "targetImage": "05_scan.png"
+  },
+  {
+    "index": 5,
+    "scanTarget": "ป้ายกิจกรรม",
+    "statement": "Please scan the QR code to register.",
+    "dimension": "Instruction / Purpose / Form",
+    "questions": [
+      "ข้อความนี้เป็นคำสั่งหรือคำแนะนำ?",
+      "ทำไมใช้ to register ต่อท้าย?",
+      "ถ้าไม่มี Please น้ำเสียงจะเปลี่ยนไหม?"
+    ],
+    "targetImage": "06_scan.png"
+  },
+  {
+    "index": 6,
+    "scanTarget": "หน้าจอสมัครสมาชิก",
+    "statement": "Your password must contain at least 8 characters.",
+    "dimension": "Rule / Meaning / Digital Context",
+    "questions": [
+      "ทำไมใช้ must?",
+      "at least หมายถึงขั้นต่ำหรือจำนวนแน่นอน?",
+      "characters ในบริบทนี้หมายถึงอะไร?"
+    ],
+    "targetImage": "07_scan.png"
+  },
+  {
+    "index": 7,
+    "scanTarget": "ป้ายหน้าร้านอาหาร",
+    "statement": "Please wait to be seated.",
+    "dimension": "Service Context / Form / Audience",
+    "questions": [
+      "ข้อความนี้ให้ลูกค้าทำอะไร?",
+      "ทำไมใช้ to be seated แทน sit?",
+      "ใครเป็นคนจัดที่นั่งให้ลูกค้า?"
+    ],
+    "targetImage": "08_scan.png"
+  },
+  {
+    "index": 8,
+    "scanTarget": "ป้าย/เสียงประกาศสนามบินหรือห้าง",
+    "statement": "Please do not leave your bags unattended.",
+    "dimension": "Safety / Negative Instruction / Word Choice",
+    "questions": [
+      "unattended หมายถึงอะไร?",
+      "ทำไมใช้ Please do not?",
+      "ข้อความนี้เกี่ยวกับความปลอดภัยอย่างไร?"
+    ],
+    "targetImage": "09_scan.png"
+  },
+  {
+    "index": 9,
+    "scanTarget": "บทสนทนา บุคคลที่ 2",
+    "statement": "Could you speak a little more slowly?",
+    "dimension": "Polite Request / Communication Strategy / Form",
+    "questions": [
+      "ทำไมใช้ Could you แทนคำสั่งตรง ๆ?",
+      "a little more slowly ทำให้น้ำเสียงนุ่มขึ้นอย่างไร?",
+      "ใช้เมื่อผู้ฟังตามไม่ทันได้อย่างไร?"
+    ],
+    "targetImage": "10_scan.png"
+  }
+]

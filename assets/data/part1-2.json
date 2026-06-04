@@ -1,0 +1,122 @@
+[
+  {
+    "index": 0,
+    "title": "Keep Quiet",
+    "targetImage": "01_target_Keep_Quiet.png",
+    "resultImage": "01_result_Keep_Quiet.png"
+  },
+  {
+    "index": 1,
+    "title": "Limited Time Offer",
+    "targetImage": "02_target_Limited_Time_Offer.png",
+    "resultImage": "02_result_Limited_Time_Offer.png"
+  },
+  {
+    "index": 2,
+    "title": "Staff Only",
+    "targetImage": "03_target_Staff_Only.png",
+    "resultImage": "03_result_Staff_Only.png"
+  },
+  {
+    "index": 3,
+    "title": "Fresh Today",
+    "targetImage": "04_target_Fresh_Today.png",
+    "resultImage": "04_result_Fresh_Today.png"
+  },
+  {
+    "index": 4,
+    "title": "Do Not Enter",
+    "targetImage": "05_target_Do_Not_Enter.png",
+    "resultImage": "05_result_Do_Not_Enter.png"
+  },
+  {
+    "index": 5,
+    "title": "Please Wait Here",
+    "targetImage": "06_target_Please_Wait_Here.png",
+    "resultImage": "06_result_Please_Wait_Here.png"
+  },
+  {
+    "index": 6,
+    "title": "Out of Order",
+    "targetImage": "07_target_Out_of_Order.png",
+    "resultImage": "07_result_Out_of_Order.png"
+  },
+  {
+    "index": 7,
+    "title": "No Food or Drink",
+    "targetImage": "08_target_No_Food_or_Drink.png",
+    "resultImage": "08_result_No_Food_or_Drink.png"
+  },
+  {
+    "index": 8,
+    "title": "Free Wi-Fi",
+    "targetImage": "09_target_Free_Wi-Fi.png",
+    "resultImage": "09_result_Free_Wi-Fi.png"
+  },
+  {
+    "index": 9,
+    "title": "Mind the Gap",
+    "targetImage": "10_target_Mind_the_Gap.png",
+    "resultImage": "10_result_Mind_the_Gap.png"
+  },
+  {
+    "index": 10,
+    "title": "Open Now",
+    "targetImage": "11_target_Open_Now.png",
+    "resultImage": "11_result_Open_Now.png"
+  },
+  {
+    "index": 11,
+    "title": "New Arrival",
+    "targetImage": "12_target_New_Arrival.png",
+    "resultImage": "12_result_New_Arrival.png"
+  },
+  {
+    "index": 12,
+    "title": "Members Only",
+    "targetImage": "13_target_Members_Only.png",
+    "resultImage": "13_result_Members_Only.png"
+  },
+  {
+    "index": 13,
+    "title": "No Parking",
+    "targetImage": "14_target_No_Parking.png",
+    "resultImage": "14_result_No_Parking.png"
+  },
+  {
+    "index": 14,
+    "title": "Check In",
+    "targetImage": "15_target_Check_In.png",
+    "resultImage": "15_result_Check_In.png"
+  },
+  {
+    "index": 15,
+    "title": "Take Away",
+    "targetImage": "16_target_Take_Away.png",
+    "resultImage": "16_result_Take_Away.png"
+  },
+  {
+    "index": 16,
+    "title": "Wash Your Hands",
+    "targetImage": "17_target_Wash_Your_Hands.png",
+    "resultImage": "17_result_Wash_Your_Hands.png"
+  },
+  {
+    "index": 17,
+    "title": "For External Use Only",
+    "targetImage": "18_target_For_External_Use_Only.png",
+    "resultImage": "18_result_For_External_Use_Only.png"
+  },
+  {
+    "index": 18,
+    "title": "Join Us",
+    "targetImage": "19_target_Join_Us.png",
+    "resultImage": "19_result_Join_Us.png"
+  },
+  {
+    "index": 19,
+    "title": "Stay Safe",
+    "targetImage": "20_target_Stay_Safe.png",
+    "resultImage": "20_result_Stay_Safe.png"
+  }
+]

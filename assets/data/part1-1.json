@@ -1,0 +1,296 @@
+[
+  {
+    "index": 0,
+    "id": "part1-1-01",
+    "scanTitle": "ภาพทางเดินในมหาวิทยาลัย",
+    "displayText": "Exit, Staff Only, No Food or Drink, Information Desk",
+    "terms": [
+      "Exit",
+      "Staff Only",
+      "No Food or Drink",
+      "Information Desk"
+    ],
+    "experience": "เห็นว่าภาษาอังกฤษอยู่ในพื้นที่จริงของสถาบัน และใช้เพื่อบอกทางหรือกำกับพฤติกรรม",
+    "targetImage": "01_target.jpg"
+  },
+  {
+    "index": 1,
+    "id": "part1-1-02",
+    "scanTitle": "ภาพหน้าห้องเรียน/อาคารเรียน",
+    "displayText": "Classroom, Office, Meeting Room, Computer Lab",
+    "terms": [
+      "Classroom",
+      "Office",
+      "Meeting Room",
+      "Computer Lab"
+    ],
+    "experience": "เห็นภาษาอังกฤษในพื้นที่การเรียนรู้และการใช้งานอาคาร",
+    "targetImage": "02_target.jpg"
+  },
+  {
+    "index": 2,
+    "id": "part1-1-03",
+    "scanTitle": "ภาพห้องสมุดมหาวิทยาลัย",
+    "displayText": "Keep Quiet, Return Books Here, Reference Section, Borrowing Counter",
+    "terms": [
+      "Keep Quiet",
+      "Return Books Here",
+      "Reference Section",
+      "Borrowing Counter"
+    ],
+    "experience": "เห็นว่าภาษาอังกฤษในห้องสมุดใช้เพื่อแนะนำ บอกตำแหน่ง และกำกับการใช้พื้นที่",
+    "targetImage": "03_target.jpg"
+  },
+  {
+    "index": 3,
+    "id": "part1-1-04",
+    "scanTitle": "ภาพร้านกาแฟ",
+    "displayText": "Latte, Americano, Hot / Iced, Add-on, Take Away",
+    "terms": [
+      "Latte",
+      "Americano",
+      "Hot / Iced",
+      "Add-on",
+      "Take Away"
+    ],
+    "experience": "เห็นภาษาอังกฤษในบริการ การสั่งอาหาร และการซื้อขาย",
+    "targetImage": "04_target.jpg"
+  },
+  {
+    "index": 4,
+    "id": "part1-1-05",
+    "scanTitle": "ภาพร้านสะดวกซื้อ",
+    "displayText": "Promotion, Buy 1 Get 1 Free, Cashier, Membership, Hot Deals",
+    "terms": [
+      "Promotion",
+      "Buy 1 Get 1 Free",
+      "Cashier",
+      "Membership",
+      "Hot Deals"
+    ],
+    "experience": "เห็นภาษาอังกฤษในบริบทการตลาด การขาย และการบริการลูกค้า",
+    "targetImage": "05_target.jpg"
+  },
+  {
+    "index": 5,
+    "id": "part1-1-06",
+    "scanTitle": "ภาพฉลากสินค้า",
+    "displayText": "Ingredients, Net Weight, Best Before, No Added Sugar, Keep Frozen",
+    "terms": [
+      "Ingredients",
+      "Net Weight",
+      "Best Before",
+      "No Added Sugar",
+      "Keep Frozen"
+    ],
+    "experience": "เห็นภาษาอังกฤษบนบรรจุภัณฑ์และเริ่มมองว่าฉลากสินค้าเป็นแหล่งเรียนรู้ภาษา",
+    "targetImage": "06_target.jpg"
+  },
+  {
+    "index": 6,
+    "id": "part1-1-07",
+    "scanTitle": "ภาพขวดเครื่องดื่มหรือขนม",
+    "displayText": "Shake Well, Store in a Cool Dry Place, Consume within 3 days",
+    "terms": [
+      "Shake Well",
+      "Store in a Cool Dry Place",
+      "Consume within 3 days"
+    ],
+    "experience": "เห็นภาษาอังกฤษที่ใช้บอกวิธีใช้หรือวิธีเก็บรักษาสินค้า",
+    "targetImage": "07_target.jpg"
+  },
+  {
+    "index": 7,
+    "id": "part1-1-08",
+    "scanTitle": "ภาพหน้าจอมือถือ",
+    "displayText": "Notification, Sign In, Update Now, Privacy Policy, Allow Access",
+    "terms": [
+      "Notification",
+      "Sign In",
+      "Update Now",
+      "Privacy Policy",
+      "Allow Access"
+    ],
+    "experience": "เห็นภาษาอังกฤษในชีวิตดิจิทัลและการใช้งานเทคโนโลยีประจำวัน",
+    "targetImage": "08_target.jpg"
+  },
+  {
+    "index": 8,
+    "id": "part1-1-09",
+    "scanTitle": "ภาพแอปสั่งอาหารหรือช้อปปิง",
+    "displayText": "Add to Cart, Checkout, Order Now, Delivery Address, Confirm Payment",
+    "terms": [
+      "Add to Cart",
+      "Checkout",
+      "Order Now",
+      "Delivery Address",
+      "Confirm Payment"
+    ],
+    "experience": "เห็นภาษาอังกฤษในธุรกรรมออนไลน์และการใช้งานแพลตฟอร์มดิจิทัล",
+    "targetImage": "09_target.jpg"
+  },
+  {
+    "index": 9,
+    "id": "part1-1-10",
+    "scanTitle": "ภาพสื่อสังคมออนไลน์",
+    "displayText": "Like, Share, Comment, Follow, Sponsored, Suggested for You",
+    "terms": [
+      "Like",
+      "Share",
+      "Comment",
+      "Follow",
+      "Sponsored",
+      "Suggested for You"
+    ],
+    "experience": "เห็นภาษาอังกฤษในสื่อสังคมออนไลน์และการสื่อสารดิจิทัล",
+    "targetImage": "10_target.jpg"
+  },
+  {
+    "index": 10,
+    "id": "part1-1-11",
+    "scanTitle": "ภาพโพสต์โฆษณาออนไลน์",
+    "displayText": "Limited Time Offer, Free Shipping, Save Up To 50%, New Arrival",
+    "terms": [
+      "Limited Time Offer",
+      "Free Shipping",
+      "Save Up To 50%",
+      "New Arrival"
+    ],
+    "experience": "เห็นภาษาอังกฤษในภาษาการตลาดและการโน้มน้าวใจ",
+    "targetImage": "11_target.jpg"
+  },
+  {
+    "index": 11,
+    "id": "part1-1-12",
+    "scanTitle": "ภาพตู้ ATM หรือเครื่องกดอัตโนมัติ",
+    "displayText": "Insert Card, Withdraw, Balance Inquiry, Cancel, Confirm",
+    "terms": [
+      "Insert Card",
+      "Withdraw",
+      "Balance Inquiry",
+      "Cancel",
+      "Confirm"
+    ],
+    "experience": "เห็นภาษาอังกฤษในบริการอัตโนมัติและการทำธุรกรรมประจำวัน",
+    "targetImage": "12_target.jpg"
+  },
+  {
+    "index": 12,
+    "id": "part1-1-13",
+    "scanTitle": "ภาพลิฟต์หรือพื้นที่สาธารณะในอาคาร",
+    "displayText": "Out of Order, Emergency Exit, Maximum Capacity, Wet Floor",
+    "terms": [
+      "Out of Order",
+      "Emergency Exit",
+      "Maximum Capacity",
+      "Wet Floor"
+    ],
+    "experience": "เห็นภาษาอังกฤษที่ใช้เพื่อความปลอดภัยและการแจ้งสถานะ",
+    "targetImage": "13_target.jpg"
+  },
+  {
+    "index": 13,
+    "id": "part1-1-14",
+    "scanTitle": "ภาพป้ายห้องน้ำหรือพื้นที่บริการ",
+    "displayText": "Restroom, Push, Pull, Men, Women, Accessible Toilet",
+    "terms": [
+      "Restroom",
+      "Push",
+      "Pull",
+      "Men",
+      "Women",
+      "Accessible Toilet"
+    ],
+    "experience": "เห็นภาษาอังกฤษในป้ายสัญลักษณ์และการใช้งานพื้นที่สาธารณะ",
+    "targetImage": "14_target.jpg"
+  },
+  {
+    "index": 14,
+    "id": "part1-1-15",
+    "scanTitle": "ภาพโรงอาหารหรือศูนย์อาหาร",
+    "displayText": "Self-service, Please Queue Here, Pick Up Point, Refill Station",
+    "terms": [
+      "Self-service",
+      "Please Queue Here",
+      "Pick Up Point",
+      "Refill Station"
+    ],
+    "experience": "เห็นภาษาอังกฤษในบริบทการบริการและการจัดระเบียบผู้ใช้บริการ",
+    "targetImage": "15_target.jpg"
+  },
+  {
+    "index": 15,
+    "id": "part1-1-16",
+    "scanTitle": "ภาพป้ายรถเมล์/สถานีขนส่ง",
+    "displayText": "Bus Stop, Platform, Next Station, Mind the Gap, Ticket Counter",
+    "terms": [
+      "Bus Stop",
+      "Platform",
+      "Next Station",
+      "Mind the Gap",
+      "Ticket Counter"
+    ],
+    "experience": "เห็นภาษาอังกฤษในบริบทการเดินทางและระบบขนส่งสาธารณะ",
+    "targetImage": "16_target.jpg"
+  },
+  {
+    "index": 16,
+    "id": "part1-1-17",
+    "scanTitle": "ภาพประกาศกิจกรรมในมหาวิทยาลัย",
+    "displayText": "Open House, Registration, Deadline, Workshop, Join Us",
+    "terms": [
+      "Open House",
+      "Registration",
+      "Deadline",
+      "Workshop",
+      "Join Us"
+    ],
+    "experience": "เห็นภาษาอังกฤษในงานประชาสัมพันธ์และกิจกรรมของสถาบัน",
+    "targetImage": "17_target.jpg"
+  },
+  {
+    "index": 17,
+    "id": "part1-1-18",
+    "scanTitle": "ภาพเว็บไซต์หรือแพลตฟอร์มการเรียน",
+    "displayText": "Submit Assignment, Course Materials, Attendance, Quiz, Feedback",
+    "terms": [
+      "Submit Assignment",
+      "Course Materials",
+      "Attendance",
+      "Quiz",
+      "Feedback"
+    ],
+    "experience": "เห็นภาษาอังกฤษในบริบทการเรียนการสอนและระบบการศึกษา",
+    "targetImage": "18_target.jpg"
+  },
+  {
+    "index": 18,
+    "id": "part1-1-19",
+    "scanTitle": "ภาพห้องพยาบาล/ร้านขายยา",
+    "displayText": "For External Use Only, Dosage, Warning, Prescription, Keep Out of Reach of Children",
+    "terms": [
+      "For External Use Only",
+      "Dosage",
+      "Warning",
+      "Prescription",
+      "Keep Out of Reach of Children"
+    ],
+    "experience": "เห็นภาษาอังกฤษในบริบทสุขภาพและคำเตือน",
+    "targetImage": "19_target.jpg"
+  },
+  {
+    "index": 19,
+    "id": "part1-1-20",
+    "scanTitle": "ภาพโรงเรียนหรือห้องเรียนในวิชาชีพครู",
+    "displayText": "Teacher’s Room, Student Affairs, Learning Area, Be Respectful, No Running",
+    "terms": [
+      "Teacher’s Room",
+      "Student Affairs",
+      "Learning Area",
+      "Be Respectful",
+      "No Running"
+    ],
+    "experience": "เห็นภาษาอังกฤษในบริบทวิชาชีพครูและการจัดการสภาพแวดล้อมการเรียนรู้",
+    "targetImage": "20_target.jpg"
+  }
+]

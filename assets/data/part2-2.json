@@ -1,0 +1,331 @@
+[
+  {
+    "index": 0,
+    "scanTarget": "ภาพป้ายหน้าร้านกาแฟ",
+    "displayText": "We are open / We are opened",
+    "terms": [
+      "We are open",
+      "We are opened"
+    ],
+    "targetImage": "01_scan.png"
+  },
+  {
+    "index": 1,
+    "scanTarget": "ภาพป้ายห้องน้ำ",
+    "displayText": "Toilet / Restroom / Bathroom",
+    "terms": [
+      "Toilet",
+      "Restroom",
+      "Bathroom"
+    ],
+    "targetImage": "02_scan.png"
+  },
+  {
+    "index": 2,
+    "scanTarget": "ภาพป้ายหน้าห้องพนักงาน",
+    "displayText": "Staff Only / Teachers Only / Authorized Personnel Only",
+    "terms": [
+      "Staff Only",
+      "Teachers Only",
+      "Authorized Personnel Only"
+    ],
+    "targetImage": "03_scan.png"
+  },
+  {
+    "index": 3,
+    "scanTarget": "ภาพป้ายห้ามอาหารและเครื่องดื่ม",
+    "displayText": "No food and drink / No food or drinks / Food and drinks are not allowed",
+    "terms": [
+      "No food and drink",
+      "No food or drinks",
+      "Food and drinks are not allowed"
+    ],
+    "targetImage": "04_scan.png"
+  },
+  {
+    "index": 4,
+    "scanTarget": "ภาพหน้าจอเข้าสู่ระบบ/สมัครสมาชิก",
+    "displayText": "Sign in / Log in / Register",
+    "terms": [
+      "Sign in",
+      "Log in",
+      "Register"
+    ],
+    "targetImage": "05_scan.png"
+  },
+  {
+    "index": 5,
+    "scanTarget": "ภาพป้ายหน้าร้านอาหาร",
+    "displayText": "Please wait here / Wait here / Please wait to be seated",
+    "terms": [
+      "Please wait here",
+      "Wait here",
+      "Please wait to be seated"
+    ],
+    "targetImage": "06_scan.png"
+  },
+  {
+    "index": 6,
+    "scanTarget": "ภาพป้ายในห้องสมุด",
+    "displayText": "Keep Quiet / Please keep quiet / Silence please",
+    "terms": [
+      "Keep Quiet",
+      "Please keep quiet",
+      "Silence please"
+    ],
+    "targetImage": "07_scan.png"
+  },
+  {
+    "index": 7,
+    "scanTarget": "ภาพบทสนทนาขอบคุณในร้านค้า",
+    "displayText": "Thank you / Thanks / Thanks a lot",
+    "terms": [
+      "Thank you",
+      "Thanks",
+      "Thanks a lot"
+    ],
+    "targetImage": "08_scan.png"
+  },
+  {
+    "index": 8,
+    "scanTarget": "ภาพป้ายเครื่องเสีย",
+    "displayText": "Out of order / Not working / Broken",
+    "terms": [
+      "Out of order",
+      "Not working",
+      "Broken"
+    ],
+    "targetImage": "09_scan.png"
+  },
+  {
+    "index": 9,
+    "scanTarget": "ภาพโต๊ะหรือที่นั่งที่ถูกจอง",
+    "displayText": "Reserved / Taken / Occupied",
+    "terms": [
+      "Reserved",
+      "Taken",
+      "Occupied"
+    ],
+    "targetImage": "10_scan.png"
+  },
+  {
+    "index": 10,
+    "scanTarget": "ภาพจุดลงทะเบียนพร้อม QR code",
+    "displayText": "Please scan the QR code to register / Scan QR code / Register here",
+    "terms": [
+      "Please scan the QR code to register",
+      "Scan QR code",
+      "Register here"
+    ],
+    "targetImage": "11_scan.png"
+  },
+  {
+    "index": 11,
+    "scanTarget": "ภาพหน้าจอรหัสผ่าน",
+    "displayText": "Password must contain at least 8 characters / Use 8 characters / Password too short",
+    "terms": [
+      "Password must contain at least 8 characters",
+      "Use 8 characters",
+      "Password too short"
+    ],
+    "targetImage": "12_scan.png"
+  },
+  {
+    "index": 12,
+    "scanTarget": "ภาพป้ายที่นั่งสำรอง",
+    "displayText": "This seat is reserved for elderly passengers / Priority seat / Reserved seat",
+    "terms": [
+      "This seat is reserved for elderly passengers",
+      "Priority seat",
+      "Reserved seat"
+    ],
+    "targetImage": "13_scan.png"
+  },
+  {
+    "index": 13,
+    "scanTarget": "ภาพประกาศให้แสดงบัตรนักศึกษา",
+    "displayText": "You are required to show your student ID / Please show your student ID / Show your student ID",
+    "terms": [
+      "You are required to show your student ID",
+      "Please show your student ID",
+      "Show your student ID"
+    ],
+    "targetImage": "14_scan.png"
+  },
+  {
+    "index": 14,
+    "scanTarget": "ภาพป้ายปิดซ่อมบำรุง",
+    "displayText": "Sorry, we’re closed for maintenance / Closed for maintenance / Under maintenance",
+    "terms": [
+      "Sorry, we're closed for maintenance",
+      "Closed for maintenance",
+      "Under maintenance"
+    ],
+    "targetImage": "15_scan.png"
+  },
+  {
+    "index": 15,
+    "scanTarget": "ภาพประกาศเลื่อนการประชุม",
+    "displayText": "The meeting has been postponed / We postponed the meeting / Meeting postponed",
+    "terms": [
+      "The meeting has been postponed",
+      "We postponed the meeting",
+      "Meeting postponed"
+    ],
+    "targetImage": "16_scan.png"
+  },
+  {
+    "index": 16,
+    "scanTarget": "ภาพจุดลงทะเบียน/ถามทาง",
+    "displayText": "Excuse me, where is the registration desk? / Where is registration? / Registration desk?",
+    "terms": [
+      "Excuse me, where is the registration desk?",
+      "Where is registration?",
+      "Registration desk?"
+    ],
+    "targetImage": "17_scan.png"
+  },
+  {
+    "index": 17,
+    "scanTarget": "ภาพบทสนทนาในร้านค้า",
+    "displayText": "I’m just looking, thank you / Just looking / No, thanks",
+    "terms": [
+      "I'm just looking, thank you",
+      "Just looking",
+      "No, thanks"
+    ],
+    "targetImage": "18_scan.png"
+  },
+  {
+    "index": 18,
+    "scanTarget": "ภาพการถามเรื่องที่นั่ง",
+    "displayText": "Is this seat taken? / Can I sit here? / Anyone sitting here?",
+    "terms": [
+      "Is this seat taken?",
+      "Can I sit here?",
+      "Anyone sitting here?"
+    ],
+    "targetImage": "19_scan.png"
+  },
+  {
+    "index": 19,
+    "scanTarget": "ภาพบทสนทนาชำระเงิน",
+    "displayText": "How would you like to pay? / Cash or card? / How do you pay?",
+    "terms": [
+      "How would you like to pay?",
+      "Cash or card?",
+      "How do you pay?"
+    ],
+    "targetImage": "20_scan.png"
+  },
+  {
+    "index": 20,
+    "scanTarget": "ภาพป้ายเตือนทางเดิน/สถานี",
+    "displayText": "Mind your step / Be careful / Watch your step",
+    "terms": [
+      "Mind your step",
+      "Be careful",
+      "Watch your step"
+    ],
+    "targetImage": "21_scan.png"
+  },
+  {
+    "index": 21,
+    "scanTarget": "ภาพบริบทอาหารกลับบ้าน/กินที่ร้าน",
+    "displayText": "Take away / To go / Dine in",
+    "terms": [
+      "Take away",
+      "To go",
+      "Dine in"
+    ],
+    "targetImage": "22_scan.png"
+  },
+  {
+    "index": 22,
+    "scanTarget": "ภาพป้ายอาหารสดใหม่",
+    "displayText": "Fresh Today / Freshly made today / It is fresh today",
+    "terms": [
+      "Fresh Today",
+      "Freshly made today",
+      "It is fresh today"
+    ],
+    "targetImage": "23_scan.png"
+  },
+  {
+    "index": 23,
+    "scanTarget": "ภาพป้ายรับสมัครงาน",
+    "displayText": "Now Hiring / We are hiring / Staff wanted",
+    "terms": [
+      "Now Hiring",
+      "We are hiring",
+      "Staff wanted"
+    ],
+    "targetImage": "24_scan.png"
+  },
+  {
+    "index": 24,
+    "scanTarget": "ภาพโฆษณาโปรโมชั่น",
+    "displayText": "Limited Time Offer / Today only / Special promotion",
+    "terms": [
+      "Limited Time Offer",
+      "Today only",
+      "Special promotion"
+    ],
+    "targetImage": "25_scan.png"
+  },
+  {
+    "index": 25,
+    "scanTarget": "ภาพฉลากวันหมดอายุอาหาร",
+    "displayText": "Best Before / Use By / Expiry Date",
+    "terms": [
+      "Best Before",
+      "Use By",
+      "Expiry Date"
+    ],
+    "targetImage": "26_scan.png"
+  },
+  {
+    "index": 26,
+    "scanTarget": "ภาพกล่องพัสดุ/ฉลากขนส่ง",
+    "displayText": "Handle with Care / Handle carefully / Fragile",
+    "terms": [
+      "Handle with Care",
+      "Handle carefully",
+      "Fragile"
+    ],
+    "targetImage": "27_scan.png"
+  },
+  {
+    "index": 27,
+    "scanTarget": "ภาพป้ายใช้ไม่ได้/งดให้บริการ",
+    "displayText": "Out of Order / Temporarily unavailable / Not working",
+    "terms": [
+      "Out of Order",
+      "Temporarily unavailable",
+      "Not working"
+    ],
+    "targetImage": "28_scan.png"
+  },
+  {
+    "index": 28,
+    "scanTarget": "ภาพป้ายพื้นที่เฉพาะสมาชิก/พนักงาน",
+    "displayText": "Members Only / Staff Only / Authorized Users Only",
+    "terms": [
+      "Members Only",
+      "Staff Only",
+      "Authorized Users Only"
+    ],
+    "targetImage": "29_scan.png"
+  },
+  {
+    "index": 29,
+    "scanTarget": "ภาพฉลากผลิตภัณฑ์ใช้ภายนอก",
+    "displayText": "For external use only / Do not swallow / Apply to skin only",
+    "terms": [
+      "For external use only",
+      "Do not swallow",
+      "Apply to skin only"
+    ],
+    "targetImage": "30_scan.png"
+  }
+]

@@ -1,0 +1,134 @@
+{
+  "wheelItems": [
+    "Cambridge Dictionary, Oxford Learner’s Dictionary, Longdo",
+    "British Council, Cambridge Grammar, Grammarly Blog",
+    "ป้าย ฉลาก เมนู หน้าจอแอป โฆษณา",
+    "เว็บไซต์มหาวิทยาลัย สนามบิน โรงพยาบาล ร้านค้า",
+    "YouGlish, Ludwig, ตัวอย่างประโยคจากพจนานุกรม",
+    "YouTube, TikTok, Podcast สั้น, วิดีโอบริการ",
+    "เพื่อน อาจารย์ ผู้สอน เจ้าหน้าที่ เจ้าของภาษา",
+    "ChatGPT, Grammarly, Google Translate, DeepL"
+  ],
+  "items": [
+    {
+      "index": 0,
+      "question": "ทำไมป้ายหน้าร้านจึงนิยมใช้ We are open มากกว่า We are opened?",
+      "scanTarget": "ร้านกาแฟ",
+      "targetImage": "01_scan.png"
+    },
+    {
+      "index": 1,
+      "question": "ทำไมป้ายหน้าร้านอาหารจึงใช้ Please wait to be seated แทน Wait here หรือ Sit here?",
+      "scanTarget": "หน้าร้านอาหาร",
+      "targetImage": "02_scan.png"
+    },
+    {
+      "index": 2,
+      "question": "ในร้านกาแฟ ทำไมพนักงานจึงถามลูกค้าว่า Would you like it hot or iced? แทน Do you want hot or iced?",
+      "scanTarget": "เคาน์เตอร์ร้านกาแฟ",
+      "targetImage": "03_scan.png"
+    },
+    {
+      "index": 3,
+      "question": "เวลาสั่งอาหาร ทำไมลูกค้ามักพูดว่า I’ll have the chicken sandwich, please แทน I want the chicken sandwich?",
+      "scanTarget": "การสั่งอาหารในร้านฟาสต์ฟู้ด",
+      "targetImage": "04_scan.png"
+    },
+    {
+      "index": 4,
+      "question": "ทำไมข้อความในระบบออนไลน์จึงใช้ Your password must contain at least 8 characters แทน Your password has at least 8 characters?",
+      "scanTarget": "หน้าสมัครสมาชิกเว็บไซต์/แอป",
+      "targetImage": "05_scan.png"
+    },
+    {
+      "index": 5,
+      "question": "ทำไมประกาศสอบจึงใช้ You are required to show your student ID แทน You must show your student ID?",
+      "scanTarget": "ประกาศหน้าห้องสอบ",
+      "targetImage": "06_scan.png"
+    },
+    {
+      "index": 6,
+      "question": "คำว่า Toilet, Restroom และ Bathroom เหมาะกับป้ายในมหาวิทยาลัยหรือพื้นที่สาธารณะต่างกันอย่างไร?",
+      "scanTarget": "ป้ายห้องน้ำในมหาวิทยาลัย",
+      "targetImage": "07_scan.png"
+    },
+    {
+      "index": 7,
+      "question": "ในฉลากอาหาร คำว่า Best Before, Use By และ Expiry Date ใช้ต่างกันอย่างไร?",
+      "scanTarget": "ฉลากอาหาร/ขนม",
+      "targetImage": "08_scan.png"
+    },
+    {
+      "index": 8,
+      "question": "บนฉลากเครื่องดื่ม No Added Sugar ต่างจาก No Sugar อย่างไร และทำไมผู้ผลิตจึงเลือกใช้ข้อความนี้?",
+      "scanTarget": "ฉลากเครื่องดื่ม",
+      "targetImage": "09_scan.png"
+    },
+    {
+      "index": 9,
+      "question": "ทำไมป้ายห้ามนำอาหารเข้าอาคารจึงมักใช้ No food or drinks มากกว่า No food and drink?",
+      "scanTarget": "ป้ายหน้าห้องสมุด",
+      "targetImage": "10_scan.png"
+    },
+    {
+      "index": 10,
+      "question": "ในหน้าจอแอปพลิเคชัน Sign in, Log in และ Register ใช้ต่างกันอย่างไร?",
+      "scanTarget": "หน้าเข้าสู่ระบบแอปพลิเคชัน",
+      "targetImage": "11_scan.png"
+    },
+    {
+      "index": 11,
+      "question": "เวลาขอให้อีกฝ่ายพูดช้าลง ทำไมควรพูดว่า Could you speak more slowly, please? มากกว่า Speak slowly?",
+      "scanTarget": "การคุยกับชาวต่างชาติ",
+      "targetImage": "12_scan.png"
+    },
+    {
+      "index": 12,
+      "question": "ในร้านค้า ทำไมประโยค I’m just looking, thank you จึงเหมาะกว่าการตอบสั้น ๆ ว่า No เมื่อพนักงานเข้ามาช่วย?",
+      "scanTarget": "สถานการณ์ในร้านค้าเมื่อพนักงานเข้ามาช่วย",
+      "targetImage": "13_scan.png"
+    },
+    {
+      "index": 13,
+      "question": "ป้ายหน้าห้องหรือพื้นที่เฉพาะควรใช้ Staff Only, Teachers Only หรือ Authorized Personnel Only ต่างกันอย่างไรตามบริบท?",
+      "scanTarget": "ป้ายหน้าห้องพนักงาน",
+      "targetImage": "14_scan.png"
+    },
+    {
+      "index": 14,
+      "question": "คำว่า Reserved, Taken และ Occupied ใช้ต่างกันอย่างไรเมื่อพูดถึงโต๊ะ ที่นั่ง หรือห้อง?",
+      "scanTarget": "ที่นั่งในโรงอาหาร",
+      "targetImage": "15_scan.png"
+    },
+    {
+      "index": 15,
+      "question": "ทำไมคำว่า record ในประโยค Please record your voice กับ I keep a record of attendance จึงออกเสียงเน้นเสียงต่างกัน?",
+      "scanTarget": "ห้องเรียนภาษาอังกฤษเรื่องการออกเสียง",
+      "targetImage": "16_scan.png"
+    },
+    {
+      "index": 16,
+      "question": "ทำไมคำว่า present ในประโยค I will present my work กับ This is a present for you จึงออกเสียงต่างกันและทำหน้าที่ต่างกัน?",
+      "scanTarget": "ห้องเรียนภาษาอังกฤษเรื่องการออกเสียง",
+      "targetImage": "17_scan.png"
+    },
+    {
+      "index": 17,
+      "question": "ในบทสนทนาจริง ทำไมเจ้าของภาษามักออกเสียง going to เป็น gonna และการใช้รูปนี้เหมาะกับบริบทใด?",
+      "scanTarget": "บทสนทนาภาษาอังกฤษในชีวิตประจำวัน",
+      "targetImage": "18_scan.png"
+    },
+    {
+      "index": 18,
+      "question": "ทำไมการขึ้นเสียงท้ายประโยคใน Could you say that again? จึงทำให้ประโยคฟังเหมือนคำขอมากกว่าคำสั่ง?",
+      "scanTarget": "การขอให้พูดซ้ำในการสนทนา",
+      "targetImage": "19_scan.png"
+    },
+    {
+      "index": 19,
+      "question": "ทำไมในบทสนทนาจริงคำว่า Can I…? บางครั้งฟังคล้าย Ken I…? และผู้เรียนควรรู้เรื่องนี้อย่างไรเพื่อฟังภาษาอังกฤษได้ดีขึ้น?",
+      "scanTarget": "บทสนทนาภาษาอังกฤษจริงกับเจ้าของภาษา",
+      "targetImage": "20_scan.png"
+    }
+  ]
+}

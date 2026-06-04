@@ -1,0 +1,94 @@
+{
+  "title": "4.1 Supermarket Vocabulary Game",
+  "scene": "supermarket",
+  "model": "../../assets/models/part4/supermarket.glb",
+  "items": [
+    {
+      "id": 1,
+      "nodeName": "Casher",
+      "shownWord": "Casher",
+      "correctAnswers": [
+        "Cashier"
+      ]
+    },
+    {
+      "id": 2,
+      "nodeName": "Buy 1 Get 1 Free",
+      "shownWord": "Buy 1 Get 1 Free",
+      "correctAnswers": [
+        "Buy 1 Get 1 Free"
+      ]
+    },
+    {
+      "id": 3,
+      "nodeName": "Keep Frozen",
+      "shownWord": "Keep Frozen",
+      "correctAnswers": [
+        "Keep Frozen",
+        "Keep in the freezer"
+      ]
+    },
+    {
+      "id": 4,
+      "nodeName": "_Freshly Made Tody",
+      "shownWord": "Freshly Made Tody",
+      "correctAnswers": [
+        "Freshly Made Today",
+        "Fresh Today"
+      ]
+    },
+    {
+      "id": 5,
+      "nodeName": "Promotion today only",
+      "shownWord": "Promotion today only",
+      "correctAnswers": [
+        "Today Only",
+        "Today's Promotion",
+        "Today’s Promotion"
+      ]
+    },
+    {
+      "id": 6,
+      "nodeName": "Member only",
+      "shownWord": "Member only",
+      "correctAnswers": [
+        "Members Only"
+      ]
+    },
+    {
+      "id": 7,
+      "nodeName": "Open 24 Hour",
+      "shownWord": "Open 24 Hour",
+      "correctAnswers": [
+        "Open 24 Hours"
+      ]
+    },
+    {
+      "id": 8,
+      "nodeName": "Discount 50%",
+      "shownWord": "Discount 50%",
+      "correctAnswers": [
+        "50% Off",
+        "Save 50%"
+      ]
+    },
+    {
+      "id": 9,
+      "nodeName": "New Arrivals",
+      "shownWord": "New Arrivals",
+      "correctAnswers": [
+        "New Arrivals",
+        "New Products Have Arrived"
+      ]
+    },
+    {
+      "id": 10,
+      "nodeName": "Do not touch products",
+      "shownWord": "Do not touch products",
+      "correctAnswers": [
+        "Please Do Not Touch",
+        "Please Do Not Touch the Products"
+      ]
+    }
+  ]
+}
