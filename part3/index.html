@@ -417,10 +417,24 @@
     wheelPanel.classList.add('show');
   }
 
+  function normalizeDegrees(value) {
+    return ((value % 360) + 360) % 360;
+  }
+
+  function getWheelSegmentCount() {
+    return Math.min(FALLBACK_WHEEL_ITEMS.length, Math.max(1, wheelItems.length || FALLBACK_WHEEL_ITEMS.length));
+  }
+
   function selectWheelIndex(rotationDegrees) {
-    const normalized = ((rotationDegrees % 360) + 360) % 360;
-    const pointerAt = (360 - normalized + 360) % 360;
-    return Math.floor(((pointerAt + 22.5) % 360) / 45) % 8;
+    const count = getWheelSegmentCount();
+    const segmentDegrees = 360 / count;
+    const normalized = normalizeDegrees(rotationDegrees);
+
+    // The wheel texture is drawn on a canvas where Y grows downward,
+    // while the A-Frame plane rotates in normal screen coordinates.
+    // Because of that, the visual segment under the top pointer moves
+    // in the same direction as mesh.rotation.z.
+    return Math.floor(((normalized + segmentDegrees / 2) % 360) / segmentDegrees) % count;
   }
 
   function spinWheel(plane) {
@@ -429,10 +443,20 @@
     if (!mesh) return;
 
     isSpinning = true;
+
+    const count = getWheelSegmentCount();
+    const segmentDegrees = 360 / count;
+    const selectedTargetIndex = Math.floor(Math.random() * count);
+
     const startRotation = THREE.MathUtils.radToDeg(mesh.rotation.z || 0);
+    const currentNormalized = normalizeDegrees(startRotation);
+
+    // Stop with the selected segment centered directly under the top pointer.
+    const targetNormalized = selectedTargetIndex * segmentDegrees;
+    const deltaToTarget = normalizeDegrees(targetNormalized - currentNormalized);
     const extraTurns = 5 + Math.floor(Math.random() * 3);
-    const randomStop = Math.floor(Math.random() * 360);
-    const endRotation = startRotation + extraTurns * 360 + randomStop;
+    const endRotation = startRotation + extraTurns * 360 + deltaToTarget;
+
     const duration = 2200;
     const startTime = performance.now();
 
@@ -451,6 +475,7 @@
         return;
       }
 
+      mesh.rotation.z = THREE.MathUtils.degToRad(endRotation);
       const selectedIndex = selectWheelIndex(endRotation);
       wheelResult.textContent = wheelItems[selectedIndex] || FALLBACK_WHEEL_ITEMS[selectedIndex] || 'Mission selected';
       showResourceLink(selectedIndex);
