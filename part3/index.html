@@ -23,7 +23,7 @@
     <a id="resourceLink" class="wheel-resource-link" href="#" target="_blank" rel="noopener" aria-label="Open resource">
       <span id="resourceLabel">Open</span> <span aria-hidden="true">→</span>
     </a>
-    <div class="wheel-hint">Tap the wheel or tap the camera view to spin</div>
+    <div class="wheel-hint">Tap the wheel to spin</div>
   </div>
 
   <div id="start" class="ar-start">
@@ -35,7 +35,7 @@
         1. กด Start Camera แล้วอนุญาตกล้อง<br>
         2. สแกนภาพเป้าหมาย<br>
         3. อ่านคำถามที่แสดงบนหน้าจอ<br>
-        4. แตะวงล้อเพื่อสุ่มภารกิจ
+        4. แตะที่วงล้อเพื่อสุ่มภารกิจ
       </div>
       <button id="startBtn" class="ar-start-btn" type="button"
         style="background:#c084fc;color:#230a3b;width:100%;box-shadow:0 12px 30px rgba(168,85,247,.32)">
@@ -210,6 +210,18 @@
     return { texture, aspect: width / height };
   }
 
+  function makeTwoLineWheelLabel(label) {
+    const text = cleanText(label).replace(/\s*\/\s*/g, '\n');
+    if (text.includes('\n')) return text.split('\n').map(cleanText).filter(Boolean).slice(0, 2);
+
+    const words = text.split(' ').filter(Boolean);
+    if (words.length <= 1) return [text];
+    if (words.length === 2) return words;
+
+    const middle = Math.ceil(words.length / 2);
+    return [words.slice(0, middle).join(' '), words.slice(middle).join(' ')].filter(Boolean);
+  }
+
   function drawWheelLabel(ctx, label, x, y, angle, fontSize) {
     ctx.save();
     ctx.translate(x, y);
@@ -219,17 +231,17 @@
     ctx.textBaseline = 'middle';
     ctx.lineJoin = 'round';
 
-    const lines = String(label || '').replace(/,\s*/g, '\n').split('\n').filter(Boolean).slice(0, 2);
-    const lineHeight = fontSize * 1.22;
+    const lines = makeTwoLineWheelLabel(label);
+    const lineHeight = fontSize * 1.08;
     const startY = -((lines.length - 1) * lineHeight) / 2;
 
     lines.forEach((line, i) => {
-      const y = startY + i * lineHeight;
-      ctx.lineWidth = 12;
+      const yy = startY + i * lineHeight;
+      ctx.lineWidth = 10;
       ctx.strokeStyle = 'rgba(2,6,23,.88)';
-      ctx.strokeText(line, 0, y);
+      ctx.strokeText(line, 0, yy);
       ctx.fillStyle = '#ffffff';
-      ctx.fillText(line, 0, y);
+      ctx.fillText(line, 0, yy);
     });
 
     ctx.restore();
@@ -265,10 +277,10 @@
       ctx.stroke();
 
       const mid = start + segment / 2;
-      const labelRadius = size * 0.335;
+      const labelRadius = size * 0.285;
       let angle = mid + Math.PI / 2;
       if (angle > Math.PI / 2 && angle < Math.PI * 1.5) angle += Math.PI;
-      drawWheelLabel(ctx, FALLBACK_WHEEL_ITEMS[i] || String(i + 1), cx + Math.cos(mid) * labelRadius, cy + Math.sin(mid) * labelRadius, angle, 44);
+      drawWheelLabel(ctx, FALLBACK_WHEEL_ITEMS[i] || String(i + 1), cx + Math.cos(mid) * labelRadius, cy + Math.sin(mid) * labelRadius, angle, 40);
     });
 
     ctx.beginPath();
@@ -343,8 +355,8 @@
     texture.magFilter = THREE.LinearFilter;
 
     const plane = document.createElement('a-plane');
-    plane.setAttribute('geometry', 'primitive: plane; width: 0.32; height: 0.26');
-    plane.setAttribute('position', '0 0.44 0.04');
+    plane.setAttribute('geometry', 'primitive: plane; width: 0.18; height: 0.15');
+    plane.setAttribute('position', '0 0.36 0.04');
     plane.setAttribute('material', 'shader: flat; transparent: true; alphaTest: 0.02; side: double; depthTest: false; depthWrite: false');
     plane.addEventListener('loaded', () => {
       const mesh = plane.getObject3D('mesh');
@@ -371,10 +383,18 @@
       mesh.material.transparent = true;
       mesh.material.needsUpdate = true;
     });
-    plane.addEventListener('click', event => {
-      event.stopPropagation();
+    const spinFromWheel = event => {
+      if (event) {
+        event.preventDefault?.();
+        event.stopPropagation?.();
+      }
+      activeWheelPlane = plane;
       spinWheel(plane);
-    });
+    };
+
+    plane.addEventListener('click', spinFromWheel);
+    plane.addEventListener('touchend', spinFromWheel, { passive: false });
+    plane.addEventListener('pointerup', spinFromWheel);
     return plane;
   }
 
@@ -514,9 +534,43 @@
     }
   }
 
+  function isTapNearWheel(event) {
+    const point = event.changedTouches ? event.changedTouches[0] : event;
+    if (!point) return false;
+
+    const viewportW = window.innerWidth || document.documentElement.clientWidth || 1;
+    const viewportH = window.innerHeight || document.documentElement.clientHeight || 1;
+    const dx = point.clientX - viewportW / 2;
+    const dy = point.clientY - viewportH / 2;
+    const radius = Math.min(viewportW, viewportH) * 0.34;
+
+    return Math.sqrt(dx * dx + dy * dy) <= radius;
+  }
+
+  function shouldIgnoreTap(event) {
+    const target = event.target;
+    return !!(target && target.closest && target.closest('.ar-topbar, .wheel-panel, .ar-start'));
+  }
+
+  function handleWheelAreaTap(event) {
+    if (!activeWheelPlane || !activeItem || isSpinning) return;
+    if (shouldIgnoreTap(event)) return;
+    if (!isTapNearWheel(event)) return;
+
+    event.preventDefault?.();
+    spinWheel(activeWheelPlane);
+  }
+
   startBtn.addEventListener('click', startAR);
-  scene.addEventListener('click', () => {
-    if (activeWheelPlane) spinWheel(activeWheelPlane);
+  scene.addEventListener('click', handleWheelAreaTap);
+  scene.addEventListener('touchend', handleWheelAreaTap, { passive: false });
+  scene.addEventListener('pointerup', handleWheelAreaTap);
+
+  scene.addEventListener('loaded', () => {
+    if (!scene.canvas) return;
+    scene.canvas.addEventListener('click', handleWheelAreaTap);
+    scene.canvas.addEventListener('touchend', handleWheelAreaTap, { passive: false });
+    scene.canvas.addEventListener('pointerup', handleWheelAreaTap);
   });
   </script>
 </body>
