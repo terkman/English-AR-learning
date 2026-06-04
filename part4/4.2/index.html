@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html class="game-html" lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover, user-scalable=no" />
+  <title>4.2 School Vocabulary Game</title>
+  <link rel="stylesheet" href="../../style.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;900&family=Space+Mono:wght@700&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+</head>
+<body class="game-page">
+
+  <div id="app"></div>
+
+  <div class="game-topbar">
+    <a class="top-back" href="../" aria-label="Back to Part 4">← Part 4</a>
+    <div id="status" class="top-status" style="color:#18052b;background:#c084fc;box-shadow:0 8px 30px rgba(192,132,252,.2)">Loading</div>
+  </div>
+
+  <div class="game-help" aria-hidden="true">หมุน/ซูมฉากได้ · แตะป้ายหรือเลือกรายการด้านขวาเพื่อแก้คำ</div>
+
+  <div class="word-list" role="complementary" aria-label="Words to check">
+    <h3>Words to Check</h3>
+    <div id="wordButtons"></div>
+  </div>
+
+  <div class="game-hud">
+    <div class="progress-card">
+      <div class="progress-title">Progress</div>
+      <div id="progressText" class="progress-text">0 / 10 confirmed</div>
+    </div>
+    <button id="submitBtn" class="submit-btn" type="button" disabled aria-label="Submit answers">Submit</button>
+  </div>
+
+  <div id="loader" class="game-loader" role="status" aria-label="Loading 3D model">
+    <div class="game-loader-card">
+      <h1>4.2 School Vocabulary Game</h1>
+      <p>กำลังโหลด 3D model โปรดรอสักครู่…</p>
+      <div class="load-bar"><span id="barFill" class="load-bar-fill"></span></div>
+      <p id="loadText">0%</p>
+    </div>
+  </div>
+
+  <div id="editModal" class="modal-overlay" role="dialog" aria-modal="true" aria-label="Edit vocabulary word">
+    <div class="modal-box">
+      <h2>Edit Word</h2>
+      <p>ถ้าคิดว่าคำนี้สะกดผิด ให้แก้ไขแล้วกด Confirm</p>
+      <input id="editInput" class="modal-input" autocomplete="off" spellcheck="false"
+        aria-label="Enter corrected word" />
+      <div class="modal-actions">
+        <button id="cancelBtn" class="modal-btn modal-btn-ghost" type="button">Cancel</button>
+        <button id="saveBtn"   class="modal-btn modal-btn-primary" type="button">Confirm</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="scoreModal" class="modal-overlay" role="dialog" aria-modal="true" aria-label="Your score">
+    <div class="modal-box">
+      <h2>Your Score</h2>
+      <div id="scoreText" class="score-display">0 / 10</div>
+      <p style="text-align:center;color:#94a3b8">ระบบแสดงเฉพาะคะแนนรวม ไม่บอกรายข้อ</p>
+      <div class="modal-actions">
+        <button id="closeScoreBtn" class="modal-btn modal-btn-primary" type="button">OK</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="../../script.js"></script>
+  <script>
+    'use strict';
+    const DATA_URL = '../../assets/data/part4-2.json';
+
+    const appEl        = document.getElementById('app');
+    const statusEl     = document.getElementById('status');
+    const loaderEl     = document.getElementById('loader');
+    const barFill      = document.getElementById('barFill');
+    const loadText     = document.getElementById('loadText');
+    const wordButtons  = document.getElementById('wordButtons');
+    const progressText = document.getElementById('progressText');
+    const submitBtn    = document.getElementById('submitBtn');
+    const editModal    = document.getElementById('editModal');
+    const editInput    = document.getElementById('editInput');
+    const cancelBtn    = document.getElementById('cancelBtn');
+    const saveBtn      = document.getElementById('saveBtn');
+    const scoreModal   = document.getElementById('scoreModal');
+    const scoreText    = document.getElementById('scoreText');
+    const closeScoreBtn = document.getElementById('closeScoreBtn');
+
+    let data        = null;
+    let activeItem  = null;
+    const answers   = {};
+    const confirmed = new Set();
+    const sprites   = [];
+    const spriteById    = {};
+    const hitSpriteById = {};
+    const missingNodes  = [];
+    const createdLabels = [];
+
+    const scene    = new THREE.Scene();
+    scene.background = new THREE.Color(0x07111f);
+    const camera   = new THREE.PerspectiveCamera(50, innerWidth / innerHeight, 0.01, 1000);
+    camera.position.set(6, 4, 8);
+    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false, powerPreference: 'high-performance' });
+    renderer.setSize(innerWidth, innerHeight);
+    renderer.setPixelRatio(Math.min(devicePixelRatio || 1, 1.5));
+    appEl.appendChild(renderer.domElement);
+
+    const controls = new THREE.OrbitControls(camera, renderer.domElement);
+    controls.enableDamping  = true;
+    controls.dampingFactor   = 0.08;
+    controls.minDistance     = 1.5;
+    controls.maxDistance     = 28;
+
+    scene.add(new THREE.HemisphereLight(0xffffff, 0x334155, 1.3));
+    const dir = new THREE.DirectionalLight(0xffffff, 1.2);
+    dir.position.set(4, 8, 5);
+    scene.add(dir);
+
+    const raycaster = new THREE.Raycaster();
+    const pointer   = new THREE.Vector2();
+
+    function setStatus(text) { statusEl.textContent = text; }
+
+    function normalize(text) {
+      return String(text || '').toLowerCase()
+        .replace(/[']/g, "'").replace(/[–—]/g, '-')
+        .replace(/[.,!?]/g, '').replace(/\s+/g, ' ').trim();
+    }
+
+    function isCorrect(item, answer) {
+      const a = normalize(answer);
+      return item.correctAnswers.some(v => normalize(v) === a);
+    }
+
+    function showLoadError(message) {
+      loaderEl.innerHTML = `
+        <div class="game-loader-card">
+          <h1>⚠️ Load Error</h1>
+          <p style="color:#fca5a5">${message}</p>
+          <p>Please reload the page and try again.</p>
+          <div class="modal-actions" style="margin-top:16px;justify-content:center">
+            <button onclick="location.reload()" class="modal-btn modal-btn-primary">Reload</button>
+          </div>
+        </div>`;
+    }
+
+    function roundRect(ctx, x, y, w, h, r) {
+      ctx.beginPath();
+      ctx.moveTo(x + r, y); ctx.arcTo(x + w, y, x + w, y + h, r);
+      ctx.arcTo(x + w, y + h, x, y + h, r); ctx.arcTo(x, y + h, x, y, r);
+      ctx.arcTo(x, y, x + w, y, r); ctx.closePath();
+    }
+
+    function makeLabelTexture(text, done = false) {
+      const canvas = document.createElement('canvas');
+      const ctx    = canvas.getContext('2d');
+      const label  = String(text || '').trim();
+      let fontSize = 54;
+      if (label.length > 16) fontSize = 46;
+      if (label.length > 24) fontSize = 38;
+      if (label.length > 32) fontSize = 32;
+      ctx.font = `900 ${fontSize}px system-ui, sans-serif`;
+      const padX = 38, padY = 24;
+      const metrics = ctx.measureText(label);
+      canvas.width  = Math.max(360, Math.ceil(metrics.width + padX * 2));
+      canvas.height = fontSize + padY * 2;
+      ctx.font        = `900 ${fontSize}px system-ui, sans-serif`;
+      ctx.fillStyle   = done ? 'rgba(22,101,52,.94)'   : 'rgba(15,23,42,.94)';
+      ctx.strokeStyle = done ? 'rgba(134,239,172,.98)' : 'rgba(251,191,36,.98)';
+      ctx.lineWidth   = 8;
+      roundRect(ctx, 4, 4, canvas.width - 8, canvas.height - 8, 24);
+      ctx.fill(); ctx.stroke();
+      ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.lineJoin = 'round';
+      ctx.shadowColor = 'rgba(0,0,0,.55)'; ctx.shadowBlur = 8;
+      ctx.shadowOffsetX = 3; ctx.shadowOffsetY = 4;
+      ctx.lineWidth = Math.max(6, Math.round(fontSize * .14));
+      ctx.strokeStyle = 'rgba(2,6,23,.96)';
+      ctx.strokeText(label, canvas.width / 2, canvas.height / 2 + 2);
+      ctx.shadowBlur = ctx.shadowOffsetX = ctx.shadowOffsetY = 0;
+      ctx.fillStyle = '#ffffff';
+      ctx.fillText(label, canvas.width / 2, canvas.height / 2 + 2);
+      const texture = new THREE.CanvasTexture(canvas);
+      texture.minFilter = texture.magFilter = THREE.LinearFilter;
+      texture.needsUpdate = true;
+      return { texture, aspect: canvas.width / canvas.height };
+    }
+
+    function updateSprite(item) {
+      const sprite = spriteById[item.id]; if (!sprite) return;
+      const made   = makeLabelTexture(answers[item.id] || item.shownWord, confirmed.has(item.id));
+      if (sprite.material.map) sprite.material.map.dispose();
+      sprite.material.map = made.texture; sprite.material.needsUpdate = true;
+      const base = sprite.userData.baseScale || 1;
+      sprite.scale.set(base * made.aspect, base, 1);
+      const hit = hitSpriteById[item.id];
+      if (hit) hit.scale.set(base * made.aspect * 1.35, base * 1.65, 1);
+    }
+
+    function openEditor(item) {
+      activeItem = item; editInput.value = answers[item.id] || item.shownWord;
+      editModal.classList.add('show');
+      setTimeout(() => { editInput.focus(); editInput.select(); }, 80);
+    }
+    function closeEditor() { activeItem = null; editModal.classList.remove('show'); }
+    function saveAnswer() {
+      if (!activeItem) return;
+      answers[activeItem.id] = editInput.value.trim() || activeItem.shownWord;
+      confirmed.add(activeItem.id);
+      updateSprite(activeItem); renderWordButtons(); updateProgress(); closeEditor();
+    }
+
+    function renderWordButtons() {
+      wordButtons.innerHTML = '';
+      data.items.forEach(item => {
+        const btn = document.createElement('button');
+        btn.className   = 'word-btn' + (confirmed.has(item.id) ? ' done' : '');
+        btn.textContent = `${item.id}. ${answers[item.id] || item.shownWord}`;
+        btn.setAttribute('aria-label', `Edit word ${item.id}: ${answers[item.id] || item.shownWord}`);
+        btn.onclick = () => openEditor(item);
+        wordButtons.appendChild(btn);
+      });
+    }
+
+    function updateProgress() {
+      progressText.textContent = `${confirmed.size} / ${data.items.length} confirmed`;
+      submitBtn.disabled        = confirmed.size !== data.items.length;
+    }
+
+    function submitScore() {
+      if (confirmed.size !== data.items.length) { alert('Please confirm all words first.'); return; }
+      let score = 0;
+      data.items.forEach(item => { if (isCorrect(item, answers[item.id] || item.shownWord)) score++; });
+      scoreText.textContent = `${score} / ${data.items.length}`;
+      scoreModal.classList.add('show');
+      try {
+        localStorage.setItem('part4-2-score', JSON.stringify({
+          score, total: data.items.length, date: new Date().toISOString()
+        }));
+      } catch {}
+    }
+
+    function normalizeNode(text) {
+      return String(text || '').toLowerCase()
+        .replace(/^_+/, '').replace(/['']/g, '')
+        .replace(/[_\-–—]+/g, ' ').replace(/[.,!?%]/g, '')
+        .replace(/\s+/g, ' ').trim();
+    }
+
+    function findObjectByName(root, name) {
+      const want = normalizeNode(name); let exact = null, contains = null;
+      root.traverse(o => {
+        if (exact) return;
+        const n = normalizeNode(o.name); if (!n) return;
+        if (n === want) { exact = o; return; }
+        if (!contains && (n.includes(want) || want.includes(n))) contains = o;
+      });
+      return exact || contains;
+    }
+
+    function hideObject(obj) {
+      obj.traverse(o => { if (o.isMesh) { o.visible = false; if (o.material) o.material.needsUpdate = true; } });
+      obj.visible = false;
+    }
+
+    function getObjectLocalCenter(root, obj, item) {
+      root.updateMatrixWorld(true);
+      let box = new THREE.Box3().setFromObject(obj);
+      if (!isFinite(box.min.x) || box.isEmpty()) {
+        const wp = new THREE.Vector3(); obj.getWorldPosition(wp); return root.worldToLocal(wp);
+      }
+      const center = box.getCenter(new THREE.Vector3());
+      const size   = box.getSize(new THREE.Vector3());
+      center.y += Math.max(size.y * 0.38, 0.10);
+      const camDir = new THREE.Vector3();
+      camera.getWorldPosition(camDir); camDir.sub(center).normalize();
+      center.add(camDir.multiplyScalar(Math.max(size.length() * 0.03, 0.06)));
+      const local = root.worldToLocal(center.clone());
+      if (Array.isArray(item.offset)) {
+        local.x += Number(item.offset[0] || 0);
+        local.y += Number(item.offset[1] || 0);
+        local.z += Number(item.offset[2] || 0);
+      }
+      return local;
+    }
+
+    function createEditableLabel(root, obj, item) {
+      const local = getObjectLocalCenter(root, obj, item);
+      const made  = makeLabelTexture(item.shownWord, false);
+      const mat   = new THREE.SpriteMaterial({ map: made.texture, transparent: true, depthTest: false, depthWrite: false, sizeAttenuation: true });
+      const sprite = new THREE.Sprite(mat);
+      sprite.position.copy(local);
+      const base = Number(item.scale || 0.78);
+      sprite.userData = { itemId: item.id, baseScale: base, nodeName: item.nodeName, isEditableLabel: true };
+      sprite.scale.set(base * made.aspect, base, 1); sprite.renderOrder = 9999;
+      root.add(sprite);
+      const hitMat    = new THREE.SpriteMaterial({ color: 0xffffff, transparent: true, opacity: 0.001, depthTest: false, depthWrite: false, sizeAttenuation: true });
+      const hitSprite = new THREE.Sprite(hitMat);
+      hitSprite.position.copy(local);
+      hitSprite.scale.set(base * made.aspect * 1.35, base * 1.65, 1);
+      hitSprite.userData = { itemId: item.id, isHitArea: true, labelSprite: sprite, nodeName: item.nodeName };
+      hitSprite.renderOrder = 9998; root.add(hitSprite);
+      sprites.push(hitSprite, sprite);
+      spriteById[item.id] = sprite; hitSpriteById[item.id] = hitSprite;
+      createdLabels.push(item.nodeName); hideObject(obj);
+    }
+
+    function updateDebugLabels() {
+      const total = data && data.items ? data.items.length : 0;
+      console.log(`[Part 4.2] Labels: ${createdLabels.length} / ${total}` + (missingNodes.length ? ` | Missing: ${missingNodes.join(', ')}` : ''));
+    }
+
+    function onPointerDown(event) {
+      const rect = renderer.domElement.getBoundingClientRect();
+      pointer.x  = ((event.clientX - rect.left) / rect.width)  * 2 - 1;
+      pointer.y  = -((event.clientY - rect.top)  / rect.height) * 2 + 1;
+      raycaster.setFromCamera(pointer, camera);
+      const hits = raycaster.intersectObjects(sprites, false);
+      if (hits.length) {
+        const item = data.items.find(v => v.id === hits[0].object.userData.itemId);
+        if (item) { openEditor(item); event.preventDefault(); }
+      }
+    }
+
+    function centerModel(root) {
+      const box    = new THREE.Box3().setFromObject(root);
+      const center = box.getCenter(new THREE.Vector3());
+      const size   = box.getSize(new THREE.Vector3());
+      const scale  = 8 / Math.max(size.x, size.y, size.z);
+      root.scale.setScalar(scale);
+      root.position.set(-center.x * scale, -center.y * scale, -center.z * scale);
+      camera.position.set(6, Math.max(3, size.y * scale * 0.55 + 2), 9);
+      controls.target.set(0, 0, 0); controls.update();
+    }
+
+    async function init() {
+      try {
+        data = await fetch(DATA_URL).then(r => {
+          if (!r.ok) throw new Error('Cannot load data: ' + DATA_URL);
+          return r.json();
+        });
+        document.title = data.title || '4.2 School Vocabulary Game';
+        renderWordButtons(); updateProgress();
+
+        const modelUrl = new URL(data.model, location.href).href;
+        loadText.textContent = 'Starting model download…';
+
+        let loadStarted = false;
+        const stuckTimer = setTimeout(() => {
+          if (!loadStarted) showLoadError('Model download did not start. Check model path or network.');
+        }, 12000);
+
+        const loader = new THREE.GLTFLoader();
+        loader.load(modelUrl, gltf => {
+          clearTimeout(stuckTimer);
+          const root = gltf.scene;
+          scene.add(root); root.updateMatrixWorld(true);
+          data.items.forEach(item => {
+            answers[item.id] = item.shownWord;
+            const obj = findObjectByName(root, item.nodeName);
+            if (obj) createEditableLabel(root, obj, item);
+            else { console.warn('Missing node:', item.nodeName); missingNodes.push(item.nodeName); }
+          });
+          updateDebugLabels(); centerModel(root);
+          loaderEl.style.display = 'none';
+          setStatus('Ready — tap a label to edit');
+        }, xhr => {
+          loadStarted = true; clearTimeout(stuckTimer);
+          if (xhr.total) {
+            const pct = Math.max(1, Math.round(xhr.loaded / xhr.total * 100));
+            barFill.style.width = pct + '%'; loadText.textContent = pct + '%';
+          } else {
+            loadText.textContent = `${Math.round(xhr.loaded / 1024 / 1024)} MB loaded`;
+            barFill.style.width  = '35%';
+          }
+        }, err => { clearTimeout(stuckTimer); console.error(err); showLoadError('Model load failed. Please reload.'); });
+      } catch (error) {
+        showLoadError(error.message || 'Page init failed');
+      }
+    }
+
+    function animate() { requestAnimationFrame(animate); controls.update(); renderer.render(scene, camera); }
+
+    window.addEventListener('resize', () => {
+      camera.aspect = innerWidth / innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(innerWidth, innerHeight);
+    });
+
+    renderer.domElement.addEventListener('pointerdown', onPointerDown);
+    cancelBtn.addEventListener('click', closeEditor);
+    saveBtn.addEventListener('click', saveAnswer);
+    editInput.addEventListener('keydown', e => {
+      if (e.key === 'Enter') saveAnswer();
+      if (e.key === 'Escape') closeEditor();
+    });
+    submitBtn.addEventListener('click', submitScore);
+    closeScoreBtn.addEventListener('click', () => scoreModal.classList.remove('show'));
+
+    animate();
+    init();
+  </script>
+</body>
+</html>

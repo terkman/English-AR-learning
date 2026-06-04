@@ -1,0 +1,542 @@
+<!DOCTYPE html>
+<html class="ar-html" lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover, user-scalable=no" />
+  <title>Part 3.1 — Source Wheel</title>
+  <link rel="stylesheet" href="../style.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;900&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/aframe@1.4.2/dist/aframe.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
+</head>
+<body class="ar-page">
+
+  <div class="ar-topbar">
+    <a class="ar-back" href="../index.html" aria-label="Back to Home">← Home</a>
+    <div id="status" class="ar-status" aria-live="polite">Ready</div>
+  </div>
+
+  <!-- Wheel panel -->
+  <div id="wheelPanel" class="wheel-panel" role="complementary" aria-label="Source wheel result">
+    <div class="wheel-q-label">Question</div>
+    <div id="popupQuestion" class="wheel-question"></div>
+    <div class="wheel-result-label">Selected Source</div>
+    <div id="wheelResult" class="wheel-result">Tap the wheel to spin</div>
+    <!-- Resource link — shown after wheel stops on a linkable source -->
+    <a id="resourceLink" class="wheel-resource-link" href="#" target="_blank" rel="noopener" aria-label="Open resource">
+      <span id="resourceLabel">Open</span> <span aria-hidden="true">→</span>
+    </a>
+    <div class="wheel-hint">Tap the wheel or tap the camera view to spin</div>
+  </div>
+
+  <!-- Start screen -->
+  <div id="start" class="ar-start">
+    <div class="ar-start-card">
+      <h1>Part 3.1 Source Wheel</h1>
+      <p class="ar-desc">สแกนภาพเพื่อดูคำถาม AR เต็มรูปแบบ แล้วหมุนวงล้อเลือกแหล่งข้อมูลสำหรับตอบ</p>
+      <div class="ar-instructions">
+        <strong>วิธีใช้:</strong><br>
+        1. กด Start Camera แล้วอนุญาตกล้อง<br>
+        2. จ่อกล้องไปที่ภาพเป้าหมาย<br>
+        3. คำถามและวงล้อจะปรากฏ<br>
+        4. แตะวงล้อหรือแตะหน้าจอเพื่อหมุน
+      </div>
+      <button id="startBtn" class="ar-start-btn" type="button"
+        style="background:#c084fc;color:#230a3b;width:100%;box-shadow:0 12px 30px rgba(168,85,247,.32)">
+        Start Camera
+      </button>
+      <p class="ar-hint">เหมาะกับ mobile Chrome / Safari</p>
+      <div id="error" class="ar-error" role="alert"></div>
+    </div>
+  </div>
+
+  <a-scene
+    id="scene"
+    cursor="rayOrigin: mouse; fuse: false"
+    raycaster="objects: .clickable"
+    mindar-image="imageTargetSrc: ../assets/targets/part3-1.mind; autoStart: false; maxTrack: 1; uiLoading: no; uiScanning: no; uiError: no; filterMinCF: 0.001; filterBeta: 0.01"
+    color-space="sRGB"
+    renderer="colorManagement: true; physicallyCorrectLights: true; antialias: true; alpha: true"
+    vr-mode-ui="enabled: false"
+    device-orientation-permission-ui="enabled: false"
+    embedded>
+    <a-camera position="0 0 0" look-controls="enabled: false"
+      cursor="rayOrigin: mouse; fuse: false" raycaster="objects: .clickable"></a-camera>
+    <a-entity light="type: ambient; intensity: 1.35"></a-entity>
+    <a-entity light="type: directional; intensity: 0.9" position="0 1 1"></a-entity>
+  </a-scene>
+
+  <script src="../script.js"></script>
+  <script>
+    'use strict';
+
+    // ----------------------------------------------------------------
+    // Resource links per wheel segment index (0-7)
+    // ----------------------------------------------------------------
+    const RESOURCE_LINKS = [
+      { label: '🔍 Open Dictionary',    url: 'https://dictionary.cambridge.org/' },
+      { label: '📚 Open Grammar Guide', url: 'https://learnenglish.britishcouncil.org/grammar' },
+      { label: null, url: null },  // Real Texts — physical signs, no link
+      { label: null, url: null },  // Official Sites — variable
+      { label: '🎧 Open YouGlish',      url: 'https://youglish.com/' },
+      { label: '▶️ Open YouTube',       url: 'https://www.youtube.com/' },
+      { label: null, url: null },  // People / Teachers — no link
+      { label: '🤖 Open AI Tools',      url: 'https://chat.openai.com/' },
+    ];
+
+    const WHEEL_LABELS = [
+      'Dictionary\nLongdo',
+      'Grammar\nGuide',
+      'Real\nTexts',
+      'Official\nSites',
+      'Sentence\nExamples',
+      'Videos\nPodcast',
+      'People\nTeachers',
+      'AI\nTools',
+    ];
+
+    const DATA_URL = '../assets/data/part3-1.json';
+    const MIND_URL = '../assets/targets/part3-1.mind';
+
+    const scene          = document.getElementById('scene');
+    const startEl        = document.getElementById('start');
+    const startBtn       = document.getElementById('startBtn');
+    const errorEl        = document.getElementById('error');
+    const statusEl       = document.getElementById('status');
+    const wheelPanel     = document.getElementById('wheelPanel');
+    const wheelResult    = document.getElementById('wheelResult');
+    const popupQuestion  = document.getElementById('popupQuestion');
+    const resourceLink   = document.getElementById('resourceLink');
+    const resourceLabel  = document.getElementById('resourceLabel');
+
+    let sourceData    = null;
+    let items         = [];
+    let wheelItems    = [];
+    let dataReady     = false;
+    let targetsBuilt  = false;
+    let activeItem    = null;
+    let wheelRotation = 0;
+    let isSpinning    = false;
+    let activeWheelPlane = null;
+    const foundTargets = new Set();
+
+    function setStatus(text, found = false) {
+      statusEl.textContent = text;
+      statusEl.classList.toggle('found', !!found);
+    }
+    function showError(msg) { errorEl.style.display = 'block'; errorEl.textContent = msg; }
+    function cleanText(v) { return String(v || '').replace(/\s+/g, ' ').trim(); }
+
+    // ----------------------------------------------------------------
+    // Thai text segmentation for canvas word-wrapping
+    // ----------------------------------------------------------------
+    function isLatinToken(token) {
+      return /^[A-Za-z0-9][A-Za-z0-9''?.!,;:()/-]*$/.test(token);
+    }
+
+    function segmentThai(text) {
+      if (typeof Intl !== 'undefined' && Intl.Segmenter) {
+        try {
+          const seg = new Intl.Segmenter('th', { granularity: 'word' });
+          return Array.from(seg.segment(text)).map(p => p.segment).filter(Boolean);
+        } catch {}
+      }
+      return Array.from(text);
+    }
+
+    function splitLongToken(ctx, token, maxW) {
+      const parts = /[ก-๙]/.test(token) ? segmentThai(token) : Array.from(token);
+      const pieces = []; let line = '';
+      parts.forEach(p => {
+        const c = line + p;
+        if (ctx.measureText(c).width > maxW && line) { pieces.push(line); line = p; }
+        else { line = c; }
+      });
+      if (line) pieces.push(line);
+      return pieces;
+    }
+
+    function tokenizeForWrap(text) {
+      const raw = String(text || '').replace(/\s+/g, ' ').trim().split(' ').filter(Boolean);
+      const tokens = []; let latin = [];
+      const flushLatin = () => { if (latin.length) { tokens.push(latin.join(' ')); latin = []; } };
+      raw.forEach(token => {
+        if (isLatinToken(token)) { latin.push(token); if (latin.length >= 4) flushLatin(); }
+        else { flushLatin(); tokens.push(token); }
+      });
+      flushLatin();
+      return tokens;
+    }
+
+    function wrapCanvasText(ctx, text, maxW) {
+      const tokens = tokenizeForWrap(text);
+      const lines = []; let line = '';
+      tokens.forEach(token => {
+        const candidate = line ? line + ' ' + token : token;
+        if (ctx.measureText(candidate).width > maxW) {
+          if (line) { lines.push(line); line = ''; }
+          const parts = splitLongToken(ctx, token, maxW);
+          parts.forEach((part, i) => { if (i < parts.length - 1) lines.push(part); else line = part; });
+        } else { line = candidate; }
+      });
+      if (line) lines.push(line);
+      return lines;
+    }
+
+    // ----------------------------------------------------------------
+    // Question texture (canvas → AR plane)
+    // ----------------------------------------------------------------
+    function makeQuestionTexture(text) {
+      const canvas = document.createElement('canvas');
+      const ctx    = canvas.getContext('2d');
+      const W      = 2200;
+      const pad    = 60;
+      const fontSize = 68;
+      const lineH    = Math.round(fontSize * 1.32);
+
+      ctx.font = `800 ${fontSize}px system-ui, -apple-system, sans-serif`;
+      const lines = wrapCanvasText(ctx, String(text || ''), W - pad * 2).slice(0, 8);
+      const H     = Math.max(180, lines.length * lineH + pad * 2);
+      canvas.width = W; canvas.height = H;
+
+      ctx.clearRect(0, 0, W, H);
+      ctx.font         = `800 ${fontSize}px system-ui, -apple-system, sans-serif`;
+      ctx.textAlign    = 'center';
+      ctx.textBaseline = 'alphabetic';
+
+      const startY = pad + fontSize;
+      lines.forEach((line, i) => {
+        const y = startY + i * lineH;
+        ctx.shadowColor = 'rgba(2,6,23,.88)'; ctx.shadowBlur = 14;
+        ctx.shadowOffsetX = ctx.shadowOffsetY = 6;
+        ctx.lineWidth   = 14;
+        ctx.strokeStyle = 'rgba(2,6,23,.88)';
+        ctx.strokeText(line, W / 2, y);
+        ctx.shadowBlur = ctx.shadowOffsetX = ctx.shadowOffsetY = 0;
+        ctx.fillStyle  = '#ffffff';
+        ctx.fillText(line, W / 2, y);
+      });
+
+      const texture = new THREE.CanvasTexture(canvas);
+      texture.needsUpdate = true;
+      texture.minFilter = texture.magFilter = THREE.LinearFilter;
+      return { texture, aspect: W / H };
+    }
+
+    // ----------------------------------------------------------------
+    // Wheel label drawing
+    // ----------------------------------------------------------------
+    function drawWheelLabel(ctx, labelText, x, y, angle, fontSize) {
+      ctx.save();
+      ctx.translate(x, y);
+      ctx.rotate(angle);
+      ctx.font         = `900 ${fontSize}px system-ui, -apple-system, sans-serif`;
+      ctx.textAlign    = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.lineJoin     = 'round';
+      const linesRaw = labelText.split('\n').filter(Boolean);
+      const lh = fontSize * 1.22;
+      const startY = -((linesRaw.length - 1) * lh) / 2;
+      linesRaw.forEach((line, i) => {
+        const yy = startY + i * lh;
+        ctx.lineWidth   = 12;
+        ctx.strokeStyle = 'rgba(2,6,23,.88)';
+        ctx.strokeText(line, 0, yy);
+        ctx.fillStyle = '#ffffff';
+        ctx.fillText(line, 0, yy);
+      });
+      ctx.restore();
+    }
+
+    // ----------------------------------------------------------------
+    // Wheel & pointer textures
+    // ----------------------------------------------------------------
+    function makeWheelTexture() {
+      const canvas = document.createElement('canvas');
+      const size   = 1400;
+      const ctx    = canvas.getContext('2d');
+      canvas.width = canvas.height = size;
+      const colors  = ['#c084fc','#a78bfa','#818cf8','#60a5fa','#34d399','#facc15','#fb923c','#f472b6'];
+      const cx = cy = size / 2;
+      const r       = size * 0.46;
+      const hole    = size * 0.15;
+      const seg     = (Math.PI * 2) / colors.length;
+
+      ctx.clearRect(0, 0, size, size);
+      colors.forEach((color, i) => {
+        const start = -Math.PI / 2 - seg / 2 + i * seg;
+        const end   = start + seg;
+        ctx.beginPath(); ctx.moveTo(cx, cy); ctx.arc(cx, cy, r, start, end); ctx.closePath();
+        ctx.fillStyle = color; ctx.fill();
+        ctx.lineWidth = 9; ctx.strokeStyle = 'rgba(255,255,255,.74)'; ctx.stroke();
+        const mid = start + seg / 2;
+        const lr  = size * 0.335;
+        let angle  = mid + Math.PI / 2;
+        if (angle > Math.PI / 2 && angle < Math.PI * 1.5) angle += Math.PI;
+        drawWheelLabel(ctx, WHEEL_LABELS[i] || String(i + 1), cx + Math.cos(mid) * lr, cy + Math.sin(mid) * lr, angle, 44);
+      });
+
+      ctx.beginPath(); ctx.arc(cx, cy, r + 8, 0, Math.PI * 2);
+      ctx.lineWidth = 22; ctx.strokeStyle = 'rgba(255,255,255,.94)'; ctx.stroke();
+      ctx.beginPath(); ctx.arc(cx, cy, hole, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(2,6,23,.92)'; ctx.fill();
+      ctx.lineWidth = 10; ctx.strokeStyle = 'rgba(255,255,255,.66)'; ctx.stroke();
+      ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      ctx.font = '900 54px system-ui, sans-serif';
+      ctx.lineWidth = 8; ctx.strokeStyle = 'rgba(0,0,0,.72)'; ctx.strokeText('SPIN', cx, cy);
+      ctx.fillStyle = '#ffffff'; ctx.fillText('SPIN', cx, cy);
+
+      const t = new THREE.CanvasTexture(canvas);
+      t.needsUpdate = true; t.minFilter = t.magFilter = THREE.LinearFilter;
+      return t;
+    }
+
+    function makePointerTexture() {
+      const canvas = document.createElement('canvas');
+      const ctx    = canvas.getContext('2d');
+      canvas.width = 220; canvas.height = 180;
+      ctx.clearRect(0, 0, 220, 180);
+      ctx.beginPath(); ctx.moveTo(110, 165); ctx.lineTo(35, 25); ctx.lineTo(185, 25); ctx.closePath();
+      ctx.fillStyle    = '#ffffff';
+      ctx.shadowColor  = 'rgba(0,0,0,.55)'; ctx.shadowBlur = 16; ctx.shadowOffsetY = 8;
+      ctx.fill();
+      const t = new THREE.CanvasTexture(canvas);
+      t.needsUpdate = true; t.minFilter = t.magFilter = THREE.LinearFilter;
+      return t;
+    }
+
+    const WHEEL_TEX   = makeWheelTexture();
+    const POINTER_TEX = makePointerTexture();
+
+    // ----------------------------------------------------------------
+    // AR entity builders
+    // ----------------------------------------------------------------
+    function makeQuestionPlane(item, width) {
+      const plane = document.createElement('a-plane');
+      const made  = makeQuestionTexture(item.question);
+      const h     = width / made.aspect;
+      plane.setAttribute('geometry', `primitive: plane; width: ${width}; height: ${h}`);
+      plane.setAttribute('material', 'shader: flat; transparent: true; alphaTest: 0.02; side: double; depthTest: true; depthWrite: false');
+      plane.__qh = h;
+      plane.addEventListener('loaded', () => {
+        const mesh = plane.getObject3D('mesh'); if (!mesh) return;
+        mesh.material.map = made.texture; mesh.material.transparent = true; mesh.material.needsUpdate = true;
+      });
+      return plane;
+    }
+
+    function makeWheelPlane(target, item, size) {
+      const p = document.createElement('a-plane');
+      p.setAttribute('class', 'clickable');
+      p.setAttribute('geometry', `primitive: plane; width: ${size}; height: ${size}`);
+      p.setAttribute('position', '0 0 0.015');
+      p.setAttribute('material', 'shader: flat; transparent: true; alphaTest: 0.02; side: double; depthTest: false; depthWrite: false');
+      p.addEventListener('loaded', () => {
+        const mesh = p.getObject3D('mesh'); if (!mesh) return;
+        mesh.material.map = WHEEL_TEX; mesh.material.transparent = true; mesh.material.needsUpdate = true;
+      });
+      p.addEventListener('click', e => { e.stopPropagation(); activeItem = item; activeWheelPlane = p; spinWheel(); });
+      p.addEventListener('touchend', e => { e.preventDefault(); e.stopPropagation(); activeItem = item; activeWheelPlane = p; spinWheel(); }, { passive: false });
+      return p;
+    }
+
+    function makePointerPlane(size) {
+      const p = document.createElement('a-plane');
+      p.setAttribute('geometry', `primitive: plane; width: ${size * 0.26}; height: ${size * 0.22}`);
+      p.setAttribute('position', `0 ${size * 0.56} 0.035`);
+      p.setAttribute('material', 'shader: flat; transparent: true; alphaTest: 0.02; side: double; depthTest: false; depthWrite: false');
+      p.addEventListener('loaded', () => {
+        const mesh = p.getObject3D('mesh'); if (!mesh) return;
+        mesh.material.map = POINTER_TEX; mesh.material.transparent = true; mesh.material.needsUpdate = true;
+      });
+      return p;
+    }
+
+    function buildARContentGroup(item) {
+      const group       = document.createElement('a-entity');
+      const wheelSize   = 0.52;
+      const qWidth      = 0.92;
+      const qPlane      = makeQuestionPlane(item, qWidth);
+      const qY          = wheelSize / 2 + 0.10 + (qPlane.__qh / 2);
+      qPlane.setAttribute('position', `0 ${qY} 0.035`);
+
+      const wGroup = document.createElement('a-entity');
+      wGroup.setAttribute('position', '0 0 0.04');
+      const wPlane = makeWheelPlane(group, item, wheelSize);
+      group.__wheelPlane = wPlane;
+      wGroup.appendChild(wPlane);
+      wGroup.appendChild(makePointerPlane(wheelSize));
+
+      group.setAttribute('position', '0 -0.04 0.08');
+      group.appendChild(qPlane);
+      group.appendChild(wGroup);
+      return group;
+    }
+
+    // ----------------------------------------------------------------
+    // Panel
+    // ----------------------------------------------------------------
+    function showPanel(item) {
+      activeItem = item;
+      popupQuestion.textContent = item.question || '';
+      wheelResult.textContent   = 'Tap the wheel to spin';
+      resourceLink.classList.remove('show');
+      wheelPanel.classList.add('show');
+    }
+
+    function hidePanel() {
+      activeItem = activeWheelPlane = null;
+      wheelPanel.classList.remove('show');
+      popupQuestion.textContent = '';
+      wheelResult.textContent   = 'Tap the wheel to spin';
+      resourceLink.classList.remove('show');
+    }
+
+    // ----------------------------------------------------------------
+    // Spin logic
+    // ----------------------------------------------------------------
+    function spinWheel() {
+      if (!wheelItems.length || isSpinning || !activeWheelPlane) return;
+      isSpinning = true;
+      resourceLink.classList.remove('show');
+      wheelResult.textContent = 'Spinning…';
+
+      const selectedIndex = Math.floor(Math.random() * wheelItems.length);
+      const seg           = 360 / wheelItems.length;
+      const OFFSET        = 2;
+      const targetAngle   = (360 - (((selectedIndex + OFFSET) % wheelItems.length) * seg)) % 360;
+      const extraTurns    = 360 * (4 + Math.floor(Math.random() * 3));
+      wheelRotation      += extraTurns + targetAngle - (wheelRotation % 360);
+
+      const mesh = activeWheelPlane.getObject3D('mesh');
+      if (mesh) {
+        const startRot = mesh.rotation.z;
+        const endRot   = THREE.MathUtils.degToRad(wheelRotation);
+        const t0       = performance.now();
+        const dur      = 2800;
+        const ease     = t => 1 - Math.pow(1 - t, 3);
+
+        const animate = now => {
+          const t = Math.min(1, (now - t0) / dur);
+          mesh.rotation.z = startRot + (endRot - startRot) * ease(t);
+          if (t < 1) { requestAnimationFrame(animate); }
+          else { onSpinComplete(selectedIndex); }
+        };
+        requestAnimationFrame(animate);
+      } else {
+        onSpinComplete(selectedIndex);
+      }
+    }
+
+    function onSpinComplete(selectedIndex) {
+      wheelResult.textContent = wheelItems[selectedIndex];
+      isSpinning              = false;
+      vibrate(30);
+
+      // Show resource link if available for this segment
+      const link = RESOURCE_LINKS[selectedIndex];
+      if (link && link.url) {
+        resourceLabel.textContent = link.label;
+        resourceLink.href         = link.url;
+        resourceLink.classList.add('show');
+      }
+    }
+
+    // ----------------------------------------------------------------
+    // Global tap-to-spin fallback
+    // ----------------------------------------------------------------
+    function handleGlobalTap(event) {
+      if (!activeItem || isSpinning) return;
+      if (event.target && event.target.closest &&
+          event.target.closest('.ar-topbar, .wheel-panel, .ar-start')) return;
+      spinWheel();
+    }
+    document.addEventListener('click', handleGlobalTap);
+    document.addEventListener('touchend', handleGlobalTap, { passive: true });
+
+    // ----------------------------------------------------------------
+    // Target building
+    // ----------------------------------------------------------------
+    function buildTargets() {
+      if (targetsBuilt) return;
+      items.forEach(item => {
+        const target = document.createElement('a-entity');
+        target.setAttribute('mindar-image-target', `targetIndex: ${item.index}`);
+
+        target.addEventListener('targetFound', () => {
+          foundTargets.add(item.index);
+          setStatus('Found ✓', true);
+          if (!target.__questionGroup) {
+            target.__questionGroup = buildARContentGroup(item);
+            target.appendChild(target.__questionGroup);
+          }
+          activeWheelPlane = target.__questionGroup.__wheelPlane || activeWheelPlane;
+          showPanel(item);
+          vibrate(35);
+        });
+
+        target.addEventListener('targetLost', () => {
+          foundTargets.delete(item.index);
+          if (target.__questionGroup) { target.removeChild(target.__questionGroup); target.__questionGroup = null; }
+          if (foundTargets.size === 0) { setStatus('Scanning…', false); hidePanel(); }
+        });
+
+        scene.appendChild(target);
+      });
+      targetsBuilt = true;
+    }
+
+    // ----------------------------------------------------------------
+    // AR start
+    // ----------------------------------------------------------------
+    async function checkMindFile() {
+      const r = await fetch(MIND_URL, { method: 'HEAD' });
+      if (!r.ok) throw new Error('ไม่พบไฟล์ assets/targets/part3-1.mind — กรุณาสร้าง target ด้วย MindAR Compiler');
+    }
+
+    function waitForScene() {
+      return new Promise(r => { if (scene.hasLoaded) r(); else scene.addEventListener('loaded', r, { once: true }); });
+    }
+
+    async function startAR() {
+      try {
+        startBtn.disabled     = true;
+        errorEl.style.display = 'none';
+        setStatus('Starting…');
+        await checkMindFile();
+        await waitForScene();
+        if (!dataReady) await loadData();
+        const sys = scene.systems['mindar-image-system'];
+        if (!sys) throw new Error('MindAR system is not ready');
+        await sys.start();
+        startEl.style.display = 'none';
+        setStatus('Scanning…');
+      } catch (err) {
+        console.error(err); setStatus('Error');
+        showError(err.message || 'Cannot start AR.');
+        startBtn.disabled = false;
+      }
+    }
+
+    scene.addEventListener('arError', () => {
+      setStatus('Camera Error');
+      showError('Camera access failed. Please allow camera permission and reload.');
+    });
+    startBtn.addEventListener('click', startAR);
+
+    async function loadData() {
+      const r = await fetch(DATA_URL);
+      if (!r.ok) throw new Error('Cannot load part3-1.json');
+      sourceData = await r.json();
+      items      = Array.isArray(sourceData.items)      ? sourceData.items      : [];
+      wheelItems = Array.isArray(sourceData.wheelItems) ? sourceData.wheelItems : [];
+      if (!items.length)          throw new Error('part3-1.json has no items');
+      if (wheelItems.length !== 8) throw new Error('Wheel items must have exactly 8 entries');
+      buildTargets();
+      dataReady = true;
+    }
+
+    loadData().catch(err => { console.error(err); setStatus('Data Error'); showError(err.message || 'Cannot load AR data.'); });
+  </script>
+</body>
+</html>

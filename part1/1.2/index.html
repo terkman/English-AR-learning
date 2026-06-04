@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html class="ar-html" lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover, user-scalable=no" />
+  <title>1.2 Scan Image to Image</title>
+  <link rel="stylesheet" href="../../style.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;900&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/aframe@1.4.2/dist/aframe.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
+</head>
+<body class="ar-page">
+
+  <div class="ar-topbar">
+    <a class="ar-back" href="../index.html" aria-label="Back to Part 1">← Part 1</a>
+    <div id="status" class="ar-status" aria-live="polite">Ready</div>
+  </div>
+
+  <!-- Scan tip shown after a few seconds with no target found -->
+  <div id="scanHelp" style="
+    position:fixed;left:50%;bottom:calc(18px + env(safe-area-inset-bottom));
+    z-index:25;display:none;transform:translateX(-50%);
+    width:min(430px,calc(100vw - 28px));border-radius:18px;
+    padding:10px 13px;background:rgba(2,6,23,.7);
+    border:1px solid rgba(56,189,248,.22);backdrop-filter:blur(12px);
+    color:#dbeafe;font-size:13px;line-height:1.35;font-weight:800;
+    text-align:center;font-family:system-ui,sans-serif;
+  ">Hold the camera steady and keep the full target image in frame.</div>
+
+  <div id="start" class="ar-start">
+    <div class="ar-start-card">
+      <h1>1.2 Scan Image to Image</h1>
+      <p class="ar-desc">สแกนภาพเป้าหมาย แล้วจะแสดงภาพบริบทผลลัพธ์ทับบนภาพจริง</p>
+      <div class="ar-instructions">
+        <strong>วิธีใช้:</strong><br>
+        1. กด Start Camera แล้วอนุญาตกล้อง<br>
+        2. จ่อกล้องไปที่ภาพเป้าหมาย<br>
+        3. ภาพบริบทจะปรากฏทับบนภาพ<br>
+        4. ถือกล้องนิ่ง ๆ เพื่อให้ AR เสถียร
+      </div>
+      <button id="startBtn" class="ar-start-btn" type="button"
+        style="background:#38bdf8;color:#00111f;width:100%;box-shadow:0 12px 30px rgba(56,189,248,.28)">
+        Start Camera
+      </button>
+      <p class="ar-hint">iPhone/iPad: เปิดใน Safari เพื่อประสิทธิภาพดีที่สุด</p>
+      <div id="error" class="ar-error" role="alert"></div>
+    </div>
+  </div>
+
+  <a-scene
+    id="scene"
+    mindar-image="imageTargetSrc: ../../assets/targets/part1-2.mind; autoStart: false; maxTrack: 1; uiLoading: no; uiScanning: no; uiError: no; warmupTolerance: 1; missTolerance: 12; filterMinCF: 0.0001; filterBeta: 0.001"
+    color-space="sRGB"
+    renderer="colorManagement: true; physicallyCorrectLights: false; antialias: true; alpha: true; precision: mediump; powerPreference: high-performance"
+    vr-mode-ui="enabled: false"
+    device-orientation-permission-ui="enabled: false"
+    embedded>
+    <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
+    <a-entity light="type: ambient; intensity: 1.2"></a-entity>
+  </a-scene>
+
+  <script src="../../script.js"></script>
+  <script>
+    'use strict';
+    const DATA_URL    = '../../assets/data/part1-2.json';
+    const MIND_URL    = '../../assets/targets/part1-2.mind';
+    const RESULT_BASE = '../../assets/images/part1/1.2/results/';
+
+    const scene     = document.getElementById('scene');
+    const startEl   = document.getElementById('start');
+    const startBtn  = document.getElementById('startBtn');
+    const errorEl   = document.getElementById('error');
+    const statusEl  = document.getElementById('status');
+    const scanHelp  = document.getElementById('scanHelp');
+
+    let dataReady    = false;
+    let targetsBuilt = false;
+    let items        = [];
+    let scanHelpTimer;
+    const foundTargets = new Set();
+    const textureCache = new Map();
+
+    function setStatus(text, found = false) {
+      statusEl.textContent = text;
+      statusEl.classList.toggle('found', !!found);
+      if (found) scanHelp.style.display = 'none';
+    }
+
+    function showError(msg) {
+      errorEl.style.display = 'block';
+      errorEl.textContent   = msg;
+    }
+
+    function scheduleScanHelp() {
+      clearTimeout(scanHelpTimer);
+      scanHelpTimer = setTimeout(() => {
+        if (foundTargets.size === 0 && startEl.style.display === 'none')
+          scanHelp.style.display = 'block';
+      }, 4500);
+    }
+
+    function waitForScene() {
+      return new Promise(r => {
+        if (scene.hasLoaded) r();
+        else scene.addEventListener('loaded', r, { once: true });
+      });
+    }
+
+    async function checkMindFile() {
+      const r = await fetch(MIND_URL, { method: 'HEAD' });
+      if (!r.ok) throw new Error('ไม่พบไฟล์ .mind — กรุณาสร้าง target ด้วย MindAR Compiler');
+    }
+
+    async function startAR() {
+      try {
+        startBtn.disabled     = true;
+        errorEl.style.display = 'none';
+        setStatus('Starting…');
+
+        await checkMindFile();
+        await waitForScene();
+        if (!dataReady) await loadData();
+
+        const sys = scene.systems['mindar-image-system'];
+        if (!sys) throw new Error('MindAR system is not ready');
+
+        await sys.start();
+        startEl.style.display = 'none';
+        setStatus('Scanning…');
+        scheduleScanHelp();
+        setTimeout(preloadImages, 600);
+      } catch (err) {
+        console.error(err);
+        setStatus('Error');
+        showError(err.message || 'Cannot start AR. Please allow camera permission.');
+        startBtn.disabled = false;
+      }
+    }
+
+    scene.addEventListener('arError', () => {
+      setStatus('Camera Error');
+      showError('Camera access failed. Please allow camera permission and reload.');
+    });
+    startBtn.addEventListener('click', startAR);
+
+    function loadTexture(url) {
+      if (textureCache.has(url)) return textureCache.get(url);
+      const p = new Promise((res, rej) => {
+        const loader = new THREE.TextureLoader();
+        loader.load(url, tex => {
+          tex.minFilter = tex.magFilter = THREE.LinearFilter;
+          tex.needsUpdate = true;
+          res(tex);
+        }, undefined, rej);
+      });
+      textureCache.set(url, p);
+      return p;
+    }
+
+    function buildImagePlane(item) {
+      const group = document.createElement('a-entity');
+      group.setAttribute('position', '0 0 0.055');
+
+      const frame = document.createElement('a-plane');
+      frame.setAttribute('geometry', 'primitive: plane; width: 1.18; height: 0.78');
+      frame.setAttribute('position', '0 0 -0.006');
+      frame.setAttribute('material', 'shader: flat; color: #020617; opacity: 0.72; transparent: true; side: double; depthTest: false; depthWrite: false');
+      group.appendChild(frame);
+
+      const plane = document.createElement('a-plane');
+      plane.setAttribute('geometry', 'primitive: plane; width: 1.12; height: 0.72');
+      plane.setAttribute('material', 'shader: flat; color: #ffffff; transparent: true; opacity: 1; side: double; depthTest: false; depthWrite: false');
+      group.appendChild(plane);
+
+      const apply = async () => {
+        try {
+          const tex    = await loadTexture(RESULT_BASE + item.resultImage);
+          const img    = tex.image;
+          const aspect = (img && img.width && img.height) ? img.width / img.height : 1.55;
+          let w = 1.14, h = w / aspect;
+          if (h > 0.82) { h = 0.82; w = h * aspect; }
+          plane.setAttribute('geometry', `primitive: plane; width: ${w}; height: ${h}`);
+          frame.setAttribute('geometry', `primitive: plane; width: ${w + 0.06}; height: ${h + 0.06}`);
+          const mesh = plane.getObject3D('mesh');
+          if (mesh) { mesh.material.map = tex; mesh.material.color.set('#ffffff'); mesh.material.transparent = true; mesh.material.needsUpdate = true; }
+        } catch (e) { console.error('Cannot load result image', e); }
+      };
+
+      if (plane.hasLoaded) apply();
+      else plane.addEventListener('loaded', apply, { once: true });
+      return group;
+    }
+
+    function preloadImages() {
+      let delay = 250;
+      items.forEach(item => {
+        if (!item.resultImage) return;
+        setTimeout(() => loadTexture(RESULT_BASE + item.resultImage).catch(() => {}), delay);
+        delay += 120;
+      });
+    }
+
+    function buildTargets() {
+      if (targetsBuilt) return;
+      items.forEach(item => {
+        const target = document.createElement('a-entity');
+        target.setAttribute('mindar-image-target', `targetIndex: ${item.index}`);
+
+        target.addEventListener('targetFound', () => {
+          foundTargets.add(item.index);
+          setStatus('Found ✓', true);
+          clearTimeout(target.__removeTimer);
+          target.__removeTimer = null;
+          vibrate(25);
+          if (!target.__content) {
+            target.__content = buildImagePlane(item);
+            target.appendChild(target.__content);
+          }
+        });
+
+        target.addEventListener('targetLost', () => {
+          foundTargets.delete(item.index);
+          if (target.__content) {
+            target.__removeTimer = setTimeout(() => {
+              if (foundTargets.has(item.index)) return;
+              if (target.__content) { target.removeChild(target.__content); target.__content = null; }
+            }, 700);
+          }
+          if (foundTargets.size === 0) { setStatus('Scanning…'); scheduleScanHelp(); }
+        });
+
+        scene.appendChild(target);
+      });
+      targetsBuilt = true;
+    }
+
+    async function loadData() {
+      const r = await fetch(DATA_URL);
+      if (!r.ok) throw new Error('Cannot load part1-2.json');
+      items = await r.json();
+      if (!Array.isArray(items) || !items.length) throw new Error('part1-2.json has no data');
+      buildTargets();
+      dataReady = true;
+    }
+
+    loadData().catch(err => { console.error(err); setStatus('Data Error'); showError(err.message || 'Cannot load AR data.'); });
+  </script>
+</body>
+</html>

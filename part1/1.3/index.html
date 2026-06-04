@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html class="ar-html" lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover, user-scalable=no" />
+  <title>1.3 Scan Image to Question</title>
+  <link rel="stylesheet" href="../../style.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;900&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/aframe@1.4.2/dist/aframe.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
+  <script src="https://unpkg.com/aframe-text-geometry-component@0.5.2/dist/aframe-text-geometry-component.min.js"></script>
+</head>
+<body class="ar-page">
+
+  <div class="ar-topbar">
+    <a class="ar-back" href="../index.html" aria-label="Back to Part 1">← Part 1</a>
+    <div id="status" class="ar-status" aria-live="polite">Ready</div>
+  </div>
+
+  <!-- Pronunciation button -->
+  <button id="speakBtn" class="ar-speak-btn" aria-label="Pronounce vocabulary">🔊</button>
+
+  <!-- Observation question panel -->
+  <div id="questionPanel" class="question-panel" role="complementary" aria-label="Observation question">
+    <div class="panel-head">
+      <div class="panel-label" style="color:#38bdf8">Observe &amp; Ask</div>
+    </div>
+    <div id="questionText" style="color:#f8fafc;font-size:clamp(15px,4vw,18px);line-height:1.45;font-weight:800"></div>
+  </div>
+
+  <div id="start" class="ar-start">
+    <div class="ar-start-card">
+      <h1>1.3 Scan Image to Question</h1>
+      <p class="ar-desc">สแกนภาพ แล้วจะแสดง 3D text พร้อมคำถามกระตุ้นการสังเกต</p>
+      <div class="ar-instructions">
+        <strong>วิธีใช้:</strong><br>
+        1. กด Start Camera แล้วอนุญาตกล้อง<br>
+        2. จ่อกล้องไปที่ภาพเป้าหมาย<br>
+        3. 3D text และคำถามจะปรากฏ<br>
+        4. กดปุ่ม 🔊 เพื่อฟังการออกเสียง
+      </div>
+      <button id="startBtn" class="ar-start-btn" type="button"
+        style="background:#38bdf8;color:#1c1500;width:100%;box-shadow:0 12px 30px rgba(56,189,248,.24)">
+        Start Camera
+      </button>
+      <p class="ar-hint">เหมาะกับ mobile Chrome / Safari</p>
+      <div id="error" class="ar-error" role="alert"></div>
+    </div>
+  </div>
+
+  <a-scene
+    id="scene"
+    mindar-image="imageTargetSrc: ../../assets/targets/part1-3.mind; autoStart: false; maxTrack: 1; uiLoading: no; uiScanning: no; uiError: no; filterMinCF: 0.001; filterBeta: 0.01"
+    color-space="sRGB"
+    renderer="colorManagement: true; physicallyCorrectLights: true; antialias: true; alpha: true"
+    vr-mode-ui="enabled: false"
+    device-orientation-permission-ui="enabled: false"
+    embedded>
+    <a-assets timeout="15000">
+      <a-asset-item id="fontBold" src="https://cdn.jsdelivr.net/gh/mrdoob/three.js@r146/examples/fonts/helvetiker_bold.typeface.json"></a-asset-item>
+    </a-assets>
+    <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
+    <a-entity light="type: ambient; intensity: 1.35"></a-entity>
+    <a-entity light="type: directional; intensity: 0.9" position="0 1 1"></a-entity>
+  </a-scene>
+
+  <script src="../../script.js"></script>
+  <script>
+    'use strict';
+    const TEXT_COLOR  = '#38bdf8';
+    const TEXT_SHADOW = '#082f49';
+    const TEXT_STROKE = '#00131d';
+    const LETTER_GAP  = 0.010;
+
+    const DATA_URL = '../../assets/data/part1-3.json';
+    const MIND_URL = '../../assets/targets/part1-3.mind';
+
+    const scene         = document.getElementById('scene');
+    const startEl       = document.getElementById('start');
+    const startBtn      = document.getElementById('startBtn');
+    const errorEl       = document.getElementById('error');
+    const statusEl      = document.getElementById('status');
+    const speakBtn      = document.getElementById('speakBtn');
+    const questionPanel = document.getElementById('questionPanel');
+    const questionText  = document.getElementById('questionText');
+
+    let vocabData    = [];
+    let dataReady    = false;
+    let targetsBuilt = false;
+    let currentWord  = '';
+    const foundTargets = new Set();
+    const activeQuestionIndex = {};
+    const Q_KEY = 'part1_3_question_cursor_v1';
+
+    function setStatus(text, found = false) {
+      statusEl.textContent = text;
+      statusEl.classList.toggle('found', !!found);
+    }
+
+    function showError(msg) { errorEl.style.display = 'block'; errorEl.textContent = msg; }
+
+    function waitForScene() {
+      return new Promise(r => {
+        if (scene.hasLoaded) r();
+        else scene.addEventListener('loaded', r, { once: true });
+      });
+    }
+
+    async function checkMindFile() {
+      const r = await fetch(MIND_URL, { method: 'HEAD' });
+      if (!r.ok) throw new Error('ไม่พบไฟล์ .mind — กรุณาสร้าง target ด้วย MindAR Compiler');
+    }
+
+    async function startAR() {
+      try {
+        startBtn.disabled     = true;
+        errorEl.style.display = 'none';
+        setStatus('Starting…');
+        await checkMindFile();
+        await waitForScene();
+        if (!dataReady) await loadData();
+        const sys = scene.systems['mindar-image-system'];
+        if (!sys) throw new Error('MindAR system is not ready');
+        await sys.start();
+        startEl.style.display = 'none';
+        setStatus('Scanning…');
+      } catch (err) {
+        console.error(err);
+        setStatus('Error');
+        showError(err.message || 'Cannot start AR.');
+        startBtn.disabled = false;
+      }
+    }
+
+    scene.addEventListener('arError', () => {
+      setStatus('Camera Error');
+      showError('Camera access failed. Please allow camera permission and reload.');
+    });
+
+    startBtn.addEventListener('click', startAR);
+    speakBtn.addEventListener('click', () => { if (currentWord) { Speech.speak(currentWord); vibrate(25); } });
+
+    // ----------------------------------------------------------------
+    // Question cycling (persisted via localStorage)
+    // ----------------------------------------------------------------
+    function readCursor() { try { return JSON.parse(localStorage.getItem(Q_KEY) || '{}'); } catch { return {}; } }
+    function writeCursor(c) { try { localStorage.setItem(Q_KEY, JSON.stringify(c)); } catch {} }
+
+    function nextQuestionIdx(targetIdx, total) {
+      const c = readCursor(); const k = String(targetIdx);
+      const cur = Number.isInteger(c[k]) ? c[k] : 0;
+      c[k] = (cur + 1) % total; writeCursor(c); return cur;
+    }
+
+    function showQuestion(item) {
+      const qs = Array.isArray(item.questions) ? item.questions.filter(Boolean) : [];
+      if (!qs.length) { hideQuestion(); return; }
+      if (activeQuestionIndex[item.index] === undefined)
+        activeQuestionIndex[item.index] = nextQuestionIdx(item.index, qs.length);
+      questionText.textContent = qs[activeQuestionIndex[item.index]];
+      questionPanel.classList.add('show');
+    }
+    function hideQuestion() { questionPanel.classList.remove('show'); questionText.textContent = ''; }
+
+    // ----------------------------------------------------------------
+    // 3D letter-spaced text geometry
+    // ----------------------------------------------------------------
+    function cleanText(v) { return String(v || '').replace(/;/g, ',').replace(/\s+/g, ' ').trim(); }
+
+    function getCharWidth(c, size) {
+      if (c === ' ') return size * 0.48;
+      if ('ilI.,:;!|'.includes(c)) return size * 0.34;
+      if ('mwMW'.includes(c)) return size * 0.92;
+      if ('fjrt()[]'.includes(c)) return size * 0.48;
+      if ('ABCDEFGHKNOPQRSTUVWXYZ'.includes(c)) return size * 0.72;
+      return size * 0.62;
+    }
+
+    function centerTextMesh(entity) {
+      const applyCenter = () => {
+        let ok = false;
+        entity.object3D.traverse(child => {
+          if (!child.isMesh || !child.geometry) return;
+          if (child.geometry.userData && child.geometry.userData.centeredX) return;
+          child.geometry.computeBoundingBox();
+          const box = child.geometry.boundingBox;
+          if (!box) return;
+          child.geometry.translate(-(box.min.x + box.max.x) / 2, 0, 0);
+          child.geometry.computeBoundingBox();
+          child.geometry.userData = child.geometry.userData || {};
+          child.geometry.userData.centeredX = true;
+          ok = true;
+        });
+        return ok;
+      };
+      const tryCenter = (n = 0) => { if (applyCenter()) return; if (n > 30) return; requestAnimationFrame(() => tryCenter(n + 1)); };
+      entity.addEventListener('object3dset', () => tryCenter());
+      entity.addEventListener('componentinitialized', e => { if (e.detail && e.detail.name === 'text-geometry') tryCenter(); });
+      tryCenter();
+      [100, 300, 700, 1200].forEach(d => setTimeout(() => tryCenter(), d));
+    }
+
+    function createCharGeo(char, position, size, role = 'front') {
+      const t = document.createElement('a-entity');
+      t.setAttribute('position', position);
+      t.setAttribute('text-geometry', { value: char, font: '#fontBold', align: 'center', size, height: 0.018, curveSegments: 5, bevelEnabled: true, bevelSize: 0.0025, bevelThickness: 0.0025 });
+      const mats = {
+        stroke: { shader: 'standard', color: TEXT_STROKE, emissive: TEXT_STROKE, emissiveIntensity: 0.10, opacity: 0.98, transparent: true, metalness: 0, roughness: 0.75, side: 'double' },
+        shadow: { shader: 'standard', color: TEXT_SHADOW, emissive: TEXT_SHADOW, emissiveIntensity: 0.16, opacity: 0.70, transparent: true, metalness: 0, roughness: 0.7, side: 'double' },
+        front:  { shader: 'standard', color: TEXT_COLOR,  emissive: TEXT_COLOR,  emissiveIntensity: 0.55, metalness: 0.02, roughness: 0.25, side: 'double' },
+      };
+      t.setAttribute('material', mats[role]);
+      centerTextMesh(t);
+      return t;
+    }
+
+    function buildLetterLine(line, y, size) {
+      const g = document.createElement('a-entity');
+      const chars = Array.from(cleanText(line));
+      const widths = chars.map(c => getCharWidth(c, size));
+      const totalW = widths.reduce((s, w) => s + w, 0) + Math.max(0, chars.length - 1) * LETTER_GAP;
+      let cx = -totalW / 2;
+      chars.forEach((char, i) => {
+        const w = widths[i];
+        if (char !== ' ') {
+          const x = cx + w / 2;
+          g.appendChild(createCharGeo(char, `${(x+.007).toFixed(4)} ${(y-.007).toFixed(4)} -0.012`, size, 'shadow'));
+          [[-0.004,0],[0.004,0],[0,-0.004],[0,0.004]].forEach(([sx,sy]) =>
+            g.appendChild(createCharGeo(char, `${(x+sx).toFixed(4)} ${(y+sy).toFixed(4)} -0.003`, size, 'stroke')));
+          g.appendChild(createCharGeo(char, `${x.toFixed(4)} ${y.toFixed(4)} 0.002`, size, 'front'));
+        }
+        cx += w + LETTER_GAP;
+      });
+      return g;
+    }
+
+    function buildTextGroup(lines, size, gap = 1.55) {
+      const g = document.createElement('a-entity');
+      if (!lines.length) return g;
+      const lineGap = size * gap;
+      const startY  = ((lines.length - 1) * lineGap) / 2;
+      g.setAttribute('position', '0 0.02 0.06');
+      lines.forEach((line, i) => g.appendChild(buildLetterLine(line, startY - i * lineGap, size)));
+      return g;
+    }
+
+    function splitWord(word) {
+      const text = cleanText(word); if (!text) return [];
+      if (text.length <= 16) return [text];
+      const words = text.split(' '); const lines = []; let line = '';
+      words.forEach(p => { const c = line ? `${line} ${p}` : p; if (c.length > 16 && line) { lines.push(line); line = p; } else { line = c; } });
+      if (line) lines.push(line);
+      return lines.slice(0, 3);
+    }
+
+    function wordSize(lines) {
+      const l = lines.reduce((m, x) => Math.max(m, x.length), 0);
+      if (lines.length >= 3 || l >= 22) return 0.050;
+      if (lines.length >= 2 || l >= 16) return 0.060;
+      return 0.075;
+    }
+
+    // ----------------------------------------------------------------
+    // Target building
+    // ----------------------------------------------------------------
+    function buildTargets() {
+      if (targetsBuilt) return;
+      vocabData.forEach(item => {
+        const target = document.createElement('a-entity');
+        target.setAttribute('mindar-image-target', `targetIndex: ${item.index}`);
+
+        target.addEventListener('targetFound', () => {
+          foundTargets.add(item.index);
+          currentWord = cleanText(item.word);
+          setStatus('Found ✓', true);
+          speakBtn.classList.add('visible');
+          vibrate(35);
+          if (!target.__textGroup) {
+            const lines = splitWord(item.word);
+            target.__textGroup = buildTextGroup(lines, wordSize(lines), 1.55);
+            target.appendChild(target.__textGroup);
+          }
+          showQuestion(item);
+        });
+
+        target.addEventListener('targetLost', () => {
+          foundTargets.delete(item.index);
+          delete activeQuestionIndex[item.index];
+          if (target.__textGroup) { target.removeChild(target.__textGroup); target.__textGroup = null; }
+          if (foundTargets.size === 0) {
+            setStatus('Scanning…', false);
+            speakBtn.classList.remove('visible');
+            currentWord = '';
+            hideQuestion();
+          }
+        });
+
+        scene.appendChild(target);
+      });
+      targetsBuilt = true;
+    }
+
+    async function loadData() {
+      const r = await fetch(DATA_URL);
+      if (!r.ok) throw new Error('Cannot load data file');
+      vocabData = await r.json();
+      if (!Array.isArray(vocabData) || !vocabData.length) throw new Error('Data file has no data');
+      buildTargets();
+      dataReady = true;
+    }
+
+    loadData().catch(err => { console.error(err); setStatus('Data Error'); showError(err.message || 'Cannot load AR data.'); });
+  </script>
+</body>
+</html>
