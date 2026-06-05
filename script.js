@@ -95,7 +95,149 @@ function observeInteractiveElements() {
   observer.observe(document.body, { childList: true, subtree: true });
 }
 
+
+function applyPartThemeClass() {
+  if (!document.body) return;
+
+  const path = window.location.pathname.toLowerCase();
+  document.body.classList.remove('theme-part-1', 'theme-part-2', 'theme-part-3', 'theme-part-4');
+
+  if (/\/part1(\/|$)/.test(path)) {
+    document.body.classList.add('theme-part-1');
+  } else if (/\/part2(\/|$)/.test(path)) {
+    document.body.classList.add('theme-part-2');
+  } else if (/\/part3(\/|$)/.test(path)) {
+    document.body.classList.add('theme-part-3');
+  } else if (/\/part4(\/|$)/.test(path)) {
+    document.body.classList.add('theme-part-4');
+  }
+}
+
+function injectThemeColorOverrides() {
+  if (document.getElementById('english-ar-theme-color-overrides')) return;
+
+  const style = document.createElement('style');
+  style.id = 'english-ar-theme-color-overrides';
+  style.textContent = `
+    body.theme-part-1 { --part-accent: #00d4ff; --part-accent-rgb: 0, 212, 255; --part-ink: #001923; }
+    body.theme-part-2 { --part-accent: #ffd60a; --part-accent-rgb: 255, 214, 10; --part-ink: #191300; }
+    body.theme-part-3 { --part-accent: #ff3b8f; --part-accent-rgb: 255, 59, 143; --part-ink: #260015; }
+    body.theme-part-4 { --part-accent: #06d6a0; --part-accent-rgb: 6, 214, 160; --part-ink: #00170f; }
+
+    body.submenu-page.theme-part-1,
+    body.submenu-page.theme-part-2,
+    body.submenu-page.theme-part-3,
+    body.submenu-page.theme-part-4 {
+      background:
+        radial-gradient(circle at 20% 0%, rgba(var(--part-accent-rgb), .22), transparent 34%),
+        radial-gradient(circle at 85% 15%, rgba(var(--part-accent-rgb), .10), transparent 32%),
+        linear-gradient(160deg, #06111f, #111827) !important;
+    }
+
+    body.submenu-page .submenu-title {
+      color: var(--part-accent);
+      text-shadow: 0 0 28px rgba(var(--part-accent-rgb), .22);
+    }
+
+    body.submenu-page .submenu-card {
+      border-color: rgba(var(--part-accent-rgb), .18);
+    }
+
+    body.submenu-page .submenu-card:hover,
+    body.submenu-page .submenu-card:active {
+      background: rgba(var(--part-accent-rgb), .11);
+      border-color: rgba(var(--part-accent-rgb), .32);
+    }
+
+    body.submenu-page .submenu-card-tag {
+      color: var(--part-accent);
+      background: rgba(var(--part-accent-rgb), .12);
+      border: 1px solid rgba(var(--part-accent-rgb), .28);
+    }
+
+    body.ar-page.theme-part-1 .ar-start-card,
+    body.ar-page.theme-part-2 .ar-start-card,
+    body.ar-page.theme-part-3 .ar-start-card,
+    body.ar-page.theme-part-4 .ar-start-card {
+      border-color: rgba(var(--part-accent-rgb), .25);
+      box-shadow: 0 24px 90px rgba(var(--part-accent-rgb), .12), 0 24px 90px rgba(0, 0, 0, .42);
+    }
+
+    body.ar-page .ar-start-btn,
+    body.ar-page .listen-btn {
+      background: var(--part-accent);
+      color: var(--part-ink);
+      box-shadow: 0 12px 34px rgba(var(--part-accent-rgb), .24);
+    }
+
+    body.ar-page .ar-status.found,
+    body.ar-page .ar-status.theme-accent {
+      background: rgba(var(--part-accent-rgb), .96) !important;
+      color: var(--part-ink) !important;
+      box-shadow: 0 6px 24px rgba(var(--part-accent-rgb), .22) !important;
+    }
+
+    body.ar-page .panel-label {
+      color: var(--part-accent);
+    }
+
+    body.ar-page .question-panel {
+      border-color: rgba(var(--part-accent-rgb), .18);
+    }
+
+    body.theme-part-3 .wheel-panel {
+      border-color: rgba(255, 59, 143, .26) !important;
+    }
+
+    body.theme-part-3 .wheel-q-label,
+    body.theme-part-3 .wheel-result-label {
+      color: #ff7ab8 !important;
+    }
+
+    body.theme-part-3 .wheel-resource-link {
+      background: rgba(255, 59, 143, .14) !important;
+      border-color: rgba(255, 59, 143, .28) !important;
+      color: #ffd1e5 !important;
+    }
+
+    body.theme-part-3 .wheel-resource-link:hover {
+      background: rgba(255, 59, 143, .22) !important;
+    }
+
+    body.theme-part-4 .game-help,
+    body.theme-part-4 .game-loader-card p {
+      color: #d1fae5 !important;
+    }
+
+    body.theme-part-4 .word-list h3,
+    body.theme-part-4 .progress-title,
+    body.theme-part-4 .score-display {
+      color: #86efac !important;
+    }
+
+    body.theme-part-4 .submit-btn,
+    body.theme-part-4 .modal-btn-primary,
+    body.theme-part-4 .load-bar-fill {
+      background: #06d6a0 !important;
+      color: #00170f !important;
+      box-shadow: 0 10px 28px rgba(6, 214, 160, .22) !important;
+    }
+
+    body.theme-part-4 .modal-input:focus {
+      border-color: rgba(6, 214, 160, .5) !important;
+      box-shadow: 0 0 0 3px rgba(6, 214, 160, .12) !important;
+    }
+
+    body.theme-part-4 .game-loader {
+      background: radial-gradient(circle at top, rgba(6, 214, 160, .18), var(--bg-page) 65%) !important;
+    }
+  `;
+  document.head.appendChild(style);
+}
+
 function initGlobalHelpers() {
+  applyPartThemeClass();
+  injectThemeColorOverrides();
   Speech.init();
   setupTouchAction();
   attachSpeakButtons();
