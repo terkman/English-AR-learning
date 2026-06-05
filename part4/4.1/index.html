@@ -1,452 +1,466 @@
-<!DOCTYPE html>
-<html class="game-html" lang="en">
+<!doctype html>
+<html lang="en">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover, user-scalable=no" />
   <title>4.1 Supermarket Vocabulary Game</title>
-  <link rel="stylesheet" href="../../style.css" />
-  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;900&family=Space+Mono:wght@700&display=swap" rel="stylesheet" />
+  <style>
+    *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#050816;color:#fff;font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;touch-action:none}#app{position:fixed;inset:0}canvas{display:block;width:100%;height:100%}.topbar{position:fixed;z-index:20;top:0;left:0;right:0;padding:calc(10px + env(safe-area-inset-top)) 12px 10px;display:flex;align-items:center;justify-content:space-between;gap:8px;background:linear-gradient(180deg,rgba(2,6,23,.78),rgba(2,6,23,0));pointer-events:none}.topbar>*{pointer-events:auto}.back{display:inline-flex;align-items:center;color:#fff;text-decoration:none;background:rgba(15,23,42,.68);border:1px solid rgba(255,255,255,.18);border-radius:999px;padding:8px 12px;font-size:14px;font-weight:900;backdrop-filter:blur(12px)}.status{max-width:50vw;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;border-radius:999px;padding:8px 12px;font-size:12px;font-weight:950;color:#18052b;background:#c084fc;box-shadow:0 8px 30px rgba(192,132,252,.20)}.hud{position:fixed;z-index:18;left:10px;right:10px;bottom:calc(10px + env(safe-area-inset-bottom));display:grid;grid-template-columns:1fr auto;gap:8px;align-items:end;pointer-events:none}.progress-card{pointer-events:auto;border:1px solid rgba(255,255,255,.16);border-radius:20px;background:rgba(2,6,23,.76);padding:10px 12px;box-shadow:0 16px 50px rgba(0,0,0,.36);backdrop-filter:blur(14px)}.progress-title{color:#d8b4fe;font-size:12px;font-weight:950;letter-spacing:.08em;text-transform:uppercase;margin-bottom:6px}.progress-text{font-size:14px;font-weight:800;color:#fff}.submit{pointer-events:auto;border:0;border-radius:18px;background:#c084fc;color:#18052b;padding:14px 16px;font-size:15px;font-weight:950;box-shadow:0 12px 30px rgba(192,132,252,.22)}.submit:disabled{opacity:.5}.word-list{position:fixed;z-index:17;top:calc(58px + env(safe-area-inset-top));right:10px;width:min(270px,calc(100vw - 20px));max-height:42vh;overflow:auto;border:1px solid rgba(255,255,255,.14);border-radius:22px;background:rgba(2,6,23,.72);padding:10px;box-shadow:0 16px 50px rgba(0,0,0,.36);backdrop-filter:blur(14px)}.word-list h3{margin:0 0 8px;font-size:13px;text-transform:uppercase;letter-spacing:.08em;color:#d8b4fe}.word-btn{width:100%;text-align:left;border:1px solid rgba(255,255,255,.11);border-radius:14px;background:rgba(255,255,255,.08);color:#fff;margin:6px 0;padding:8px 10px;font-size:13px;font-weight:800}.word-btn.done{background:rgba(34,197,94,.16);border-color:rgba(34,197,94,.35)}.loader{position:fixed;inset:0;z-index:40;display:flex;align-items:center;justify-content:center;padding:22px;background:radial-gradient(circle at top,rgba(192,132,252,.22),#050816 62%)}.loader-card{width:min(520px,100%);border:1px solid rgba(255,255,255,.18);border-radius:28px;background:rgba(255,255,255,.10);padding:24px;text-align:center;box-shadow:0 24px 80px rgba(0,0,0,.5);backdrop-filter:blur(16px)}.loader h1{font-size:clamp(24px,7vw,38px);margin:0 0 8px}.loader p{color:#e9d5ff;line-height:1.55;margin:8px 0}.bar{height:12px;border-radius:999px;background:rgba(255,255,255,.14);overflow:hidden;margin-top:16px}.bar i{display:block;height:100%;width:0;background:#c084fc;border-radius:999px;transition:.16s}.modal{position:fixed;inset:0;z-index:50;display:none;align-items:center;justify-content:center;padding:18px;background:rgba(2,6,23,.62);backdrop-filter:blur(8px)}.modal.show{display:flex}.box{width:min(520px,100%);border:1px solid rgba(255,255,255,.18);border-radius:26px;background:#0f172a;padding:18px;box-shadow:0 24px 90px rgba(0,0,0,.6)}.box h2{margin:0 0 8px;font-size:22px}.box p{margin:6px 0 12px;color:#cbd5e1;line-height:1.45}.edit-input{width:100%;border:1px solid rgba(255,255,255,.20);border-radius:16px;background:rgba(255,255,255,.08);color:#fff;padding:14px 14px;font-size:18px;font-weight:800;outline:none}.actions{display:flex;justify-content:flex-end;gap:8px;margin-top:14px}.btn{border:0;border-radius:14px;padding:11px 14px;font-weight:950}.btn.secondary{background:rgba(255,255,255,.10);color:#fff}.btn.primary{background:#c084fc;color:#18052b}.score{font-size:38px;font-weight:950;color:#c084fc;text-align:center;margin:16px 0 4px}.help{position:fixed;z-index:16;left:10px;top:calc(58px + env(safe-area-inset-top));max-width:min(420px,calc(100vw - 20px));padding:10px 12px;border-radius:18px;background:rgba(2,6,23,.62);border:1px solid rgba(255,255,255,.12);color:#e9d5ff;font-size:13px;font-weight:750;line-height:1.35;backdrop-filter:blur(12px)}@media(max-width:720px){.word-list{left:10px;right:10px;width:auto;top:auto;bottom:calc(86px + env(safe-area-inset-bottom));max-height:28vh}.help{display:none}.hud{grid-template-columns:1fr}.submit{width:100%}}
+
+    .label-layer{position:fixed;inset:0;z-index:18;pointer-events:none}
+    .scene-label{position:absolute;transform:translate(-50%,-50%);border:2px solid rgba(251,191,36,.98);border-radius:12px;background:rgba(15,23,42,.94);color:#fff;padding:8px 12px;font-size:clamp(13px,2.9vw,16px);font-weight:950;line-height:1.15;box-shadow:0 10px 24px rgba(0,0,0,.38);text-shadow:0 2px 4px rgba(0,0,0,.72);white-space:nowrap;pointer-events:auto;touch-action:manipulation;max-width:260px;overflow:hidden;text-overflow:ellipsis}
+    .scene-label.done{background:rgba(22,101,52,.94);border-color:rgba(134,239,172,.98)}
+    .scene-label.hidden{display:none}
+    .label-debug{position:fixed;left:12px;top:calc(58px + env(safe-area-inset-top));z-index:24;max-width:min(440px,calc(100vw - 24px));border:1px solid rgba(255,255,255,.14);border-radius:14px;background:rgba(2,6,23,.62);backdrop-filter:blur(10px);color:#dbeafe;padding:7px 10px;font-size:12px;font-weight:850;line-height:1.35;pointer-events:none}
+
+  </style>
+
   <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
 </head>
-<body class="game-page">
-
+<body>
   <div id="app"></div>
+  <div id="labelLayer" class="label-layer"></div>
+  <div id="labelDebug" class="label-debug">Labels: 0 / 0</div>
+  <div class="topbar"><a class="back" href="../">← Part 4</a><div id="status" class="status">Loading</div></div>
+  <div class="help">หมุน/ซูมฉากได้ แตะคำศัพท์บนฉากหรือเลือกรายการด้านขวา แล้วแก้คำที่คิดว่าไม่ถูกต้อง</div>
+  <div class="word-list"><h3>Words to Check</h3><div id="wordButtons"></div></div>
+  <div class="hud"><div class="progress-card"><div class="progress-title">Progress</div><div id="progressText" class="progress-text">0 / 10 confirmed</div></div><button id="submitBtn" class="submit" type="button" disabled>Submit</button></div>
+  <div id="loader" class="loader"><div class="loader-card"><h1>4.1 Supermarket Vocabulary Game</h1><p>Loading 3D model. Please wait...</p><div class="bar"><i id="barFill"></i></div><p id="loadText">0%</p></div></div>
+  <div id="editModal" class="modal"><div class="box"><h2>Edit Word</h2><p>ตรวจคำศัพท์นี้ ถ้าคิดว่าผิดให้แก้ไข แล้วกด Confirm</p><input id="editInput" class="edit-input" autocomplete="off" spellcheck="false" /><div class="actions"><button id="cancelBtn" class="btn secondary" type="button">Cancel</button><button id="saveBtn" class="btn primary" type="button">Confirm</button></div></div></div>
+  <div id="scoreModal" class="modal"><div class="box"><h2>Your Score</h2><div id="scoreText" class="score">0 / 10</div><p style="text-align:center">ระบบจะแสดงเฉพาะคะแนนรวม และไม่บอกว่าข้อไหนถูกหรือผิด</p><div class="actions"><button id="closeScoreBtn" class="btn primary" type="button">OK</button></div></div></div>
 
-  <!-- Top bar -->
-  <div class="game-topbar">
-    <a class="top-back" href="../" aria-label="Back to Part 4">← Part 4</a>
-    <div id="status" class="top-status" style="color:#18052b;background:#c084fc;box-shadow:0 8px 30px rgba(192,132,252,.2)">Loading</div>
-  </div>
-
-  <!-- Desktop help hint -->
-  <div class="game-help" aria-hidden="true">หมุน/ซูมฉากได้ · แตะป้ายหรือเลือกรายการด้านขวาเพื่อแก้คำ</div>
-
-  <!-- Word list panel -->
-  <div class="word-list" role="complementary" aria-label="Words to check">
-    <h3>Words to Check</h3>
-    <div id="wordButtons"></div>
-  </div>
-
-  <!-- HUD -->
-  <div class="game-hud">
-    <div class="progress-card">
-      <div class="progress-title">Progress</div>
-      <div id="progressText" class="progress-text">0 / 10 confirmed</div>
-    </div>
-    <button id="submitBtn" class="submit-btn" type="button" disabled aria-label="Submit answers">Submit</button>
-  </div>
-
-  <!-- Loader -->
-  <div id="loader" class="game-loader" role="status" aria-label="Loading 3D model">
-    <div class="game-loader-card">
-      <h1>4.1 Supermarket Vocabulary Game</h1>
-      <p>กำลังโหลด 3D model โปรดรอสักครู่…</p>
-      <div class="load-bar"><span id="barFill" class="load-bar-fill"></span></div>
-      <p id="loadText">0%</p>
-    </div>
-  </div>
-
-  <!-- Edit modal -->
-  <div id="editModal" class="modal-overlay" role="dialog" aria-modal="true" aria-label="Edit vocabulary word">
-    <div class="modal-box">
-      <h2>Edit Word</h2>
-      <p>ถ้าคิดว่าคำนี้สะกดผิด ให้แก้ไขแล้วกด Confirm</p>
-      <input id="editInput" class="modal-input" autocomplete="off" spellcheck="false"
-        aria-label="Enter corrected word" />
-      <div class="modal-actions">
-        <button id="cancelBtn" class="modal-btn modal-btn-ghost" type="button">Cancel</button>
-        <button id="saveBtn"   class="modal-btn modal-btn-primary" type="button">Confirm</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- Score modal -->
-  <div id="scoreModal" class="modal-overlay" role="dialog" aria-modal="true" aria-label="Your score">
-    <div class="modal-box">
-      <h2>Your Score</h2>
-      <div id="scoreText" class="score-display">0 / 10</div>
-      <p style="text-align:center;color:#94a3b8">ระบบแสดงเฉพาะคะแนนรวม ไม่บอกรายข้อ</p>
-      <div class="modal-actions">
-        <button id="closeScoreBtn" class="modal-btn modal-btn-primary" type="button">OK</button>
-      </div>
-    </div>
-  </div>
-
-  <script src="../../script.js"></script>
   <script>
-    'use strict';
     const DATA_URL = '../../assets/data/part4-1.json';
+    const app=document.getElementById('app');
+    const labelLayer=document.getElementById('labelLayer');
+    const labelDebug=document.getElementById('labelDebug');
+    const statusEl=document.getElementById('status');
+    const loaderEl=document.getElementById('loader');
+    const barFill=document.getElementById('barFill');
+    const loadText=document.getElementById('loadText');
+    const wordButtons=document.getElementById('wordButtons');
+    const progressText=document.getElementById('progressText');
+    const submitBtn=document.getElementById('submitBtn');
+    const editModal=document.getElementById('editModal');
+    const editInput=document.getElementById('editInput');
+    const cancelBtn=document.getElementById('cancelBtn');
+    const saveBtn=document.getElementById('saveBtn');
+    const scoreModal=document.getElementById('scoreModal');
+    const scoreText=document.getElementById('scoreText');
+    const closeScoreBtn=document.getElementById('closeScoreBtn');
 
-    // DOM refs
-    const appEl       = document.getElementById('app');
-    const statusEl    = document.getElementById('status');
-    const loaderEl    = document.getElementById('loader');
-    const barFill     = document.getElementById('barFill');
-    const loadText    = document.getElementById('loadText');
-    const wordButtons = document.getElementById('wordButtons');
-    const progressText = document.getElementById('progressText');
-    const submitBtn   = document.getElementById('submitBtn');
-    const editModal   = document.getElementById('editModal');
-    const editInput   = document.getElementById('editInput');
-    const cancelBtn   = document.getElementById('cancelBtn');
-    const saveBtn     = document.getElementById('saveBtn');
-    const scoreModal  = document.getElementById('scoreModal');
-    const scoreText   = document.getElementById('scoreText');
-    const closeScoreBtn = document.getElementById('closeScoreBtn');
+    function showLoadError(message){
+      console.error(message);
+      if(loadText)loadText.textContent=message;
+      if(barFill)barFill.style.width='100%';
+      if(statusEl)statusEl.textContent='Error';
+      if(loaderEl)loaderEl.style.display='flex';
+    }
 
-    let data       = null;
-    let activeItem = null;
-    const answers  = {};
-    const confirmed = new Set();
-    const sprites   = [];
-    const spriteById   = {};
-    const hitSpriteById = {};
-    const missingNodes  = [];
-    const createdLabels = [];
+    if(!window.THREE || !THREE.GLTFLoader || !THREE.OrbitControls){
+      showLoadError('3D library did not load. Please reload or open in Safari/Chrome.');
+      throw new Error('Three.js / GLTFLoader / OrbitControls missing');
+    }
 
-    // ----------------------------------------------------------------
-    // Three.js setup
-    // ----------------------------------------------------------------
-    const scene    = new THREE.Scene();
-    scene.background = new THREE.Color(0x07111f);
-    const camera   = new THREE.PerspectiveCamera(50, innerWidth / innerHeight, 0.01, 1000);
-    camera.position.set(6, 4, 8);
-    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false, powerPreference: 'high-performance' });
-    renderer.setSize(innerWidth, innerHeight);
-    renderer.setPixelRatio(Math.min(devicePixelRatio || 1, 1.5));
-    appEl.appendChild(renderer.domElement);
+    let data=null;
+    let activeItem=null;
+    const answers={};
+    const confirmed=new Set();
+    const labels=[];
+    const labelById={};
+    const missingNodes=[];
 
-    const controls = new THREE.OrbitControls(camera, renderer.domElement);
-    controls.enableDamping = true;
-    controls.dampingFactor  = 0.08;
-    controls.minDistance    = 1.5;
-    controls.maxDistance    = 28;
+    const scene=new THREE.Scene();
+    scene.background=new THREE.Color(0x07111f);
+    const camera=new THREE.PerspectiveCamera(50,window.innerWidth/window.innerHeight,0.01,1000);
+    camera.position.set(6,4,8);
+    const renderer=new THREE.WebGLRenderer({antialias:true,alpha:false,powerPreference:'high-performance'});
+    renderer.setSize(window.innerWidth,window.innerHeight);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,1.5));
+    app.appendChild(renderer.domElement);
 
-    scene.add(new THREE.HemisphereLight(0xffffff, 0x334155, 1.3));
-    const dir = new THREE.DirectionalLight(0xffffff, 1.2);
-    dir.position.set(4, 8, 5);
+    const controls=new THREE.OrbitControls(camera,renderer.domElement);
+    controls.enableDamping=true;
+    controls.dampingFactor=.08;
+    controls.minDistance=1.5;
+    controls.maxDistance=28;
+
+    scene.add(new THREE.HemisphereLight(0xffffff,0x334155,1.3));
+    const dir=new THREE.DirectionalLight(0xffffff,1.2);
+    dir.position.set(4,8,5);
     scene.add(dir);
 
-    const raycaster = new THREE.Raycaster();
-    const pointer   = new THREE.Vector2();
+    const raycaster=new THREE.Raycaster();
+    const pointer=new THREE.Vector2();
 
-    function setStatus(text) { statusEl.textContent = text; }
+    function setStatus(text){statusEl.textContent=text}
+    function normalize(text){return String(text||'').toLowerCase().replace(/[’]/g,"'").replace(/[–—]/g,'-').replace(/[.,!?]/g,'').replace(/\s+/g,' ').trim()}
+    function isCorrect(item,answer){const a=normalize(answer);return item.correctAnswers.some(v=>normalize(v)===a)}
 
-    function normalize(text) {
-      return String(text || '').toLowerCase()
-        .replace(/[']/g, "'").replace(/[–—]/g, '-')
-        .replace(/[.,!?]/g, '').replace(/\s+/g, ' ').trim();
+    function normalizeNodeName(text){
+      return String(text||'')
+        .toLowerCase()
+        .replace(/^_+/,'')
+        .replace(/[’']/g,"")
+        .replace(/[_\-–—]+/g,' ')
+        .replace(/[.,!?%]/g,'')
+        .replace(/\s+/g,' ')
+        .trim();
     }
 
-    function isCorrect(item, answer) {
-      const a = normalize(answer);
-      return item.correctAnswers.some(v => normalize(v) === a);
-    }
+    function findObjectByName(root,name){
+      const wanted=normalizeNodeName(name);
+      let exact=null;
+      let contains=null;
 
-    // ----------------------------------------------------------------
-    // FIX: showLoadError was missing in the original (caused silent failures)
-    // ----------------------------------------------------------------
-    function showLoadError(message) {
-      loaderEl.innerHTML = `
-        <div class="game-loader-card">
-          <h1>⚠️ Load Error</h1>
-          <p style="color:#fca5a5">${message}</p>
-          <p>Please reload the page and try again.</p>
-          <div class="modal-actions" style="margin-top:16px;justify-content:center">
-            <button onclick="location.reload()" class="modal-btn modal-btn-primary">Reload</button>
-          </div>
-        </div>`;
-    }
-
-    // ----------------------------------------------------------------
-    // Label texture
-    // ----------------------------------------------------------------
-    function roundRect(ctx, x, y, w, h, r) {
-      ctx.beginPath();
-      ctx.moveTo(x + r, y); ctx.arcTo(x + w, y, x + w, y + h, r);
-      ctx.arcTo(x + w, y + h, x, y + h, r); ctx.arcTo(x, y + h, x, y, r);
-      ctx.arcTo(x, y, x + w, y, r); ctx.closePath();
-    }
-
-    function makeLabelTexture(text, done = false) {
-      const canvas = document.createElement('canvas');
-      const ctx    = canvas.getContext('2d');
-      const label  = String(text || '').trim();
-
-      let fontSize = 54;
-      if (label.length > 16) fontSize = 46;
-      if (label.length > 24) fontSize = 38;
-      if (label.length > 32) fontSize = 32;
-
-      ctx.font = `900 ${fontSize}px system-ui, sans-serif`;
-      const padX = 38, padY = 24;
-      const metrics = ctx.measureText(label);
-      canvas.width  = Math.max(360, Math.ceil(metrics.width + padX * 2));
-      canvas.height = fontSize + padY * 2;
-
-      ctx.font        = `900 ${fontSize}px system-ui, sans-serif`;
-      ctx.fillStyle   = done ? 'rgba(22,101,52,.94)'    : 'rgba(15,23,42,.94)';
-      ctx.strokeStyle = done ? 'rgba(134,239,172,.98)' : 'rgba(251,191,36,.98)';
-      ctx.lineWidth   = 8;
-      roundRect(ctx, 4, 4, canvas.width - 8, canvas.height - 8, 24);
-      ctx.fill(); ctx.stroke();
-
-      ctx.textAlign    = 'center';
-      ctx.textBaseline = 'middle';
-      ctx.lineJoin     = 'round';
-      ctx.shadowColor   = 'rgba(0,0,0,.55)'; ctx.shadowBlur = 8;
-      ctx.shadowOffsetX = 3; ctx.shadowOffsetY = 4;
-      ctx.lineWidth     = Math.max(6, Math.round(fontSize * .14));
-      ctx.strokeStyle   = 'rgba(2,6,23,.96)';
-      ctx.strokeText(label, canvas.width / 2, canvas.height / 2 + 2);
-      ctx.shadowBlur = ctx.shadowOffsetX = ctx.shadowOffsetY = 0;
-      ctx.fillStyle = '#ffffff';
-      ctx.fillText(label, canvas.width / 2, canvas.height / 2 + 2);
-
-      const texture = new THREE.CanvasTexture(canvas);
-      texture.minFilter = texture.magFilter = THREE.LinearFilter;
-      texture.needsUpdate = true;
-      return { texture, aspect: canvas.width / canvas.height };
-    }
-
-    // ----------------------------------------------------------------
-    // Sprite management
-    // ----------------------------------------------------------------
-    function updateSprite(item) {
-      const sprite = spriteById[item.id]; if (!sprite) return;
-      const made   = makeLabelTexture(answers[item.id] || item.shownWord, confirmed.has(item.id));
-      if (sprite.material.map) sprite.material.map.dispose();
-      sprite.material.map = made.texture; sprite.material.needsUpdate = true;
-      const base = sprite.userData.baseScale || 1;
-      sprite.scale.set(base * made.aspect, base, 1);
-      const hit = hitSpriteById[item.id];
-      if (hit) hit.scale.set(base * made.aspect * 1.35, base * 1.65, 1);
-    }
-
-    function openEditor(item) {
-      activeItem   = item;
-      editInput.value = answers[item.id] || item.shownWord;
-      editModal.classList.add('show');
-      setTimeout(() => { editInput.focus(); editInput.select(); }, 80);
-    }
-    function closeEditor() { activeItem = null; editModal.classList.remove('show'); }
-    function saveAnswer() {
-      if (!activeItem) return;
-      answers[activeItem.id]  = editInput.value.trim() || activeItem.shownWord;
-      confirmed.add(activeItem.id);
-      updateSprite(activeItem);
-      renderWordButtons();
-      updateProgress();
-      closeEditor();
-    }
-
-    function renderWordButtons() {
-      wordButtons.innerHTML = '';
-      data.items.forEach(item => {
-        const btn = document.createElement('button');
-        btn.className   = 'word-btn' + (confirmed.has(item.id) ? ' done' : '');
-        btn.textContent = `${item.id}. ${answers[item.id] || item.shownWord}`;
-        btn.setAttribute('aria-label', `Edit word ${item.id}: ${answers[item.id] || item.shownWord}`);
-        btn.onclick = () => openEditor(item);
-        wordButtons.appendChild(btn);
+      root.traverse(o=>{
+        if(exact)return;
+        const n=normalizeNodeName(o.name);
+        if(!n)return;
+        if(n===wanted){
+          exact=o;
+          return;
+        }
+        if(!contains && (n.includes(wanted) || wanted.includes(n))){
+          contains=o;
+        }
       });
-    }
 
-    function updateProgress() {
-      progressText.textContent = `${confirmed.size} / ${data.items.length} confirmed`;
-      submitBtn.disabled        = confirmed.size !== data.items.length;
-    }
-
-    function submitScore() {
-      if (confirmed.size !== data.items.length) { alert('Please confirm all words first.'); return; }
-      let score = 0;
-      data.items.forEach(item => { if (isCorrect(item, answers[item.id] || item.shownWord)) score++; });
-      scoreText.textContent = `${score} / ${data.items.length}`;
-      scoreModal.classList.add('show');
-      // Save to localStorage
-      try {
-        localStorage.setItem('part4-1-score', JSON.stringify({
-          score, total: data.items.length, date: new Date().toISOString()
-        }));
-      } catch {}
-    }
-
-    // ----------------------------------------------------------------
-    // 3D helpers
-    // ----------------------------------------------------------------
-    function normalizeNode(text) {
-      return String(text || '').toLowerCase()
-        .replace(/^_+/, '').replace(/['']/g, '')
-        .replace(/[_\-–—]+/g, ' ').replace(/[.,!?%]/g, '')
-        .replace(/\s+/g, ' ').trim();
-    }
-
-    function findObjectByName(root, name) {
-      const want = normalizeNode(name);
-      let exact = null, contains = null;
-      root.traverse(o => {
-        if (exact) return;
-        const n = normalizeNode(o.name); if (!n) return;
-        if (n === want) { exact = o; return; }
-        if (!contains && (n.includes(want) || want.includes(n))) contains = o;
-      });
       return exact || contains;
     }
 
-    function hideObject(obj) {
-      obj.traverse(o => { if (o.isMesh) { o.visible = false; if (o.material) o.material.needsUpdate = true; } });
-      obj.visible = false;
+    function hideObject(obj){
+      obj.traverse(o=>{
+        if(o.isMesh){
+          o.visible=false;
+          if(o.material)o.material.needsUpdate=true;
+        }
+      });
+      obj.visible=false;
     }
 
-    function getObjectLocalCenter(root, obj, item) {
+    function getObjectAnchor(root,obj,item){
       root.updateMatrixWorld(true);
-      let box = new THREE.Box3().setFromObject(obj);
-      if (!isFinite(box.min.x) || box.isEmpty()) {
-        const wp = new THREE.Vector3(); obj.getWorldPosition(wp); return root.worldToLocal(wp);
+
+      const box=new THREE.Box3().setFromObject(obj);
+      let worldPos=new THREE.Vector3();
+
+      if(!isFinite(box.min.x) || box.isEmpty()){
+        obj.getWorldPosition(worldPos);
+      }else{
+        box.getCenter(worldPos);
+        const size=box.getSize(new THREE.Vector3());
+
+        // Lift label slightly above the original word/object and pull a little toward camera.
+        worldPos.y += Math.max(size.y*0.38,0.08);
+
+        const camPos=new THREE.Vector3();
+        camera.getWorldPosition(camPos);
+        const dir=camPos.sub(worldPos).normalize();
+        worldPos.add(dir.multiplyScalar(Math.max(size.length()*0.025,0.045)));
       }
-      const center = box.getCenter(new THREE.Vector3());
-      const size   = box.getSize(new THREE.Vector3());
-      center.y += Math.max(size.y * 0.38, 0.10);
-      const camDir = new THREE.Vector3();
-      camera.getWorldPosition(camDir); camDir.sub(center).normalize();
-      center.add(camDir.multiplyScalar(Math.max(size.length() * 0.03, 0.06)));
-      const local = root.worldToLocal(center.clone());
-      if (Array.isArray(item.offset)) {
-        local.x += Number(item.offset[0] || 0);
-        local.y += Number(item.offset[1] || 0);
-        local.z += Number(item.offset[2] || 0);
+
+      const local=root.worldToLocal(worldPos.clone());
+
+      if(Array.isArray(item.offset)){
+        local.x+=Number(item.offset[0]||0);
+        local.y+=Number(item.offset[1]||0);
+        local.z+=Number(item.offset[2]||0);
       }
+
       return local;
     }
 
-    function createEditableLabel(root, obj, item) {
-      const local = getObjectLocalCenter(root, obj, item);
-      const made  = makeLabelTexture(item.shownWord, false);
-      const mat   = new THREE.SpriteMaterial({ map: made.texture, transparent: true, depthTest: false, depthWrite: false, sizeAttenuation: true });
-      const sprite = new THREE.Sprite(mat);
-      sprite.position.copy(local);
-      const base = Number(item.scale || 0.78);
-      sprite.userData = { itemId: item.id, baseScale: base, nodeName: item.nodeName, isEditableLabel: true };
-      sprite.scale.set(base * made.aspect, base, 1);
-      sprite.renderOrder = 9999;
-      root.add(sprite);
+    function createEditableLabelForObject(root,obj,item,index=0){
+      const anchor=getObjectAnchor(root,obj,item);
+      const button=document.createElement('button');
+      button.type='button';
+      button.className='scene-label';
+      button.textContent=item.shownWord;
+      button.dataset.itemId=String(item.id);
+      button.addEventListener('pointerdown',event=>{
+        event.stopPropagation();
+      });
+      button.addEventListener('click',event=>{
+        event.preventDefault();
+        event.stopPropagation();
+        openEditor(item);
+      });
 
-      const hitMat    = new THREE.SpriteMaterial({ color: 0xffffff, transparent: true, opacity: 0.001, depthTest: false, depthWrite: false, sizeAttenuation: true });
-      const hitSprite = new THREE.Sprite(hitMat);
-      hitSprite.position.copy(local);
-      hitSprite.scale.set(base * made.aspect * 1.35, base * 1.65, 1);
-      hitSprite.userData = { itemId: item.id, isHitArea: true, labelSprite: sprite, nodeName: item.nodeName };
-      hitSprite.renderOrder = 9998;
-      root.add(hitSprite);
+      labelLayer.appendChild(button);
 
-      sprites.push(hitSprite, sprite);
-      spriteById[item.id]    = sprite;
-      hitSpriteById[item.id] = hitSprite;
-      createdLabels.push(item.nodeName);
+      labels.push({
+        item,
+        root,
+        anchor,
+        el:button,
+        visible:false
+      });
+
+      labelById[item.id]=button;
       hideObject(obj);
     }
 
-    // ----------------------------------------------------------------
-    // FIX: updateDebugLabels — original crashed because debugLabels was null
-    // ----------------------------------------------------------------
-    function updateDebugLabels() {
-      const total   = data && data.items ? data.items.length : 0;
-      const created = createdLabels.length;
-      console.log(`[Part 4.1] Labels: ${created} / ${total}` + (missingNodes.length ? ` | Missing: ${missingNodes.join(', ')}` : ''));
+    function updateSceneLabel(item){
+      const el=labelById[item.id];
+      if(!el)return;
+      el.textContent=answers[item.id]||item.shownWord;
+      el.classList.toggle('done',confirmed.has(item.id));
     }
 
-    function onPointerDown(event) {
-      const rect = renderer.domElement.getBoundingClientRect();
-      pointer.x  = ((event.clientX - rect.left) / rect.width)  * 2 - 1;
-      pointer.y  = -((event.clientY - rect.top)  / rect.height) * 2 + 1;
-      raycaster.setFromCamera(pointer, camera);
-      const hits = raycaster.intersectObjects(sprites, false);
-      if (hits.length) {
-        const item = data.items.find(v => v.id === hits[0].object.userData.itemId);
-        if (item) { openEditor(item); event.preventDefault(); }
+    function updateDebugLabels(){
+      const total=data&&data.items?data.items.length:0;
+      let text=`Labels: ${labels.length} / ${total}`;
+      if(missingNodes.length)text+=` | Missing: ${missingNodes.join(', ')}`;
+      labelDebug.textContent=text;
+    }
+
+    function rectsOverlap(a,b,pad=8){
+      return !(a.right+pad<b.left || a.left-pad>b.right || a.bottom+pad<b.top || a.top-pad>b.bottom);
+    }
+
+    function clamp(value,min,max){
+      return Math.max(min,Math.min(max,value));
+    }
+
+    function updateHtmlLabels(){
+      if(!labels.length)return;
+
+      const width=window.innerWidth;
+      const height=window.innerHeight;
+      const raw=[];
+
+      labels.forEach(label=>{
+        const world=label.anchor.clone();
+        label.root.localToWorld(world);
+
+        const projected=world.clone().project(camera);
+        const isVisible=projected.z>-1 && projected.z<1 &&
+          projected.x>-1.25 && projected.x<1.25 &&
+          projected.y>-1.25 && projected.y<1.25;
+
+        if(!isVisible){
+          label.el.classList.add('hidden');
+          label.visible=false;
+          return;
+        }
+
+        const x=(projected.x*0.5+0.5)*width;
+        const y=(-projected.y*0.5+0.5)*height;
+
+        label.el.classList.remove('hidden');
+        label.visible=true;
+
+        raw.push({label,x,y,z:projected.z});
+      });
+
+      // Spread labels around their original point in many directions,
+      // not only up/down. Also avoid Word List and bottom HUD.
+      raw.sort((a,b)=>a.y-b.y || a.z-b.z);
+
+      const margin=10;
+      const placed=[];
+
+      const forbiddenRects=[];
+      ['.word-list','.hud'].forEach(selector=>{
+        document.querySelectorAll(selector).forEach(el=>{
+          const style=window.getComputedStyle(el);
+          if(style.display==='none'||style.visibility==='hidden')return;
+
+          const rect=el.getBoundingClientRect();
+          if(rect.width<10||rect.height<10)return;
+
+          forbiddenRects.push({
+            left:rect.left-8,
+            right:rect.right+8,
+            top:rect.top-8,
+            bottom:rect.bottom+8
+          });
+        });
+      });
+
+      const candidateOffsets=[
+        [0,0],
+        [0,-44],[0,44],
+        [130,0],[-130,0],
+        [130,-44],[-130,-44],
+        [130,44],[-130,44],
+        [0,-88],[0,88],
+        [210,0],[-210,0],
+        [210,-44],[-210,-44],
+        [210,44],[-210,44],
+        [130,-88],[-130,-88],
+        [130,88],[-130,88],
+        [0,-132],[0,132],
+        [280,0],[-280,0],
+        [280,-60],[-280,-60],
+        [280,60],[-280,60]
+      ];
+
+      function scoreRect(rect,originalX,originalY){
+        let score=0;
+
+        placed.forEach(other=>{
+          if(rectsOverlap(rect,other,8))score+=10000;
+        });
+
+        forbiddenRects.forEach(other=>{
+          if(rectsOverlap(rect,other,10))score+=20000;
+        });
+
+        const cx=(rect.left+rect.right)/2;
+        const cy=(rect.top+rect.bottom)/2;
+        const dx=cx-originalX;
+        const dy=cy-originalY;
+
+        score+=Math.sqrt(dx*dx+dy*dy);
+
+        if(rect.left<margin||rect.right>width-margin||rect.top<margin||rect.bottom>height-margin){
+          score+=50000;
+        }
+
+        return score;
+      }
+
+      raw.forEach(entry=>{
+        const el=entry.label.el;
+        const rect=el.getBoundingClientRect();
+
+        const w=Math.max(rect.width||120,80);
+        const h=Math.max(rect.height||42,34);
+
+        let best=null;
+
+        candidateOffsets.forEach(([dx,dy])=>{
+          const cx=clamp(entry.x+dx,margin+w/2,width-margin-w/2);
+          const cy=clamp(entry.y+dy,margin+h/2,height-margin-h/2);
+
+          const candidate={
+            left:cx-w/2,
+            right:cx+w/2,
+            top:cy-h/2,
+            bottom:cy+h/2,
+            cx,
+            cy
+          };
+
+          const score=scoreRect(candidate,entry.x,entry.y);
+
+          if(!best||score<best.score){
+            best={...candidate,score};
+          }
+        });
+
+        if(best){
+          el.style.left=`${best.cx}px`;
+          el.style.top=`${best.cy}px`;
+
+          placed.push({
+            left:best.left,
+            right:best.right,
+            top:best.top,
+            bottom:best.bottom
+          });
+        }
+      });
+    }
+
+    function updateSprite(item){
+      updateSceneLabel(item);
+    }
+
+    function roundRect(ctx,x,y,w,h,r){
+      ctx.beginPath();
+      ctx.moveTo(x+r,y);
+      ctx.arcTo(x+w,y,x+w,y+h,r);
+      ctx.arcTo(x+w,y+h,x,y+h,r);
+      ctx.arcTo(x,y+h,x,y,r);
+      ctx.arcTo(x,y,x+w,y,r);
+      ctx.closePath();
+    }
+
+    function onPointerDown(event){}
+
+    async function init(){
+      try{
+      data=await fetch(DATA_URL,{cache:'no-store'}).then(r=>{if(!r.ok)throw new Error('Cannot load data: '+DATA_URL);return r.json()});
+      document.title=data.title;
+      renderWordButtons();updateProgress();
+      const modelUrl=new URL(data.model, window.location.href).href;
+      loadText.textContent='Starting model download...';
+
+      let loadStarted=false;
+      const stuckTimer=setTimeout(()=>{
+        if(!loadStarted){
+          showLoadError('Model download did not start. Check model path or network.');
+        }
+      },9000);
+
+      const loader=new THREE.GLTFLoader();
+      loader.load(modelUrl,(gltf)=>{
+        clearTimeout(stuckTimer);
+        const root=gltf.scene;
+        scene.add(root);
+        root.updateMatrixWorld(true);
+        data.items.forEach((item,index)=>{
+          answers[item.id]=item.shownWord;
+          const obj=findObjectByName(root,item.nodeName);
+          if(obj)createEditableLabelForObject(root,obj,item,index);
+          else{
+            console.warn('Missing node',item.nodeName);
+            missingNodes.push(item.nodeName);
+          }
+        });
+        updateDebugLabels();
+        centerModel(root);
+        loaderEl.style.display='none';
+        setStatus('Ready');
+        updateHtmlLabels();
+      },(xhr)=>{
+        loadStarted=true;
+        clearTimeout(stuckTimer);
+        if(xhr.total){
+          const pct=Math.max(1,Math.round(xhr.loaded/xhr.total*100));
+          barFill.style.width=pct+'%';
+          loadText.textContent=pct+'%';
+        }else{
+          loadText.textContent=`${Math.round(xhr.loaded/1024/1024)} MB loaded / preparing model...`;
+          barFill.style.width='35%';
+        }
+      },(err)=>{
+        clearTimeout(stuckTimer);
+        console.error(err);
+        showLoadError('Model load failed. Please reload or check GLB file.');
+      });
+      }catch(error){
+        showLoadError(error.message||'Page init failed');
       }
     }
 
-    function centerModel(root) {
-      const box    = new THREE.Box3().setFromObject(root);
-      const center = box.getCenter(new THREE.Vector3());
-      const size   = box.getSize(new THREE.Vector3());
-      const maxDim = Math.max(size.x, size.y, size.z);
-      const scale  = 8 / maxDim;
+    function centerModel(root){
+      const box=new THREE.Box3().setFromObject(root);
+      const center=box.getCenter(new THREE.Vector3());
+      const size=box.getSize(new THREE.Vector3());
+      const maxDim=Math.max(size.x,size.y,size.z);
+      const scale=8/maxDim;
       root.scale.setScalar(scale);
-      root.position.set(-center.x * scale, -center.y * scale, -center.z * scale);
-      camera.position.set(6, Math.max(3, size.y * scale * 0.55 + 2), 9);
-      controls.target.set(0, 0, 0);
+      root.position.set(-center.x*scale,-center.y*scale,-center.z*scale);
+      const scaledHeight=size.y*scale;
+      camera.position.set(6,Math.max(3,scaledHeight*.55+2),9);
+      controls.target.set(0,0,0);
       controls.update();
     }
 
-    async function init() {
-      try {
-        // FIX: removed cache: 'no-store'
-        data = await fetch(DATA_URL).then(r => {
-          if (!r.ok) throw new Error('Cannot load data: ' + DATA_URL);
-          return r.json();
-        });
-        document.title = data.title || '4.1 Supermarket Vocabulary Game';
-        renderWordButtons(); updateProgress();
+    function animate(){requestAnimationFrame(animate);controls.update();updateHtmlLabels();renderer.render(scene,camera)}
 
-        const modelUrl = new URL(data.model, location.href).href;
-        loadText.textContent = 'Starting model download…';
-
-        let loadStarted = false;
-        const stuckTimer = setTimeout(() => {
-          if (!loadStarted) showLoadError('Model download did not start. Check model path or network.');
-        }, 12000);
-
-        const loader = new THREE.GLTFLoader();
-        loader.load(modelUrl, gltf => {
-          clearTimeout(stuckTimer);
-          const root = gltf.scene;
-          scene.add(root); root.updateMatrixWorld(true);
-          data.items.forEach(item => {
-            answers[item.id] = item.shownWord;
-            const obj = findObjectByName(root, item.nodeName);
-            if (obj) createEditableLabel(root, obj, item);
-            else { console.warn('Missing node:', item.nodeName); missingNodes.push(item.nodeName); }
-          });
-          updateDebugLabels();
-          centerModel(root);
-          loaderEl.style.display = 'none';
-          setStatus('Ready — tap a label to edit');
-        }, xhr => {
-          loadStarted = true; clearTimeout(stuckTimer);
-          if (xhr.total) {
-            const pct = Math.max(1, Math.round(xhr.loaded / xhr.total * 100));
-            barFill.style.width = pct + '%'; loadText.textContent = pct + '%';
-          } else {
-            loadText.textContent = `${Math.round(xhr.loaded / 1024 / 1024)} MB loaded`;
-            barFill.style.width  = '35%';
-          }
-        }, err => { clearTimeout(stuckTimer); console.error(err); showLoadError('Model load failed. Please reload.'); });
-      } catch (error) {
-        showLoadError(error.message || 'Page init failed');
-      }
-    }
-
-    function animate() { requestAnimationFrame(animate); controls.update(); renderer.render(scene, camera); }
-
-    window.addEventListener('resize', () => {
-      camera.aspect = innerWidth / innerHeight;
-      camera.updateProjectionMatrix();
-      renderer.setSize(innerWidth, innerHeight);
-    });
-
-    renderer.domElement.addEventListener('pointerdown', onPointerDown);
-    cancelBtn.addEventListener('click', closeEditor);
-    saveBtn.addEventListener('click', saveAnswer);
-    editInput.addEventListener('keydown', e => {
-      if (e.key === 'Enter') saveAnswer();
-      if (e.key === 'Escape') closeEditor();
-    });
-    submitBtn.addEventListener('click', submitScore);
-    closeScoreBtn.addEventListener('click', () => scoreModal.classList.remove('show'));
+    window.addEventListener('resize',()=>{camera.aspect=window.innerWidth/window.innerHeight;camera.updateProjectionMatrix();renderer.setSize(window.innerWidth,window.innerHeight)});
+    cancelBtn.addEventListener('click',closeEditor);
+    saveBtn.addEventListener('click',saveAnswer);
+    editInput.addEventListener('keydown',e=>{if(e.key==='Enter')saveAnswer();if(e.key==='Escape')closeEditor()});
+    submitBtn.addEventListener('click',submitScore);
+    closeScoreBtn.addEventListener('click',()=>scoreModal.classList.remove('show'));
 
     animate();
     init();
