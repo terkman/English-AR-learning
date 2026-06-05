@@ -3,42 +3,43 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <title>Part 1 — AR Vocabulary Scanner</title>
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔎</text></svg>" />
+  <title>Part 1 — Word Hunter AR</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'></text></svg>" />
   <link rel="stylesheet" href="../style.css" />
   <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;900&display=swap" rel="stylesheet" />
 </head>
 <body class="submenu-page">
   <main class="submenu-wrap">
-    <a class="back-link" href="../index.html">← หน้าแรก</a>
+    <a class="back-link" href="../index.html">← Home</a>
 
-    <h1 class="submenu-title" style="color:#38bdf8">Part 1<br>ภาษาอังกฤษรอบตัวผ่านกล้อง AR</h1>
-    <p class="submenu-lead">เลือกแผนย่อย 1.1–1.3 · ทุกหน้าใช้ MindAR Image Tracking ต้องสร้างไฟล์ .mind ก่อนใช้งาน</p>
+    <h1 class="submenu-title" style="color:#38bdf8">Part 1<br>Word Hunter AR</h1>
+    <p class="submenu-lead">สแกนภาพ แล้วเรียนรู้คำศัพท์รอบตัว</p>
 
     <nav class="submenu-grid" aria-label="Part 1 activities">
       <a class="submenu-card" href="1.1/">
-        <span class="submenu-card-tag" style="background:#38bdf8;color:#00111f">1.1</span>
-        <h2>สแกนภาพขึ้นข้อความ</h2>
-        <p>สแกนภาพสถานการณ์จริง แล้วแสดงคำศัพท์/ข้อความภาษาอังกฤษเป็น AR text ลอยเหนือภาพ</p>
+        <span class="submenu-card-tag" style="background:#38bdf8;color:#00111f">Scan</span>
+        <h2>Word Pop</h2>
+        <p>สแกนภาพ แล้วดูคำศัพท์ลอยขึ้นบนหน้าจอ</p>
       </a>
+
       <a class="submenu-card" href="1.2/">
-        <span class="submenu-card-tag" style="background:#38bdf8;color:#00111f">1.2</span>
-        <h2>สแกนภาพขึ้นภาพ</h2>
-        <p>สแกนภาพข้อความที่เตรียมไว้ แล้วแสดงภาพบริบทผลลัพธ์เป็น AR image overlay</p>
+        <span class="submenu-card-tag" style="background:#38bdf8;color:#00111f">Picture</span>
+        <h2>Picture Reveal</h2>
+        <p>สแกนข้อความ แล้วดูภาพคำตอบที่เกี่ยวข้อง</p>
       </a>
+
       <a class="submenu-card" href="1.3/">
-        <span class="submenu-card-tag" style="background:#38bdf8;color:#00111f">1.3</span>
-        <h2>สแกนภาพขึ้นข้อความ + คำถาม</h2>
-        <p>สแกนภาพวัตถุ/ฉลาก แล้วแสดง 3D text พร้อมข้อสังเกตกระตุ้นความคิด</p>
+        <span class="submenu-card-tag" style="background:#38bdf8;color:#00111f">Question</span>
+        <h2>Question Clue</h2>
+        <p>สแกนภาพ แล้วดูคำถามสั้น ๆ เพื่อฝึกคิด</p>
       </a>
     </nav>
 
     <p class="submenu-note">
-      💡 หมายเหตุ: ถ้าเปิดแล้วขึ้น error "Cannot find .mind file" ให้สร้างไฟล์ target ด้วย
-      <strong>MindAR Compiler</strong> (<a href="https://hiukim.github.io/mind-ar-js-doc/tools/compile" target="_blank" rel="noopener" style="color:#38bdf8">hiukim.github.io</a>)
-      แล้ว save ไว้ใน <code>assets/targets/</code>
+      ต้องมีไฟล์ .mind ใน <code>assets/targets/</code> ก่อนใช้งาน
     </p>
   </main>
+
   <script src="../script.js"></script>
 </body>
 </html>

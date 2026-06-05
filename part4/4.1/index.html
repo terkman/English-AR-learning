@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover, user-scalable=no" />
-  <title>4.1 Supermarket Vocabulary Game</title>
+  <title>4.1 Market Word Check</title>
   <style>
     *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
     html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#050816;color:#fff;font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;touch-action:none}
@@ -45,7 +45,7 @@
     .scene-label{position:absolute;transform:translate(-50%,-50%);border:2px solid rgba(251,191,36,.98);border-radius:12px;background:rgba(15,23,42,.94);color:#fff;padding:8px 12px;font-size:clamp(13px,2.9vw,16px);font-weight:950;line-height:1.15;box-shadow:0 10px 24px rgba(0,0,0,.38);text-shadow:0 2px 4px rgba(0,0,0,.72);white-space:nowrap;pointer-events:auto;touch-action:manipulation;max-width:260px;overflow:hidden;text-overflow:ellipsis}
     .scene-label.done{background:rgba(22,101,52,.94);border-color:rgba(134,239,172,.98)}
     .scene-label.hidden{display:none}
-    .label-debug{position:fixed;left:12px;top:calc(58px + env(safe-area-inset-top));z-index:24;max-width:min(440px,calc(100vw - 24px));border:1px solid rgba(255,255,255,.14);border-radius:14px;background:rgba(2,6,23,.62);backdrop-filter:blur(10px);color:#dbeafe;padding:7px 10px;font-size:12px;font-weight:850;line-height:1.35;pointer-events:none}
+    .label-debug{display:none}
     @media(max-width:720px){.word-list{left:10px;right:10px;width:auto;top:auto;bottom:calc(86px + env(safe-area-inset-bottom));max-height:28vh}.help{display:none}.hud{grid-template-columns:1fr}.submit{width:100%}}
   </style>
   <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"></script>
@@ -57,13 +57,13 @@
   <div id="app"></div>
   <div id="labelLayer" class="label-layer"></div>
   <div id="labelDebug" class="label-debug">Labels: 0 / 0</div>
-  <div class="topbar"><a class="back" href="../">← Part 4</a><div id="status" class="status">Loading</div></div>
-  <div class="help">หมุน/ซูมฉากได้ แตะคำศัพท์บนฉากหรือเลือกรายการด้านขวา แล้วแก้คำที่คิดว่าไม่ถูกต้อง</div>
-  <div class="word-list"><h3>Words to Check</h3><div id="wordButtons"></div></div>
+  <div class="topbar"><a class="back" href="../">← 3D Word Detective</a><div id="status" class="status">Loading</div></div>
+  <div class="help">หมุนฉาก แตะป้าย แล้วแก้คำ</div>
+  <div class="word-list"><h3>Word List</h3><div id="wordButtons"></div></div>
   <div class="hud"><div class="progress-card"><div class="progress-title">Progress</div><div id="progressText" class="progress-text">0 / 10 confirmed</div></div><button id="submitBtn" class="submit" type="button" disabled>Submit</button></div>
-  <div id="loader" class="loader"><div class="loader-card"><h1 id="loaderTitle">4.1 Supermarket Vocabulary Game</h1><p>Loading 3D model. Please wait...</p><div class="bar"><i id="barFill"></i></div><p id="loadText">0%</p></div></div>
-  <div id="editModal" class="modal"><div class="box"><h2>Edit Word</h2><p>ตรวจคำศัพท์นี้ ถ้าคิดว่าผิดให้แก้ไข แล้วกด Confirm</p><input id="editInput" class="edit-input" autocomplete="off" spellcheck="false" /><div class="actions"><button id="cancelBtn" class="btn secondary" type="button">Cancel</button><button id="saveBtn" class="btn primary" type="button">Confirm</button></div></div></div>
-  <div id="scoreModal" class="modal"><div class="box"><h2>Your Score</h2><div id="scoreText" class="score">0 / 10</div><p style="text-align:center">ระบบจะแสดงเฉพาะคะแนนรวม และไม่บอกว่าข้อไหนถูกหรือผิด</p><div class="actions"><button id="closeScoreBtn" class="btn primary" type="button">OK</button></div></div></div>
+  <div id="loader" class="loader"><div class="loader-card"><h1 id="loaderTitle">4.1 Market Word Check</h1><p>Loading 3D Scene...</p><div class="bar"><i id="barFill"></i></div><p id="loadText">0%</p></div></div>
+  <div id="editModal" class="modal"><div class="box"><h2>Edit</h2><p>แก้คำ แล้วกด Confirm</p><input id="editInput" class="edit-input" autocomplete="off" spellcheck="false" /><div class="actions"><button id="cancelBtn" class="btn secondary" type="button">Cancel</button><button id="saveBtn" class="btn primary" type="button">Confirm</button></div></div></div>
+  <div id="scoreModal" class="modal"><div class="box"><h2>Score</h2><div id="scoreText" class="score">0 / 10</div><p style="text-align:center">แสดงคะแนนรวมเท่านั้น</p><div class="actions"><button id="closeScoreBtn" class="btn primary" type="button">OK</button></div></div></div>
 
   <script>
   const DATA_URL = '../../assets/data/part4-1.json';
@@ -454,8 +454,8 @@
   async function init(){
     try{
       data=await fetch(DATA_URL,{cache:'no-store'}).then(r=>{if(!r.ok)throw new Error('Cannot load data: '+DATA_URL);return r.json()});
-      document.title=data.title||document.title;
-      if(loaderTitle)loaderTitle.textContent=data.title||loaderTitle.textContent;
+      document.title='4.1 Market Word Check';
+      if(loaderTitle)loaderTitle.textContent='4.1 Market Word Check';
       renderWordButtons();
       updateProgress();
       loadText.textContent='Starting model download...';
