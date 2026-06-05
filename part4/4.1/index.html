@@ -383,24 +383,102 @@
 
     function onPointerDown(event){}
 
+    function buildModelSources(relativePath){
+      const sources=[];
+      const abs=new URL(relativePath, window.location.href);
+      const host=window.location.hostname;
+      const m=host.match(/^([^.]+)\.github\.io$/);
+      if(m){
+        const user=m[1];
+        const parts=window.location.pathname.split('/').filter(Boolean);
+        const repo=parts.length?parts[0]:'';
+        if(repo){
+          let repoPath=abs.pathname.replace('/'+repo+'/','').replace(/^\/+/,'');
+          sources.push('https://cdn.jsdelivr.net/gh/'+user+'/'+repo+'@main/'+repoPath);
+          sources.push('https://raw.githubusercontent.com/'+user+'/'+repo+'/main/'+repoPath);
+        }
+      }
+      sources.push(abs.href);
+      return sources;
+    }
+
+    async function fetchWithProgress(url,onProgress){
+      const controller=new AbortController();
+      let timer;
+      const STALL_MS=25000;
+      const resetTimer=()=>{clearTimeout(timer);timer=setTimeout(()=>controller.abort(),STALL_MS);};
+      resetTimer();
+      try{
+        const res=await fetch(url,{signal:controller.signal,mode:'cors'});
+        if(!res.ok)throw new Error('HTTP '+res.status);
+        const total=parseInt(res.headers.get('Content-Length')||'0',10);
+        if(!res.body){clearTimeout(timer);return await res.arrayBuffer();}
+        const reader=res.body.getReader();
+        const chunks=[];let received=0;
+        while(true){
+          const r=await reader.read();
+          if(r.done)break;
+          resetTimer();
+          chunks.push(r.value);received+=r.value.length;
+          onProgress(received,total);
+        }
+        clearTimeout(timer);
+        const out=new Uint8Array(received);let pos=0;
+        for(let i=0;i<chunks.length;i++){out.set(chunks[i],pos);pos+=chunks[i].length;}
+        return out.buffer;
+      }catch(e){
+        clearTimeout(timer);
+        if(e.name==='AbortError')throw new Error('connection stalled (no data for 25s)');
+        throw e;
+      }
+    }
+
+    async function loadModelBuffer(relativePath,onProgress){
+      const sources=buildModelSources(relativePath);
+      let lastErr;
+      for(let i=0;i<sources.length;i++){
+        try{
+          if(i>0)loadText.textContent='Trying backup source...';
+          return await fetchWithProgress(sources[i],onProgress);
+        }catch(e){
+          console.warn('Model source failed:',sources[i],e.message);
+          lastErr=e;
+        }
+      }
+      throw lastErr||new Error('All model sources failed');
+    }
+
     async function init(){
       try{
       data=await fetch(DATA_URL,{cache:'no-store'}).then(r=>{if(!r.ok)throw new Error('Cannot load data: '+DATA_URL);return r.json()});
       document.title=data.title;
       renderWordButtons();updateProgress();
-      const modelUrl=new URL(data.model, window.location.href).href;
       loadText.textContent='Starting model download...';
 
-      let loadStarted=false;
-      const stuckTimer=setTimeout(()=>{
-        if(!loadStarted){
-          showLoadError('Model download did not start. Check model path or network.');
-        }
-      },9000);
+      const APPROX_SIZE=20000000;
+      let buffer;
+      try{
+        buffer=await loadModelBuffer(data.model,(received,total)=>{
+          if(total){
+            const pct=Math.max(1,Math.round(received/total*100));
+            barFill.style.width=pct+'%';
+            loadText.textContent=pct+'%';
+          }else{
+            const mb=(received/1048576).toFixed(1);
+            barFill.style.width=Math.min(92,Math.round(received/APPROX_SIZE*100))+'%';
+            loadText.textContent=mb+' MB';
+          }
+        });
+      }catch(e){
+        console.error(e);
+        showLoadError('Model download failed: '+(e.message||'network error')+'. Please reload the page.');
+        return;
+      }
 
+      loadText.textContent='Preparing model...';
+      barFill.style.width='96%';
       const loader=new THREE.GLTFLoader();
-      loader.load(modelUrl,(gltf)=>{
-        clearTimeout(stuckTimer);
+      loader.parse(buffer,'',(gltf)=>{
         const root=gltf.scene;
         scene.add(root);
         root.updateMatrixWorld(true);
@@ -418,21 +496,9 @@
         loaderEl.style.display='none';
         setStatus('Ready');
         updateHtmlLabels();
-      },(xhr)=>{
-        loadStarted=true;
-        clearTimeout(stuckTimer);
-        if(xhr.total){
-          const pct=Math.max(1,Math.round(xhr.loaded/xhr.total*100));
-          barFill.style.width=pct+'%';
-          loadText.textContent=pct+'%';
-        }else{
-          loadText.textContent=`${Math.round(xhr.loaded/1024/1024)} MB loaded / preparing model...`;
-          barFill.style.width='35%';
-        }
       },(err)=>{
-        clearTimeout(stuckTimer);
         console.error(err);
-        showLoadError('Model load failed. Please reload or check GLB file.');
+        showLoadError('Model parsing failed. The GLB file may be corrupted.');
       });
       }catch(error){
         showLoadError(error.message||'Page init failed');
